@@ -87,33 +87,24 @@ class TestBacktestConfigCard:
         assert checkbox_found is not None
 
 
-class TestCodeViewerCard:
-    """Tests for CodeViewerCard component."""
+class TestCodeViewerContent:
+    """Tests for CodeViewer component."""
 
-    def test_create_code_viewer_card_returns_card(self):
-        """Test that create_code_viewer_card returns a dbc.Card."""
-        from app.dashboard.components.code_view import create_code_viewer_card
+    def test_create_code_viewer_content_returns_div(self):
+        """Test that create_code_viewer_content returns an html.Div."""
+        from app.dashboard.components.code_view import create_code_viewer_content
 
-        card = create_code_viewer_card()
-        assert isinstance(card, dbc.Card)
+        content = create_code_viewer_content()
+        assert isinstance(content, html.Div)
 
     def test_code_viewer_has_ace_editor(self):
-        """Test that the card contains an ace editor component."""
-        from app.dashboard.components.code_view import create_code_viewer_card
+        """Test that the content contains an ace editor component."""
+        from app.dashboard.components.code_view import create_code_viewer_content
 
-        card = create_code_viewer_card()
+        content = create_code_viewer_content()
 
-        ace_editor_found = _find_component_by_id(card, "ace-generated-code")
+        ace_editor_found = _find_component_by_id(content, "ace-generated-code")
         assert ace_editor_found is not None
-
-    def test_code_viewer_has_copy_button(self):
-        """Test that the card contains a copy button."""
-        from app.dashboard.components.code_view import create_code_viewer_card
-
-        card = create_code_viewer_card()
-
-        copy_btn_found = _find_component_by_id(card, "btn-copy-code")
-        assert copy_btn_found is not None
 
     def test_format_code_for_display(self):
         """Test that code formatting adds markdown code fence."""

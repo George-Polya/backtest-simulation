@@ -7,96 +7,61 @@ with syntax highlighting and user code input functionality.
 
 import dash_ace
 import dash_bootstrap_components as dbc
-from dash import dcc, html
+from dash import html
 
 
-def create_code_viewer_card() -> dbc.Card:
+def create_code_viewer_content() -> html.Div:
     """
-    Create the Code Viewer Card component.
+    Create the Code Viewer content.
 
     Displays generated Python code with syntax highlighting,
-    model information, and allows user to input custom code.
+    model information, and allows user to edit code.
 
     Returns:
-        Dash Bootstrap Card component for code viewing.
+        Div containing code viewer elements.
     """
-    return dbc.Card(
+    return html.Div(
         [
-            dbc.CardHeader(
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            [
-                                html.I(className="fas fa-code me-2"),
-                                "Backtest Code",
-                            ],
-                            width="auto",
-                        ),
-                        dbc.Col(
-                            dbc.Button(
-                                [
-                                    html.I(className="fas fa-copy me-1"),
-                                    "Copy",
-                                ],
-                                id="btn-copy-code",
-                                color="outline-secondary",
-                                size="sm",
-                                disabled=True,
-                            ),
-                            width="auto",
-                            className="ms-auto",
-                        ),
-                    ],
-                    className="align-items-center",
+            # Model info badge (hidden by default)
+            html.Div(
+                id="div-model-info",
+                className="mb-2",
+                style={"display": "none"},
+            ),
+            # Strategy summary
+            html.Div(
+                id="div-strategy-summary",
+                className="mb-3",
+                style={"display": "none"},
+            ),
+            # Code Editor
+            html.Div(
+                dash_ace.DashAceEditor(
+                    id="ace-generated-code",
+                    value="# No code generated yet.\n# Enter a strategy and click 'Generate Code'.",
+                    mode="python",
+                    theme="github",
+                    fontSize=14,
+                    showPrintMargin=False,
+                    showGutter=True,
+                    highlightActiveLine=True,
+                    wrapEnabled=True,
+                    style={
+                        "height": "400px",
+                        "width": "100%",
+                        "borderRadius": "0.375rem",
+                        "border": "1px solid #dee2e6",
+                    },
                 ),
-                className="fw-bold",
+                className="mt-2",
             ),
-            dbc.CardBody(
-                [
-                    # Model info badge (hidden by default)
-                    html.Div(
-                        id="div-model-info",
-                        className="mb-2",
-                        style={"display": "none"},
-                    ),
-                    # Strategy summary
-                    html.Div(
-                        id="div-strategy-summary",
-                        className="mb-3",
-                        style={"display": "none"},
-                    ),
-                    # Code Editor
-                    html.Div(
-                        dash_ace.DashAceEditor(
-                            id="ace-generated-code",
-                            value="# No code generated yet.\n# Enter a strategy and click 'Generate Code'.",
-                            mode="python",
-                            theme="monokai",
-                            fontSize=14,
-                            showPrintMargin=False,
-                            showGutter=True,
-                            highlightActiveLine=True,
-                            wrapEnabled=True,
-                            style={
-                                "height": "400px",
-                                "width": "100%",
-                                "borderRadius": "0.375rem",
-                            },
-                        ),
-                        className="mt-3",
-                    ),
-                    # Generation time info
-                    html.Div(
-                        id="div-generation-info",
-                        className="mt-2 small text-muted",
-                        style={"display": "none"},
-                    ),
-                    # Copy success toast
-                    dcc.Store(id="store-copy-trigger", data=0),
-                ]
+            # Generation time info
+            html.Div(
+                id="div-generation-info",
+                className="mt-2 small text-muted",
+                style={"display": "none"},
             ),
-        ],
-        className="shadow-sm h-100",
+        ]
     )
 
 

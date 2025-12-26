@@ -203,10 +203,9 @@ def _create_code_viewer_section() -> dbc.Card:
     """
     Create the code viewer section.
 
-    Uses CodeViewerCard from components/code_view.py.
-    Collapsible on mobile for better UX.
+    Single card containing code editor with collapsible body.
     """
-    from app.dashboard.components.code_view import create_code_viewer_card
+    from app.dashboard.components.code_view import create_code_viewer_content
 
     return dbc.Card(
         [
@@ -238,8 +237,8 @@ def _create_code_viewer_section() -> dbc.Card:
             ),
             dbc.Collapse(
                 dbc.CardBody(
-                    create_code_viewer_card(),
-                    className="p-2",
+                    create_code_viewer_content(),
+                    className="p-3",
                 ),
                 id="collapse-code-viewer",
                 is_open=True,

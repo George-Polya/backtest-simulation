@@ -88,7 +88,6 @@ def _register_generate_callback(app: dash.Dash) -> None:
             Output("div-generation-info", "children"),
             Output("div-generation-info", "style"),
             Output("btn-execute", "disabled"),
-            Output("btn-copy-code", "disabled"),
             Output("div-status-message", "children"),
             Output("btn-generate", "disabled"),
             Output("icon-generate", "className"),
@@ -142,7 +141,6 @@ def _register_generate_callback(app: dash.Dash) -> None:
                 no_update,  # div-generation-info children
                 no_update,  # div-generation-info style
                 True,  # btn-execute disabled
-                True,  # btn-copy-code disabled
                 dbc.Alert(validation_error, color="danger"),  # div-status-message
                 False,  # btn-generate disabled (re-enable)
                 "fas fa-code me-2",  # icon-generate className (restore)
@@ -220,7 +218,6 @@ def _register_generate_callback(app: dash.Dash) -> None:
                     gen_info,  # gen info
                     {"display": "block"},  # gen info style
                     False,  # execute button enabled
-                    False,  # copy button enabled
                     dbc.Alert(
                         [
                             html.I(className="fas fa-check-circle me-2"),
@@ -244,7 +241,6 @@ def _register_generate_callback(app: dash.Dash) -> None:
                     no_update,
                     no_update,
                     True,
-                    True,
                     dbc.Alert(
                         [
                             html.I(className="fas fa-exclamation-circle me-2"),
@@ -267,7 +263,6 @@ def _register_generate_callback(app: dash.Dash) -> None:
                 no_update,
                 no_update,
                 True,
-                True,
                 dbc.Alert(
                     [
                         html.I(className="fas fa-clock me-2"),
@@ -289,7 +284,6 @@ def _register_generate_callback(app: dash.Dash) -> None:
                 no_update,
                 no_update,
                 no_update,
-                True,
                 True,
                 dbc.Alert(
                     [
