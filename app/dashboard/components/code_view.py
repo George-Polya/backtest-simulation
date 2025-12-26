@@ -65,100 +65,25 @@ def create_code_viewer_card() -> dbc.Card:
                         className="mb-3",
                         style={"display": "none"},
                     ),
-                    # Tabs for Generated Code vs User Code
-                    dbc.Tabs(
-                        [
-                            dbc.Tab(
-                                label="Generated Code",
-                                tab_id="tab-generated",
-                                children=[
-                                    html.Div(
-                                        dash_ace.DashAceEditor(
-                                            id="ace-generated-code",
-                                            value="# No code generated yet.\n# Enter a strategy and click 'Generate Code'.",
-                                            mode="python",
-                                            theme="monokai",
-                                            fontSize=14,
-                                            showPrintMargin=False,
-                                            showGutter=True,
-                                            highlightActiveLine=True,
-                                            wrapEnabled=True,
-                                            style={
-                                                "height": "400px",
-                                                "width": "100%",
-                                                "borderRadius": "0.375rem",
-                                            },
-                                        ),
-                                        className="mt-3",
-                                    ),
-                                ],
-                            ),
-                            dbc.Tab(
-                                label="Custom Code",
-                                tab_id="tab-custom",
-                                children=[
-                                    html.Div(
-                                        [
-                                            dbc.Label(
-                                                "Enter your Python backtest code:",
-                                                className="small text-muted",
-                                            ),
-                                            dbc.Textarea(
-                                                id="textarea-custom-code",
-                                                placeholder='''# Example backtest code
-def run_backtest(params):
-    """
-    Run backtest with the given parameters.
-    
-    Args:
-        params: Dictionary with start_date, end_date, tickers, initial_capital, etc.
-    
-    Returns:
-        Dictionary with backtest results.
-    """
-    import pandas as pd
-    
-    # Load data using the injected load_data function
-    data = load_data(
-        params.get("tickers", ["SPY"]),
-        params.get("start_date", "2020-01-01"),
-        params.get("end_date", "2020-12-31")
-    )
-    
-    # Your strategy logic here
-    result = {
-        "total_return": 0.15,
-        "sharpe_ratio": 1.2,
-        "max_drawdown": -0.10,
-    }
-    
-    return result
-''',
-                                                style={
-                                                    "minHeight": "350px",
-                                                    "maxHeight": "500px",
-                                                    "fontFamily": "monospace",
-                                                    "fontSize": "0.875rem",
-                                                    "backgroundColor": "#1e1e1e",
-                                                    "color": "#d4d4d4",
-                                                },
-                                                className="form-control",
-                                            ),
-                                            dbc.FormText(
-                                                "Enter your custom backtest code. "
-                                                "Use the load_data() function to access market data. "
-                                                "Define a run_backtest(params) function to return results.",
-                                                className="mt-2",
-                                            ),
-                                        ],
-                                        className="mt-3",
-                                    ),
-                                ],
-                            ),
-                        ],
-                        id="tabs-code",
-                        active_tab="tab-generated",
-                        className="nav-pills",
+                    # Code Editor
+                    html.Div(
+                        dash_ace.DashAceEditor(
+                            id="ace-generated-code",
+                            value="# No code generated yet.\n# Enter a strategy and click 'Generate Code'.",
+                            mode="python",
+                            theme="monokai",
+                            fontSize=14,
+                            showPrintMargin=False,
+                            showGutter=True,
+                            highlightActiveLine=True,
+                            wrapEnabled=True,
+                            style={
+                                "height": "400px",
+                                "width": "100%",
+                                "borderRadius": "0.375rem",
+                            },
+                        ),
+                        className="mt-3",
                     ),
                     # Generation time info
                     html.Div(
@@ -168,8 +93,6 @@ def run_backtest(params):
                     ),
                     # Copy success toast
                     dcc.Store(id="store-copy-trigger", data=0),
-                    # Store active tab
-                    dcc.Store(id="store-active-code-tab", data="tab-generated"),
                 ]
             ),
         ],

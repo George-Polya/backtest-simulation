@@ -317,8 +317,6 @@ def _register_execute_callback(app: dash.Dash) -> None:
         [
             State("store-generated-code", "data"),
             State("ace-generated-code", "value"),
-            State("tabs-code", "active_tab"),
-            State("textarea-custom-code", "value"),
             State("datepicker-range", "start_date"),
             State("datepicker-range", "end_date"),
             State("input-capital", "value"),
@@ -335,8 +333,6 @@ def _register_execute_callback(app: dash.Dash) -> None:
         n_clicks: int,
         generated_code_data: dict | None,
         ace_generated_code: str | None,
-        active_tab: str,
-        custom_code: str | None,
         start_date: str,
         end_date: str,
         initial_capital: float,
@@ -351,13 +347,8 @@ def _register_execute_callback(app: dash.Dash) -> None:
         if not n_clicks:
             raise PreventUpdate
 
-        # Determine which code to use based on active tab
-        if active_tab == "tab-custom" and custom_code and custom_code.strip():
-            # Use custom code from user
-            code = custom_code.strip()
-            # Extract tickers from benchmarks for custom code
-            tickers = [b.strip().upper() for b in benchmarks.split(",") if b.strip()]
-        elif ace_generated_code and ace_generated_code.strip():
+        # Use generated code (possibly modified by user in ace editor)
+        if ace_generated_code and ace_generated_code.strip():
             # Use generated code (possibly modified by user in ace editor)
             code = ace_generated_code.strip()
             # Get tickers from store if available, otherwise from benchmarks
@@ -370,7 +361,7 @@ def _register_execute_callback(app: dash.Dash) -> None:
                 no_update,
                 True,  # Keep polling disabled
                 dbc.Alert(
-                    "No code to execute. Generate code or enter custom code in the 'Custom Code' tab.",
+                    "No code to execute. Please generate code first.",
                     color="warning"
                 ),
             )
