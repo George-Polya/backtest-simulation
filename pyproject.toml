@@ -25,6 +25,10 @@ dependencies = [
     "dash>=2.18.0",
     "dash-bootstrap-components>=1.6.0",
     "plotly>=5.24.0",
+    # Database dependencies
+    "supabase>=2.0.0",
+    # Market calendar for trading day detection (supports 1950+, 203 exchanges)
+    "pandas_market_calendars>=4.4.0",
 ]
 
 [project.optional-dependencies]

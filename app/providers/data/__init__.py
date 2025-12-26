@@ -29,6 +29,7 @@ from app.providers.data.fallback import (
     get_resilient_data_provider,
 )
 from app.providers.data.mock import MockDataConfig, MockDataProvider
+from app.providers.data.supabase import SupabaseDataProvider
 from app.providers.data.yfinance import YFinanceDataProvider
 
 __all__ = [
@@ -48,6 +49,7 @@ __all__ = [
     "DataUnavailableError",
     # Implementations
     "YFinanceDataProvider",
+    "SupabaseDataProvider",
     "MockDataProvider",
     "MockDataConfig",
     # Factory and utilities

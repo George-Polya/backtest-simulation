@@ -29,6 +29,7 @@ class DataProvider(str, Enum):
 
     YFINANCE = "yfinance"
     MOCK = "mock"
+    SUPABASE = "supabase"
 
 
 class ExecutionProvider(str, Enum):
@@ -281,6 +282,16 @@ class Settings(BaseSettings):
     openai_api_key: str = Field(
         default="",
         description="OpenAI API key",
+    )
+
+    # Supabase credentials (from .env)
+    supabase_url: str = Field(
+        default="",
+        description="Supabase project URL",
+    )
+    supabase_anon_key: str = Field(
+        default="",
+        description="Supabase anonymous key",
     )
 
     # Configuration sections (from config.yaml)

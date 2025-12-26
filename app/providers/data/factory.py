@@ -26,6 +26,7 @@ from app.providers.data.base import (
     TickerInfo,
 )
 from app.providers.data.mock import MockDataProvider
+from app.providers.data.supabase import SupabaseDataProvider
 from app.providers.data.yfinance import YFinanceDataProvider
 
 logger = logging.getLogger(__name__)
@@ -336,10 +337,21 @@ def _create_mock_provider(settings: Settings) -> DataProvider:
     return MockDataProvider()
 
 
+def _create_supabase_provider(settings: Settings) -> DataProvider:
+    """Create Supabase data provider with YFinance fallback."""
+    yfinance_fallback = YFinanceDataProvider()
+    return SupabaseDataProvider(
+        supabase_url=settings.supabase_url,
+        supabase_key=settings.supabase_anon_key,
+        fallback_provider=yfinance_fallback,
+    )
+
+
 # Initialize registry
 _PROVIDER_REGISTRY = {
     DataProviderEnum.YFINANCE: _create_yfinance_provider,
     DataProviderEnum.MOCK: _create_mock_provider,
+    DataProviderEnum.SUPABASE: _create_supabase_provider,
 }
 
 

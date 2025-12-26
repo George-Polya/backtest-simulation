@@ -148,13 +148,29 @@ class Container:
             provider_type = self.settings.data.provider
 
             if provider_type == DataProviderEnum.MOCK:
-                # Mock provider for testing (to be implemented)
-                raise NotImplementedError("Mock data provider not yet implemented")
+                from app.providers.data.mock import MockDataProvider
+
+                self._data_provider = MockDataProvider()
 
             elif provider_type == DataProviderEnum.YFINANCE:
                 from app.providers.data.yfinance import YFinanceDataProvider
 
                 self._data_provider = YFinanceDataProvider()
+                await self._data_provider.initialize()
+
+            elif provider_type == DataProviderEnum.SUPABASE:
+                from app.providers.data.supabase import SupabaseDataProvider
+                from app.providers.data.yfinance import YFinanceDataProvider
+
+                # Supabase with YFinance fallback
+                yfinance_fallback = YFinanceDataProvider()
+                await yfinance_fallback.initialize()
+
+                self._data_provider = SupabaseDataProvider(
+                    supabase_url=self.settings.supabase_url,
+                    supabase_key=self.settings.supabase_anon_key,
+                    fallback_provider=yfinance_fallback,
+                )
                 await self._data_provider.initialize()
 
             else:
