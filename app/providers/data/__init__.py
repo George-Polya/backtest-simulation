@@ -28,8 +28,6 @@ from app.providers.data.fallback import (
     FallbackDataProvider,
     get_resilient_data_provider,
 )
-from app.providers.data.kis import KISDataProvider
-from app.providers.data.kis_auth import KISAuthManager
 from app.providers.data.mock import MockDataConfig, MockDataProvider
 from app.providers.data.yfinance import YFinanceDataProvider
 
@@ -49,8 +47,6 @@ __all__ = [
     "InvalidDateRangeError",
     "DataUnavailableError",
     # Implementations
-    "KISDataProvider",
-    "KISAuthManager",
     "YFinanceDataProvider",
     "MockDataProvider",
     "MockDataConfig",

@@ -169,7 +169,7 @@ class DataProvider(ABC):
     """
     Abstract base class for data providers.
 
-    All concrete data provider adapters (KIS, YFinance, etc.) must implement
+    All concrete data provider adapters (YFinance, Mock, etc.) must implement
     this interface to ensure consistent behavior across providers.
 
     The interface follows the Dependency Inversion Principle (DIP):
@@ -177,13 +177,13 @@ class DataProvider(ABC):
     - Low-level modules (adapters) implement this abstraction
 
     Example:
-        class KISDataProvider(DataProvider):
+        class YFinanceDataProvider(DataProvider):
             async def get_daily_prices(self, ticker, start_date, end_date):
                 # Implementation
                 ...
 
             def get_provider_name(self) -> str:
-                return "kis"
+                return "yfinance"
     """
 
     @abstractmethod
@@ -285,7 +285,7 @@ class DataProvider(ABC):
         Get the provider name.
 
         Returns:
-            Provider identifier string (e.g., "kis", "yfinance")
+            Provider identifier string (e.g., "yfinance", "mock")
         """
         ...
 

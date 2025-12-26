@@ -638,8 +638,8 @@ class JobManager:
 
         data: dict[str, pd.DataFrame] = {}
 
-        # Fetch tickers sequentially with delay to avoid KIS API rate limiting
-        # KIS API has a limit of ~1 request per second
+        # Fetch tickers sequentially with delay to avoid API rate limiting
+        # Most data providers have rate limits (~1 request per second)
         for i, ticker in enumerate(tickers):
             try:
                 # Add delay between requests (skip first)

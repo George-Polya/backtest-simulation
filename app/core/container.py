@@ -135,7 +135,7 @@ class Container:
         Get or create the data provider.
 
         The provider is lazily initialized on first access.
-        Uses settings to determine which provider to create (KIS, YFinance, etc.).
+        Uses settings to determine which provider to create (YFinance, Mock).
 
         Returns:
             DataProvider instance (singleton per container)
@@ -147,19 +147,7 @@ class Container:
         if self._data_provider is None:
             provider_type = self.settings.data.provider
 
-            if provider_type == DataProviderEnum.KIS:
-                from app.providers.data.kis import KISDataProvider
-
-                kis_config = self.settings.get_kis_config()
-                self._data_provider = KISDataProvider(
-                    config=kis_config,
-                    is_paper=True,  # Use paper trading mode (모의투자)
-                    http_client=self.get_http_client(),
-                )
-                # Initialize the provider (authenticate)
-                await self._data_provider.initialize()
-
-            elif provider_type == DataProviderEnum.MOCK:
+            if provider_type == DataProviderEnum.MOCK:
                 # Mock provider for testing (to be implemented)
                 raise NotImplementedError("Mock data provider not yet implemented")
 

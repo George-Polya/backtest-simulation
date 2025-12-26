@@ -419,21 +419,21 @@ class TestExceptions:
 
     def test_data_provider_error(self) -> None:
         """Test DataProviderError."""
-        error = DataProviderError("Something went wrong", provider="kis")
+        error = DataProviderError("Something went wrong", provider="yfinance")
         assert str(error) == "Something went wrong"
-        assert error.provider == "kis"
+        assert error.provider == "yfinance"
 
     def test_ticker_not_found_error(self) -> None:
         """Test TickerNotFoundError."""
-        error = TickerNotFoundError("INVALID", provider="kis")
+        error = TickerNotFoundError("INVALID", provider="yfinance")
         assert "INVALID" in str(error)
         assert error.ticker == "INVALID"
-        assert error.provider == "kis"
+        assert error.provider == "yfinance"
         assert isinstance(error, DataProviderError)
 
     def test_authentication_error(self) -> None:
         """Test AuthenticationError."""
-        error = AuthenticationError("Invalid API key", provider="kis")
+        error = AuthenticationError("Invalid API key", provider="yfinance")
         assert "Invalid API key" in str(error)
         assert isinstance(error, DataProviderError)
 
@@ -441,11 +441,11 @@ class TestExceptions:
         """Test RateLimitError."""
         error = RateLimitError(
             "Rate limited",
-            provider="kis",
+            provider="yfinance",
             retry_after=60.0,
         )
         assert error.retry_after == 60.0
-        assert error.provider == "kis"
+        assert error.provider == "yfinance"
         assert isinstance(error, DataProviderError)
 
     def test_invalid_date_range_error(self) -> None:
@@ -454,7 +454,7 @@ class TestExceptions:
             start_date=date(2024, 12, 31),
             end_date=date(2024, 1, 1),
             reason="Start date after end date",
-            provider="kis",
+            provider="yfinance",
         )
         assert "2024-12-31" in str(error)
         assert "2024-01-01" in str(error)

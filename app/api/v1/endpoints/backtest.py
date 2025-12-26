@@ -193,7 +193,7 @@ class DataSourceInfo(BaseModel):
     Information about an available data source.
 
     Attributes:
-        name: Data source name (e.g., "kis", "yfinance").
+        name: Data source name (e.g., "yfinance", "mock").
         description: Brief description of the data source.
         supported_exchanges: List of supported exchanges.
     """
@@ -1034,10 +1034,6 @@ async def get_data_sources() -> ConfigProvidersResponse:
 
     # Data source descriptions and supported exchanges
     source_info = {
-        "kis": {
-            "description": "Korea Investment & Securities - Korean and US market data",
-            "exchanges": ["KRX", "NASDAQ", "NYSE", "AMEX"],
-        },
         "yfinance": {
             "description": "Yahoo Finance - Global market data and historical prices",
             "exchanges": ["NYSE", "NASDAQ", "LSE", "TSE", "HKEX"],

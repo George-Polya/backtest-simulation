@@ -27,7 +27,6 @@ class LLMProvider(str, Enum):
 class DataProvider(str, Enum):
     """Supported data providers."""
 
-    KIS = "kis"
     YFINANCE = "yfinance"
     MOCK = "mock"
 
@@ -106,61 +105,6 @@ class LLMConfig(BaseModel):
     )
 
 
-class KISConfig(BaseModel):
-    """
-    KIS API configuration loaded from kis_devlp.yaml.
-
-    Matches the existing kis_devlp.yaml format used throughout the project.
-    """
-
-    # 실전투자 credentials
-    my_app: str = Field(default="", description="실전투자 앱키")
-    my_sec: str = Field(default="", description="실전투자 앱키 시크릿")
-
-    # 모의투자 credentials
-    paper_app: str = Field(default="", description="모의투자 앱키")
-    paper_sec: str = Field(default="", description="모의투자 앱키 시크릿")
-
-    # Account info
-    my_htsid: str = Field(default="", description="HTS ID")
-    my_acct_stock: str = Field(default="", description="증권계좌 8자리")
-    my_acct_future: str = Field(default="", description="선물옵션계좌 8자리")
-    my_paper_stock: str = Field(default="", description="모의투자 증권계좌 8자리")
-    my_paper_future: str = Field(default="", description="모의투자 선물옵션계좌 8자리")
-    my_prod: str = Field(default="01", description="계좌번호 뒤 2자리")
-
-    # Domain URLs
-    prod: str = Field(
-        default="https://openapi.koreainvestment.com:9443",
-        description="실전투자 서비스 URL",
-    )
-    vps: str = Field(
-        default="https://openapivts.koreainvestment.com:29443",
-        description="모의투자 서비스 URL",
-    )
-    ops: str = Field(
-        default="ws://ops.koreainvestment.com:21000",
-        description="실전투자 웹소켓 URL",
-    )
-    vops: str = Field(
-        default="ws://ops.koreainvestment.com:31000",
-        description="모의투자 웹소켓 URL",
-    )
-
-    my_token: str = Field(default="", description="인증 토큰")
-    my_agent: str = Field(default="", description="User-Agent")
-
-    @classmethod
-    def from_yaml(cls, config_path: Path | str) -> "KISConfig":
-        """Load KIS config from kis_devlp.yaml file."""
-        config_path = Path(config_path)
-        if config_path.exists():
-            with open(config_path, encoding="utf-8") as f:
-                data = yaml.safe_load(f) or {}
-            return cls(**data)
-        return cls()
-
-
 class DataConfig(BaseModel):
     """
     Data provider configuration.
@@ -171,10 +115,8 @@ class DataConfig(BaseModel):
 
     Example config.yaml:
         data:
-          provider: kis
-          is_paper: true  # Use paper trading mode for KIS
+          provider: yfinance
           fallback_providers:
-            - yfinance
             - mock
           cache_ttl_seconds: 300
           enable_caching: true
@@ -183,12 +125,8 @@ class DataConfig(BaseModel):
     """
 
     provider: DataProvider = Field(
-        default=DataProvider.KIS,
+        default=DataProvider.YFINANCE,
         description="Primary data provider to use",
-    )
-    is_paper: bool = Field(
-        default=False,
-        description="Use paper trading mode for KIS API (모의투자)",
     )
     fallback_providers: list[DataProvider] = Field(
         default_factory=list,
@@ -215,11 +153,6 @@ class DataConfig(BaseModel):
         le=30.0,
         description="Delay between retry attempts in seconds",
     )
-    kis_config_path: str = Field(
-        default="kis_devlp.yaml",
-        description="Path to KIS configuration file (kis_devlp.yaml)",
-    )
-    _kis_config: KISConfig | None = None
 
     @field_validator("fallback_providers")
     @classmethod
@@ -252,26 +185,6 @@ class DataConfig(BaseModel):
             if fb not in providers:
                 providers.append(fb)
         return providers
-
-    def get_kis_config(self, base_path: Path | None = None) -> KISConfig:
-        """
-        Load and cache KIS configuration from kis_devlp.yaml.
-
-        Args:
-            base_path: Base path to resolve kis_config_path. Defaults to cwd.
-
-        Returns:
-            KISConfig loaded from kis_devlp.yaml.
-        """
-        if self._kis_config is None:
-            if base_path is None:
-                base_path = Path.cwd()
-            kis_path = base_path / self.kis_config_path
-            if not kis_path.exists():
-                # Try project root
-                kis_path = Path(__file__).parent.parent.parent / self.kis_config_path
-            self._kis_config = KISConfig.from_yaml(kis_path)
-        return self._kis_config
 
 
 class ExecutionConfig(BaseModel):
@@ -325,13 +238,6 @@ class Settings(BaseSettings):
         - OPENROUTER_API_KEY: OpenRouter API key
         - ANTHROPIC_API_KEY: Anthropic Claude API key
         - OPENAI_API_KEY: OpenAI API key
-
-        KIS API Credentials:
-        - KIS_APP_KEY: 실전투자 앱키
-        - KIS_APP_SECRET: 실전투자 앱키 시크릿
-        - KIS_PAPER_APP_KEY: 모의투자 앱키
-        - KIS_PAPER_APP_SECRET: 모의투자 앱키 시크릿
-        - KIS_ACCOUNT_STOCK: 증권계좌 8자리
     """
 
     model_config = SettingsConfigDict(
@@ -372,44 +278,6 @@ class Settings(BaseSettings):
         description="OpenAI API key",
     )
 
-    # KIS API Credentials (from .env) - 민감 정보
-    kis_app_key: str = Field(
-        default="",
-        description="KIS 실전투자 앱키",
-    )
-    kis_app_secret: str = Field(
-        default="",
-        description="KIS 실전투자 앱키 시크릿",
-    )
-    kis_paper_app_key: str = Field(
-        default="",
-        description="KIS 모의투자 앱키",
-    )
-    kis_paper_app_secret: str = Field(
-        default="",
-        description="KIS 모의투자 앱키 시크릿",
-    )
-    kis_hts_id: str = Field(
-        default="",
-        description="KIS HTS ID",
-    )
-    kis_account_stock: str = Field(
-        default="",
-        description="KIS 증권계좌 8자리",
-    )
-    kis_account_future: str = Field(
-        default="",
-        description="KIS 선물옵션계좌 8자리",
-    )
-    kis_paper_account_stock: str = Field(
-        default="",
-        description="KIS 모의투자 증권계좌 8자리",
-    )
-    kis_paper_account_future: str = Field(
-        default="",
-        description="KIS 모의투자 선물옵션계좌 8자리",
-    )
-
     # Configuration sections (from config.yaml)
     llm: LLMConfig = Field(
         default_factory=LLMConfig,
@@ -448,34 +316,6 @@ class Settings(BaseSettings):
                 f"Set the {provider.value.upper()}_API_KEY environment variable."
             )
         return api_key
-
-    def get_kis_config(self) -> KISConfig:
-        """
-        Get KIS configuration with environment variables taking priority.
-
-        Priority:
-        1. Environment variables (.env)
-        2. kis_devlp.yaml file (fallback)
-
-        Returns:
-            KISConfig with credentials from env vars or yaml file.
-        """
-        # 환경변수에 값이 있으면 사용
-        if self.kis_app_key:
-            return KISConfig(
-                my_app=self.kis_app_key,
-                my_sec=self.kis_app_secret,
-                paper_app=self.kis_paper_app_key,
-                paper_sec=self.kis_paper_app_secret,
-                my_htsid=self.kis_hts_id,
-                my_acct_stock=self.kis_account_stock,
-                my_acct_future=self.kis_account_future,
-                my_paper_stock=self.kis_paper_account_stock,
-                my_paper_future=self.kis_paper_account_future,
-            )
-
-        # 환경변수가 없으면 kis_devlp.yaml에서 로드
-        return self.data.get_kis_config()
 
     @classmethod
     def from_yaml(cls, config_path: Path | str | None = None) -> "Settings":

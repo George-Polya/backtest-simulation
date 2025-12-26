@@ -227,13 +227,12 @@ class TestDataProviderFactory:
         """Test getting supported providers list."""
         supported = DataProviderFactory.get_supported_providers()
 
-        assert "kis" in supported
         assert "yfinance" in supported
         assert "mock" in supported
 
     def test_is_provider_supported(self):
         """Test checking provider support."""
-        assert DataProviderFactory.is_provider_supported(DataProviderEnum.KIS) is True
+        assert DataProviderFactory.is_provider_supported(DataProviderEnum.YFINANCE) is True
         assert DataProviderFactory.is_provider_supported(DataProviderEnum.MOCK) is True
 
     @pytest.mark.asyncio

@@ -25,7 +25,6 @@ from app.providers.data.base import (
     PriceData,
     TickerInfo,
 )
-from app.providers.data.kis import KISDataProvider
 from app.providers.data.mock import MockDataProvider
 from app.providers.data.yfinance import YFinanceDataProvider
 
@@ -327,17 +326,6 @@ class CachedDataProvider(DataProvider):
 _PROVIDER_REGISTRY: dict[DataProviderEnum, ProviderFactory] = {}
 
 
-def _create_kis_provider(settings: Settings) -> DataProvider:
-    """Create KIS data provider."""
-    kis_config = settings.get_kis_config()
-    is_paper = settings.data.is_paper
-    logger.info(f"Creating KIS provider with is_paper={is_paper}")
-    return KISDataProvider(
-        config=kis_config,
-        is_paper=is_paper,
-    )
-
-
 def _create_yfinance_provider(settings: Settings) -> DataProvider:
     """Create YFinance data provider."""
     return YFinanceDataProvider()
@@ -350,7 +338,6 @@ def _create_mock_provider(settings: Settings) -> DataProvider:
 
 # Initialize registry
 _PROVIDER_REGISTRY = {
-    DataProviderEnum.KIS: _create_kis_provider,
     DataProviderEnum.YFINANCE: _create_yfinance_provider,
     DataProviderEnum.MOCK: _create_mock_provider,
 }

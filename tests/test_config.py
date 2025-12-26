@@ -63,10 +63,9 @@ class TestDataConfig:
     def test_default_values(self) -> None:
         """Test default data configuration values."""
         config = DataConfig()
-        assert config.provider == DataProvider.KIS
+        assert config.provider == DataProvider.YFINANCE
         assert config.fallback_providers == []
         assert config.cache_ttl_seconds == 300
-        assert config.kis_config_path == "kis_devlp.yaml"
 
 
 class TestExecutionConfig:
@@ -124,7 +123,7 @@ class TestSettings:
 
         # Should use defaults
         assert settings.llm.provider == LLMProvider.OPENROUTER
-        assert settings.data.provider == DataProvider.KIS
+        assert settings.data.provider == DataProvider.YFINANCE
 
     def test_env_override(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test environment variables override config values."""
@@ -134,21 +133,6 @@ class TestSettings:
         settings = Settings()
         assert settings.debug is True
         assert settings.openrouter_api_key == "test_key_from_env"
-
-    def test_kis_credentials_from_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test KIS credentials are loaded from environment variables."""
-        monkeypatch.setenv("KIS_APP_KEY", "test_app_key")
-        monkeypatch.setenv("KIS_APP_SECRET", "test_app_secret")
-        monkeypatch.setenv("KIS_PAPER_APP_KEY", "test_paper_key")
-        monkeypatch.setenv("KIS_PAPER_APP_SECRET", "test_paper_secret")
-        monkeypatch.setenv("KIS_ACCOUNT_STOCK", "12345678")
-
-        settings = Settings()
-        assert settings.kis_app_key == "test_app_key"
-        assert settings.kis_app_secret == "test_app_secret"
-        assert settings.kis_paper_app_key == "test_paper_key"
-        assert settings.kis_paper_app_secret == "test_paper_secret"
-        assert settings.kis_account_stock == "12345678"
 
 
 class TestGetSettings:

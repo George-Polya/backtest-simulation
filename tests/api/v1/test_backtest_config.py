@@ -112,7 +112,7 @@ class TestGetDataSourcesEndpoint:
         source_names = [s["name"] for s in data["providers"]]
 
         # Check that common data sources are present
-        expected_sources = ["kis", "yfinance", "mock"]
+        expected_sources = ["yfinance", "mock"]
         for expected in expected_sources:
             assert expected in source_names, f"Expected data source '{expected}' not found"
 
@@ -126,23 +126,8 @@ class TestGetDataSourcesEndpoint:
         for source in data["providers"]:
             assert len(source["description"]) > 0
             # At least some sources should have exchanges
-            if source["name"] in ["kis", "yfinance"]:
+            if source["name"] == "yfinance":
                 assert len(source["supported_exchanges"]) > 0
-
-    def test_get_data_sources_kis_exchanges(self, client):
-        """Test that KIS data source has correct exchanges."""
-        response = client.get("/api/v1/backtest/config/data-sources")
-
-        assert response.status_code == 200
-        data = response.json()
-
-        kis_source = next(
-            (s for s in data["providers"] if s["name"] == "kis"),
-            None,
-        )
-        assert kis_source is not None
-        assert "KRX" in kis_source["supported_exchanges"]
-        assert "NASDAQ" in kis_source["supported_exchanges"]
 
     def test_get_data_sources_idempotent(self, client):
         """Test that endpoint is idempotent."""

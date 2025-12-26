@@ -1,7 +1,7 @@
 """
 YFinance Data Provider implementation.
 
-Provides market data from Yahoo Finance as a fallback/alternative to KIS API.
+Provides global market data from Yahoo Finance for backtesting.
 Uses asyncio.to_thread for non-blocking execution since yfinance is synchronous.
 Now supports local CSV cache for faster data retrieval.
 """
