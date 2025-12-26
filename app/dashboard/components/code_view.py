@@ -5,6 +5,7 @@ Provides a component for displaying and inspecting generated backtest code
 with syntax highlighting and user code input functionality.
 """
 
+import dash_ace
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
@@ -72,19 +73,20 @@ def create_code_viewer_card() -> dbc.Card:
                                 tab_id="tab-generated",
                                 children=[
                                     html.Div(
-                                        dcc.Markdown(
-                                            id="markdown-code",
-                                            children="*No code generated yet. Enter a strategy and click 'Generate Code'.*",
-                                            className="code-viewer",
+                                        dash_ace.DashAceEditor(
+                                            id="ace-generated-code",
+                                            value="# No code generated yet.\n# Enter a strategy and click 'Generate Code'.",
+                                            mode="python",
+                                            theme="monokai",
+                                            fontSize=14,
+                                            showPrintMargin=False,
+                                            showGutter=True,
+                                            highlightActiveLine=True,
+                                            wrapEnabled=True,
                                             style={
-                                                "backgroundColor": "#f8f9fa",
-                                                "padding": "1rem",
+                                                "height": "400px",
+                                                "width": "100%",
                                                 "borderRadius": "0.375rem",
-                                                "minHeight": "350px",
-                                                "maxHeight": "500px",
-                                                "overflow": "auto",
-                                                "fontFamily": "monospace",
-                                                "fontSize": "0.875rem",
                                             },
                                         ),
                                         className="mt-3",

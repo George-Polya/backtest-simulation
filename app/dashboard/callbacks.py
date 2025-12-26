@@ -28,7 +28,6 @@ from app.dashboard.components.charts import (
 from app.dashboard.components.code_view import (
     create_model_info_badge,
     create_strategy_summary_alert,
-    format_code_for_display,
 )
 from app.dashboard.components.metrics import (
     _create_primary_metrics_row,
@@ -81,7 +80,7 @@ def _register_generate_callback(app: dash.Dash) -> None:
     @app.callback(
         [
             Output("store-generated-code", "data"),
-            Output("markdown-code", "children"),
+            Output("ace-generated-code", "value"),
             Output("div-model-info", "children"),
             Output("div-model-info", "style"),
             Output("div-strategy-summary", "children"),
@@ -213,7 +212,7 @@ def _register_generate_callback(app: dash.Dash) -> None:
 
                 return (
                     {"code": code, "model_info": model_info, "tickers": tickers},  # store
-                    format_code_for_display(code),  # markdown
+                    code,  # ace editor value
                     model_badge,  # model info
                     {"display": "block"},  # model info style
                     summary_alert,  # summary
@@ -317,6 +316,7 @@ def _register_execute_callback(app: dash.Dash) -> None:
         Input("btn-execute", "n_clicks"),
         [
             State("store-generated-code", "data"),
+            State("ace-generated-code", "value"),
             State("tabs-code", "active_tab"),
             State("textarea-custom-code", "value"),
             State("datepicker-range", "start_date"),
@@ -334,6 +334,7 @@ def _register_execute_callback(app: dash.Dash) -> None:
     def execute_backtest(
         n_clicks: int,
         generated_code_data: dict | None,
+        ace_generated_code: str | None,
         active_tab: str,
         custom_code: str | None,
         start_date: str,
@@ -356,10 +357,13 @@ def _register_execute_callback(app: dash.Dash) -> None:
             code = custom_code.strip()
             # Extract tickers from benchmarks for custom code
             tickers = [b.strip().upper() for b in benchmarks.split(",") if b.strip()]
-        elif generated_code_data:
-            # Use generated code
-            code = generated_code_data.get("code", "")
-            tickers = generated_code_data.get("tickers", [])
+        elif ace_generated_code and ace_generated_code.strip():
+            # Use generated code (possibly modified by user in ace editor)
+            code = ace_generated_code.strip()
+            # Get tickers from store if available, otherwise from benchmarks
+            tickers = generated_code_data.get("tickers", []) if generated_code_data else []
+            if not tickers:
+                tickers = [b.strip().upper() for b in benchmarks.split(",") if b.strip()]
         else:
             return (
                 no_update,

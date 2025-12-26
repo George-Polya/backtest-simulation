@@ -97,14 +97,14 @@ class TestCodeViewerCard:
         card = create_code_viewer_card()
         assert isinstance(card, dbc.Card)
 
-    def test_code_viewer_has_markdown_component(self):
-        """Test that the card contains a markdown component."""
+    def test_code_viewer_has_ace_editor(self):
+        """Test that the card contains an ace editor component."""
         from app.dashboard.components.code_view import create_code_viewer_card
 
         card = create_code_viewer_card()
 
-        markdown_found = _find_component_by_id(card, "markdown-code")
-        assert markdown_found is not None
+        ace_editor_found = _find_component_by_id(card, "ace-generated-code")
+        assert ace_editor_found is not None
 
     def test_code_viewer_has_copy_button(self):
         """Test that the card contains a copy button."""
