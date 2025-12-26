@@ -1,0 +1,38 @@
+# Natural Language Backtesting Service Configuration
+# 민감 정보(API keys, KIS credentials)는 .env에서 관리
+
+# LLM Provider Configuration
+llm:
+  provider: "openrouter"  # openrouter | anthropic | openai
+  model: "openai/gpt-5.2"
+  temperature: 0.2
+  max_tokens: 128000  # max output tokens (gpt-5.2: 128K)
+  max_context_tokens: 400000  # context window (input+output, gpt-5.2: 400K)
+  reasoning_enabled: true  # thinking 모델용 reasoning 활성화
+  reasoning_max_tokens: 64000  # reasoning에 할당할 토큰 (선택적)
+  # Web search for real-time documentation lookup (OpenRouter only)
+  # See: https://openrouter.ai/announcements/introducing-web-search-via-the-api
+  # Cost: $4 per 1,000 web fetches
+  web_search_enabled: true  # 실시간 문서 검색 활성화
+  web_search_max_results: 3  # 검색 결과 수 (1-10, 기본: 5)
+  # web_search_prompt: "Use these search results for accurate API documentation:"
+
+# Data Provider Configuration
+data:
+  provider: "yfinance"  # yfinance (캐시 지원) | kis | mock
+  is_paper: true  # 모의투자 모드 사용 (실전투자 API 키 없을 때)
+  fallback_providers: ["mock"]  # yfinance 실패 시 mock 데이터
+  cache_ttl_seconds: 300
+
+# Code Execution Configuration
+execution:
+  provider: "docker"  # docker | local
+  fallback_to_local: true  # Docker 실패 시 local로 fallback
+  docker_image: "backtest-runner:latest"  # custom image with backtesting dependencies
+  docker_socket_url: null  # Auto-detect (WSL2: /var/run/docker.sock, macOS: ~/.docker/run/docker.sock)
+  # docker_socket_url: "unix:///Users/heesukim/.docker/run/docker.sock"  # macOS Docker Desktop socket
+  timeout: 300
+  memory_limit: "2g"
+  allowed_modules:
+    - pandas
+    - numpy
