@@ -1090,9 +1090,23 @@ class BacktestCodeGenerator:
         if request.params.llm_settings.web_search_enabled:
             extra_config["web_search_enabled"] = True
 
+        # Get LLM settings from request, with fallback to defaults
+        llm_settings = request.params.llm_settings
+
+        # Temperature: use request override if specified, otherwise default (0.2)
+        temperature = (
+            llm_settings.temperature
+            if llm_settings.temperature is not None
+            else 0.2
+        )
+
+        # Seed: use request override if specified, otherwise default (42 for determinism)
+        seed = llm_settings.seed if llm_settings.seed is not None else 42
+
         generation_config = GenerationConfig(
-            temperature=0.2,
+            temperature=temperature,
             max_tokens=model_info.max_output_tokens,
+            seed=seed,
             extra=extra_config,
         )
 

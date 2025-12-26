@@ -66,7 +66,12 @@ class LLMConfig(BaseModel):
         default=0.2,
         ge=0.0,
         le=2.0,
-        description="Temperature for generation",
+        description="Temperature for generation (0.0 = most deterministic)",
+    )
+    seed: int = Field(
+        default=42,
+        ge=0,
+        description="Random seed for reproducible LLM outputs (deterministic by default)",
     )
     max_tokens: int = Field(
         default=8000,

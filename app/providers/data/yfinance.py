@@ -315,16 +315,17 @@ class YFinanceDataProvider(DataProvider):
             
             for year in years_to_download:
                 year_start = f"{year}-01-01"
-                year_end = f"{year}-12-31"
-                
-                # For current year, use today as end date
-                if year == datetime.now().year:
-                    year_end = datetime.now().strftime("%Y-%m-%d")
+                year_end_str = f"{year}-12-31"
+
+                # For end_date's year, use end_date instead of full year
+                # This ensures deterministic behavior based on the requested date range
+                if year == end_date.year:
+                    year_end_str = end_date.strftime("%Y-%m-%d")
                 
                 try:
                     df = ticker_obj.history(
                         start=year_start,
-                        end=year_end,
+                        end=year_end_str,
                         auto_adjust=False,
                     )
                     
@@ -483,6 +484,7 @@ class YFinanceDataProvider(DataProvider):
         self,
         ticker: str,
         exchange: Exchange | None = None,
+        reference_date: date | None = None,
     ) -> CurrentPrice:
         """
         Get the current/latest price for a ticker.
@@ -490,6 +492,7 @@ class YFinanceDataProvider(DataProvider):
         Args:
             ticker: Ticker symbol
             exchange: Exchange hint (optional)
+            reference_date: Reference date for "today" (optional, for deterministic testing)
 
         Returns:
             CurrentPrice with latest price information
@@ -499,6 +502,7 @@ class YFinanceDataProvider(DataProvider):
             TickerNotFoundError: If the ticker is not found
         """
         yf_ticker = self._format_ticker(ticker, exchange)
+        ref_date = reference_date if reference_date is not None else date.today()
 
         try:
             fast_info, basic_info = await asyncio.to_thread(
@@ -511,13 +515,13 @@ class YFinanceDataProvider(DataProvider):
             prev_close = fast_info.get("previous_close")
 
             if price is None:
-                # Fall back to most recent history
-                yesterday = date.today() - timedelta(days=7)
+                # Fall back to most recent history using reference_date
+                yesterday = ref_date - timedelta(days=7)
                 df = await asyncio.to_thread(
                     self._fetch_history_sync,
                     yf_ticker,
                     yesterday,
-                    date.today(),
+                    ref_date,
                 )
                 if df.empty:
                     raise TickerNotFoundError(ticker, self.provider_name)
@@ -642,6 +646,7 @@ class YFinanceDataProvider(DataProvider):
         self,
         ticker: str,
         exchange: Exchange | None = None,
+        reference_date: date | None = None,
     ) -> DateRange:
         """
         Get the available date range for historical data.
@@ -652,10 +657,13 @@ class YFinanceDataProvider(DataProvider):
         Args:
             ticker: Ticker symbol
             exchange: Exchange hint (optional)
+            reference_date: Reference date for determining "today" (optional, for deterministic testing)
 
         Returns:
             DateRange indicating available historical data range
         """
+        # Note: reference_date is accepted for interface compatibility but YFinance
+        # uses actual market data, so the end_date reflects real available data.
         yf_ticker = self._format_ticker(ticker, exchange)
 
         try:

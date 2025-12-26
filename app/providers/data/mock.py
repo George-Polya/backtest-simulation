@@ -483,15 +483,17 @@ class MockDataProvider(DataProvider):
         self,
         ticker: str,
         exchange: Exchange | None = None,
+        reference_date: date | None = None,
     ) -> CurrentPrice:
         """
         Get the current/latest price for a ticker.
 
-        Returns synthetic current price data based on today's date.
+        Returns synthetic current price data based on the reference date.
 
         Args:
             ticker: Ticker symbol
             exchange: Exchange hint (optional, ignored for mock)
+            reference_date: Reference date for "today" (optional, for deterministic testing)
 
         Returns:
             CurrentPrice with latest price information
@@ -503,11 +505,12 @@ class MockDataProvider(DataProvider):
             )
 
         config = self._get_config(ticker)
-        reference_date = date(2020, 1, 1)
-        today = date.today()
+        base_reference_date = date(2020, 1, 1)
+        # Use reference_date if provided, otherwise use actual today
+        today = reference_date if reference_date is not None else date.today()
 
         # Get today's and yesterday's prices
-        today_offset = (today - reference_date).days
+        today_offset = (today - base_reference_date).days
         yesterday_offset = today_offset - 1
 
         # Calculate previous close
@@ -612,23 +615,27 @@ class MockDataProvider(DataProvider):
         self,
         ticker: str,
         exchange: Exchange | None = None,
+        reference_date: date | None = None,
     ) -> DateRange:
         """
         Get the available date range for historical data.
 
-        Mock provider supports data from 2010 to today.
+        Mock provider supports data from 2010 to the reference date.
 
         Args:
             ticker: Ticker symbol
             exchange: Exchange hint (optional)
+            reference_date: Reference date for determining "today" (optional, for deterministic testing)
 
         Returns:
             DateRange indicating available historical data range
         """
         # Mock data is available from 2010 onwards
+        # Use reference_date if provided, otherwise use actual today
+        end_date = reference_date if reference_date is not None else date.today()
         return DateRange(
             start_date=date(2010, 1, 1),
-            end_date=date.today(),
+            end_date=end_date,
             ticker=ticker,
         )
 

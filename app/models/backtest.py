@@ -22,13 +22,34 @@ from app.core.config import LLMProvider
 
 
 # =============================================================================
-# Constants
+# Constants and Functions
 # =============================================================================
 
 # Default available data range for backtesting
 # Yahoo Finance typically provides data from 2000-2001 onwards
 AVAILABLE_DATA_START = date(2001, 1, 1)
+
+# Legacy constant for backward compatibility (evaluated at import time)
+# Use get_available_data_end() for dynamic evaluation
 AVAILABLE_DATA_END = date.today()
+
+
+def get_available_data_end(reference_date: date | None = None) -> date:
+    """
+    Get the available data end date dynamically.
+
+    This function returns the end date for available data range.
+    Use this instead of AVAILABLE_DATA_END constant for dynamic evaluation.
+
+    Args:
+        reference_date: Optional reference date to use as "today".
+                       If None, uses actual current date.
+                       Useful for deterministic testing.
+
+    Returns:
+        The end date for available data range.
+    """
+    return reference_date if reference_date is not None else date.today()
 
 
 # =============================================================================
@@ -119,6 +140,8 @@ class LLMSettings(BaseModel):
         provider: LLM provider (openrouter, anthropic, openai).
         model: Model identifier (provider-specific).
         web_search_enabled: Enable web search for real-time documentation (OpenRouter only).
+        seed: Random seed for reproducible code generation.
+        temperature: Override temperature for LLM generation.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -134,6 +157,24 @@ class LLMSettings(BaseModel):
     web_search_enabled: bool = Field(
         default=False,
         description="Enable web search for real-time documentation lookup (OpenRouter only, costs $4/1000 searches)",
+    )
+    seed: Optional[int] = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Random seed for reproducible code generation. "
+            "None uses system default from config.yaml (42)."
+        ),
+    )
+    temperature: Optional[float] = Field(
+        default=None,
+        ge=0.0,
+        le=2.0,
+        description=(
+            "Override temperature for LLM generation. "
+            "Lower values (0.0-0.2) are more deterministic. "
+            "None uses system default from config.yaml."
+        ),
     )
 
 
@@ -210,6 +251,14 @@ class BacktestParams(BaseModel):
         default_factory=LLMSettings,
         description="LLM provider and model settings",
     )
+    reference_date: Optional[date] = Field(
+        default=None,
+        description=(
+            "Reference date for 'today' in date range validation. "
+            "If None, uses actual current date. "
+            "Useful for deterministic testing and reproducible backtests."
+        ),
+    )
 
     @field_validator("benchmarks", mode="before")
     @classmethod
@@ -239,10 +288,12 @@ class BacktestParams(BaseModel):
                 f"(starts from {AVAILABLE_DATA_START})"
             )
 
-        if self.end_date > AVAILABLE_DATA_END:
+        # Use reference_date for dynamic evaluation, fallback to today
+        available_end = get_available_data_end(self.reference_date)
+        if self.end_date > available_end:
             raise ValueError(
                 f"end_date ({self.end_date}) is after available data range "
-                f"(ends at {AVAILABLE_DATA_END})"
+                f"(ends at {available_end})"
             )
 
         return self

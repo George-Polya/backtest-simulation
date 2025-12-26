@@ -5,7 +5,8 @@
 llm:
   provider: "openrouter"  # openrouter | anthropic | openai
   model: "openai/gpt-5.2"
-  temperature: 0.2
+  temperature: 0.2  # 낮을수록 결정적 (0.0 = 가장 결정적)
+  seed: 42  # 재현 가능한 출력을 위한 랜덤 시드 (결정성 보장)
   max_tokens: 128000  # max output tokens (gpt-5.2: 128K)
   max_context_tokens: 400000  # context window (input+output, gpt-5.2: 400K)
   reasoning_enabled: true  # thinking 모델용 reasoning 활성화

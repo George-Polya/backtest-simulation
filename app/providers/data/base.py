@@ -217,6 +217,7 @@ class DataProvider(ABC):
         self,
         ticker: str,
         exchange: Exchange | None = None,
+        reference_date: date | None = None,
     ) -> CurrentPrice:
         """
         Get the current/latest price for a ticker.
@@ -224,6 +225,7 @@ class DataProvider(ABC):
         Args:
             ticker: Ticker symbol
             exchange: Exchange hint (optional)
+            reference_date: Reference date for "today" (optional, for deterministic testing)
 
         Returns:
             CurrentPrice with latest price information
@@ -261,6 +263,7 @@ class DataProvider(ABC):
         self,
         ticker: str,
         exchange: Exchange | None = None,
+        reference_date: date | None = None,
     ) -> DateRange:
         """
         Get the available date range for historical data.
@@ -268,6 +271,7 @@ class DataProvider(ABC):
         Args:
             ticker: Ticker symbol
             exchange: Exchange hint (optional)
+            reference_date: Reference date for determining "today" (optional, for deterministic testing)
 
         Returns:
             DateRange indicating available historical data range

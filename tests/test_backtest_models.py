@@ -262,7 +262,7 @@ class TestBacktestParams:
         """Test that date before available range raises ValidationError."""
         with pytest.raises(ValidationError) as exc_info:
             BacktestParams(
-                start_date=date(2010, 1, 1),
+                start_date=date(2000, 1, 1),  # Before AVAILABLE_DATA_START (2001-01-01)
                 end_date=date(2024, 1, 1),
                 initial_capital=10000.0,
                 benchmarks=["SPY"],
