@@ -605,8 +605,8 @@ def _register_results_callback(app: dash.Dash) -> None:
         primary_metrics = _create_primary_metrics_row(metrics, benchmark_metrics)
         secondary_metrics = _create_secondary_metrics_row(metrics)
 
-        # Create trade summary table (last 10 trades)
-        trade_summary = create_trade_summary_table(trades[-10:]) if trades else html.Div(
+        # Create trade summary table (all trades with scrollable container)
+        trade_summary = create_trade_summary_table(trades) if trades else html.Div(
             "No trades executed.",
             className="text-muted text-center py-3"
         )

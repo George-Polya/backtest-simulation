@@ -545,26 +545,23 @@ def create_job_status_badge(status: str) -> dbc.Badge:
 
 def create_trade_summary_table(
     trades: list[dict[str, Any]],
-    limit: int | None = None,
-) -> dbc.Table | html.Div:
+) -> html.Div | dbc.Table:
     """
-    Create a summary table of trades.
+    Create a summary table of all trades.
+
+    Note: Scrolling is handled by the parent container (div-trade-summary-inline).
 
     Args:
         trades: List of trade dictionaries with keys like
             date, symbol, action, quantity, price, profit.
-        limit: Maximum number of trades to display. Defaults to 10 for inline view.
 
     Returns:
-        Dash Bootstrap Table component or empty message.
+        Table component or empty Div if no trades.
     """
     if not trades:
         return html.Div(
             html.P("No trades executed.", className="text-muted text-center"),
         )
-
-    display_limit = limit or int(HEIGHTS["TRADE_TABLE_INLINE_ROWS"])
-    display_trades = trades[:display_limit]
 
     # Create table header
     header = html.Thead(
@@ -577,12 +574,13 @@ def create_trade_summary_table(
                 html.Th("Price", className="text-end"),
                 html.Th("P/L", className="text-end"),
             ]
-        )
+        ),
+        style={"position": "sticky", "top": 0, "backgroundColor": "var(--bs-body-bg)", "zIndex": 1},
     )
 
-    # Create table body
+    # Create table body with all trades
     rows = []
-    for trade in display_trades:
+    for trade in trades:
         profit = trade.get("profit", 0)
         profit_color = "text-success" if profit >= 0 else "text-danger"
 
@@ -609,29 +607,23 @@ def create_trade_summary_table(
 
     body = html.Tbody(rows)
 
-    # Add "View All" footer if there are more trades
-    footer = None
-    if len(trades) > display_limit:
-        remaining = len(trades) - display_limit
-        footer = html.Tfoot(
-            html.Tr(
-                html.Td(
-                    html.Small(f"+ {remaining} more trades", className="text-muted"),
-                    colSpan=6,
-                    className="text-center",
-                )
+    # Footer showing total trade count
+    footer = html.Tfoot(
+        html.Tr(
+            html.Td(
+                html.Small(f"Total: {len(trades)} trades", className="text-muted fw-bold"),
+                colSpan=6,
+                className="text-center",
             )
         )
+    )
 
-    table_children = [header, body]
-    if footer:
-        table_children.append(footer)
-
+    # Return table directly (parent container handles scrolling)
     return dbc.Table(
-        table_children,
+        [header, body, footer],
         bordered=True,
         hover=True,
-        responsive=True,
         size="sm",
         className="small mb-0",
+        style={"marginBottom": 0},
     )
