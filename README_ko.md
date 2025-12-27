@@ -19,7 +19,7 @@
 
 1. 저장소 클론:
 ```bash
-git clone https://github.com/yourusername/backtest-simulation.git
+git clone https://github.com/George-Polya/backtest-simulation.git
 cd backtest-simulation
 ```
 
