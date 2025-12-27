@@ -6,9 +6,10 @@ Implements callbacks for:
 - API interaction (generate, execute)
 - Result polling
 - Chart updates
+- CSV downloads
 """
 
-import json
+import io
 import logging
 from datetime import datetime
 from typing import Any
@@ -19,6 +20,8 @@ import pandas as pd
 import requests
 from dash import Input, Output, State, callback_context, html, no_update
 from dash.exceptions import PreventUpdate
+
+from app.dashboard.components.downloads import DOWNLOAD_BUTTONS
 
 from app.dashboard.components.charts import (
     create_drawdown_chart,
@@ -59,6 +62,7 @@ def register_callbacks(app: dash.Dash) -> None:
     _register_chart_callbacks(app)
     _register_toggle_callbacks(app)
     _register_validation_callbacks(app)
+    _register_download_callbacks(app)
 
 
 def _register_strategy_counter_callback(app: dash.Dash) -> None:
@@ -854,3 +858,249 @@ def _register_validation_callbacks(app: dash.Dash) -> None:
             )
 
         return None
+
+
+def _register_download_callbacks(app: dash.Dash) -> None:
+    """Register callbacks for CSV download buttons."""
+
+    # Enable/disable download buttons based on results availability
+    @app.callback(
+        [
+            Output("btn-download-equity", "disabled"),
+            Output("btn-download-drawdown", "disabled"),
+            Output("btn-download-monthly", "disabled"),
+            Output("btn-download-metrics", "disabled"),
+            Output("btn-download-trades", "disabled"),
+        ],
+        Input("store-results", "data"),
+        prevent_initial_call=True,
+    )
+    def toggle_download_buttons(results: dict | None) -> tuple:
+        """Enable download buttons when results are available."""
+        has_results = results is not None and bool(results)
+        disabled = not has_results
+        return (disabled, disabled, disabled, disabled, disabled)
+
+    # Equity Curve download
+    @app.callback(
+        Output("download-equity", "data"),
+        Input("btn-download-equity", "n_clicks"),
+        State("store-results", "data"),
+        prevent_initial_call=True,
+    )
+    def download_equity_csv(n_clicks: int, results: dict | None) -> dict | None:
+        """Generate equity curve CSV for download."""
+        if not n_clicks or not results:
+            raise PreventUpdate
+
+        equity_data = results.get("equity_curve", {})
+        strategy_points = equity_data.get("strategy", [])
+
+        if not strategy_points:
+            raise PreventUpdate
+
+        # Build DataFrame
+        df = pd.DataFrame(strategy_points)
+        df.columns = ["date", "strategy_value"]
+
+        # Add benchmark if available
+        benchmark_points = equity_data.get("benchmark")
+        if benchmark_points:
+            bench_df = pd.DataFrame(benchmark_points)
+            df["benchmark_value"] = bench_df["value"]
+
+        # Generate timestamp for filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"backtest_equity_{timestamp}.csv"
+
+        return dict(
+            content=df.to_csv(index=False),
+            filename=filename,
+            type="text/csv",
+        )
+
+    # Drawdown download
+    @app.callback(
+        Output("download-drawdown", "data"),
+        Input("btn-download-drawdown", "n_clicks"),
+        State("store-results", "data"),
+        prevent_initial_call=True,
+    )
+    def download_drawdown_csv(n_clicks: int, results: dict | None) -> dict | None:
+        """Generate drawdown CSV for download."""
+        if not n_clicks or not results:
+            raise PreventUpdate
+
+        drawdown_data = results.get("drawdown", {})
+        data_points = drawdown_data.get("data", [])
+
+        if not data_points:
+            raise PreventUpdate
+
+        # Build DataFrame
+        df = pd.DataFrame(data_points)
+        df.columns = ["date", "drawdown_pct"]
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"backtest_drawdown_{timestamp}.csv"
+
+        return dict(
+            content=df.to_csv(index=False),
+            filename=filename,
+            type="text/csv",
+        )
+
+    # Monthly Returns download
+    @app.callback(
+        Output("download-monthly", "data"),
+        Input("btn-download-monthly", "n_clicks"),
+        State("store-results", "data"),
+        prevent_initial_call=True,
+    )
+    def download_monthly_csv(n_clicks: int, results: dict | None) -> dict | None:
+        """Generate monthly returns CSV for download."""
+        if not n_clicks or not results:
+            raise PreventUpdate
+
+        heatmap_data = results.get("monthly_heatmap", {})
+        years = heatmap_data.get("years", [])
+        months = heatmap_data.get("months", [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ])
+        returns = heatmap_data.get("returns", [])
+
+        if not years or not returns:
+            raise PreventUpdate
+
+        # Build rows for CSV
+        rows = []
+        for year_idx, year in enumerate(years):
+            if year_idx < len(returns):
+                year_returns = returns[year_idx]
+                for month_idx, month_name in enumerate(months):
+                    if month_idx < len(year_returns):
+                        return_value = year_returns[month_idx]
+                        if return_value is not None:
+                            rows.append({
+                                "year": year,
+                                "month": month_name,
+                                "return_pct": return_value,
+                            })
+
+        df = pd.DataFrame(rows)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"backtest_monthly_returns_{timestamp}.csv"
+
+        return dict(
+            content=df.to_csv(index=False),
+            filename=filename,
+            type="text/csv",
+        )
+
+    # Metrics download
+    @app.callback(
+        Output("download-metrics", "data"),
+        Input("btn-download-metrics", "n_clicks"),
+        [
+            State("store-results", "data"),
+            State("store-benchmark-metrics", "data"),
+        ],
+        prevent_initial_call=True,
+    )
+    def download_metrics_csv(
+        n_clicks: int,
+        results: dict | None,
+        benchmark_metrics: dict | None,
+    ) -> dict | None:
+        """Generate metrics CSV for download."""
+        if not n_clicks or not results:
+            raise PreventUpdate
+
+        metrics = results.get("metrics", {})
+        benchmark = results.get("benchmark_metrics", benchmark_metrics or {})
+
+        # Metrics to export with display names
+        metric_mappings = [
+            ("Total Return (%)", "total_return"),
+            ("CAGR (%)", "cagr"),
+            ("Max Drawdown (%)", "max_drawdown"),
+            ("Volatility (%)", "volatility"),
+            ("Sharpe Ratio", "sharpe_ratio"),
+            ("Sortino Ratio", "sortino_ratio"),
+            ("Calmar Ratio", "calmar_ratio"),
+            ("Total Trades", "total_trades"),
+            ("Winning Trades", "winning_trades"),
+            ("Losing Trades", "losing_trades"),
+            ("Win Rate (%)", "win_rate"),
+        ]
+
+        rows = []
+        for display_name, attr_name in metric_mappings:
+            strategy_value = metrics.get(attr_name, 0.0)
+            benchmark_value = benchmark.get(attr_name) if benchmark else None
+            difference = (
+                strategy_value - benchmark_value
+                if benchmark_value is not None
+                else None
+            )
+
+            rows.append({
+                "metric": display_name,
+                "strategy_value": strategy_value,
+                "benchmark_value": benchmark_value,
+                "difference": difference,
+            })
+
+        df = pd.DataFrame(rows)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"backtest_metrics_{timestamp}.csv"
+
+        return dict(
+            content=df.to_csv(index=False),
+            filename=filename,
+            type="text/csv",
+        )
+
+    # Trades download
+    @app.callback(
+        Output("download-trades", "data"),
+        Input("btn-download-trades", "n_clicks"),
+        State("store-results", "data"),
+        prevent_initial_call=True,
+    )
+    def download_trades_csv(n_clicks: int, results: dict | None) -> dict | None:
+        """Generate trades CSV for download."""
+        if not n_clicks or not results:
+            raise PreventUpdate
+
+        trades = results.get("trades", [])
+
+        if not trades:
+            # Return empty CSV with headers
+            df = pd.DataFrame(
+                columns=["date", "symbol", "action", "quantity", "price", "profit_loss"]
+            )
+        else:
+            rows = []
+            for trade in trades:
+                rows.append({
+                    "date": trade.get("date", ""),
+                    "symbol": trade.get("symbol", ""),
+                    "action": trade.get("action", ""),
+                    "quantity": trade.get("quantity", 0),
+                    "price": trade.get("price", 0.0),
+                    "profit_loss": trade.get("profit", 0.0),
+                })
+            df = pd.DataFrame(rows)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"backtest_trades_{timestamp}.csv"
+
+        return dict(
+            content=df.to_csv(index=False),
+            filename=filename,
+            type="text/csv",
+        )

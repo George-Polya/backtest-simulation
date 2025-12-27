@@ -255,7 +255,8 @@ def run_backtest(params):
     return {{
         # Required for the API/dashboard
         "equity_series": [{{"date": "YYYY-MM-DD", "value": 12345.67}}, ...],
-        "trades": [{{"date": "YYYY-MM-DD", "action": "BUY/SELL", "symbol": "AAPL", "price": 123.45, "quantity": 1, "profit": 0.0}}, ...],
+        "trades": [{{"date": "YYYY-MM-DD", "action": "BUY/SELL", "symbol": "AAPL", "price": 123.45, "quantity": 1, "profit": 150.00}}, ...],
+        # profit: Realized P/L. BUY=0.0, SELL=(sell_price - avg_buy_price) * quantity
         # IMPORTANT: benchmark_series should simulate the SAME conditions as strategy
         # (same initial_capital, same contribution schedule) but using buy-and-hold on benchmark ticker
         # This allows fair comparison between strategy and passive investing
@@ -274,7 +275,58 @@ def run_backtest(params):
 
 If you use backtesting.py, you can build `equity_series`/`trades` from:
 - `results['_equity_curve']` (DataFrame; use the `Equity` column)
-- `results['_trades']` (DataFrame; convert to list of dicts, and format any datetime columns as `YYYY-MM-DD`)
+- `results['_trades']` (DataFrame with columns: Size, EntryPrice, ExitPrice, PnL, EntryTime, ExitTime, etc.)
+
+**RECOMMENDED: Converting _trades to required format (backtesting.py):**
+```python
+trades_df = results['_trades']
+trades = []
+for _, t in trades_df.iterrows():
+    trades.append({{
+        "date": t['ExitTime'].strftime("%Y-%m-%d"),
+        "action": "SELL",  # Closed trades are exits
+        "symbol": ticker,
+        "price": float(t['ExitPrice']),
+        "quantity": abs(float(t['Size'])),
+        "profit": float(t['PnL'])  # Use backtesting.py's PnL column!
+    }})
+```
+
+**If implementing custom simulation (without backtesting.py), you MUST calculate profit:**
+```python
+# Track positions with average cost basis
+positions = {{}}  # {{symbol: {{"shares": float, "avg_cost": float}}}}
+
+def record_trade(dt, symbol, action, quantity, price, trades_out):
+    profit = 0.0
+    pos = positions.get(symbol, {{"shares": 0.0, "avg_cost": 0.0}})
+
+    if action == "BUY":
+        # Update average cost basis
+        total_cost = pos["shares"] * pos["avg_cost"] + quantity * price
+        new_shares = pos["shares"] + quantity
+        pos["avg_cost"] = total_cost / new_shares if new_shares > 0 else 0.0
+        pos["shares"] = new_shares
+        profit = 0.0  # No realized P/L on buy
+
+    elif action == "SELL":
+        if pos["shares"] > 0 and pos["avg_cost"] > 0:
+            profit = (price - pos["avg_cost"]) * quantity  # Realized P/L
+            pos["shares"] -= quantity
+            if pos["shares"] <= 0:
+                pos["shares"] = 0.0
+                pos["avg_cost"] = 0.0
+
+    positions[symbol] = pos
+    trades_out.append({{
+        "date": dt.strftime("%Y-%m-%d"),
+        "action": action,
+        "symbol": symbol,
+        "price": float(price),
+        "quantity": float(quantity),
+        "profit": float(profit)  # DO NOT hardcode 0.0!
+    }})
+```
 
 **IMPORTANT - Benchmark Simulation:**
 The `benchmark_series` MUST simulate passive buy-and-hold investing with the SAME conditions as the strategy:

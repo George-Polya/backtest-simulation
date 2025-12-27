@@ -390,6 +390,102 @@ class StandardMetricsCalculator:
 
 
 # =============================================================================
+# Trade P/L Recalculation Utility
+# =============================================================================
+
+
+def _recalculate_trade_profits(trades: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """
+    Recalculate trade profits if all profits are zero.
+
+    This function handles the case where the backtest engine returns trades
+    with profit values hardcoded to 0.0. It recalculates P/L based on
+    average cost tracking for each symbol.
+
+    Algorithm:
+        1. Check if all profits are approximately zero (abs < 1e-9)
+        2. If not all zero, return original trades unchanged
+        3. If all zero, recalculate using average cost method:
+           - Track average cost per symbol from BUY trades
+           - Calculate profit for SELL trades: (sell_price - avg_cost) * quantity
+           - BUY trades get profit = 0.0
+
+    Args:
+        trades: List of trade dictionaries with keys:
+            - date: Trade date
+            - symbol: Stock/asset symbol
+            - action: "BUY" or "SELL"
+            - quantity: Number of shares/units
+            - price: Execution price
+            - profit: Original profit value (may be 0.0)
+
+    Returns:
+        List of trade dictionaries with recalculated profit values.
+        Returns a new list; original trades are not modified.
+    """
+    if not trades:
+        return trades
+
+    # Check if all profits are zero (or very close to zero)
+    all_zero = all(abs(t.get("profit", 0.0)) < 1e-9 for t in trades)
+    if not all_zero:
+        return trades
+
+    # Track average cost per symbol: {symbol: {"total_cost": float, "total_qty": float}}
+    position_tracker: dict[str, dict[str, float]] = {}
+
+    # Create new list with recalculated profits
+    recalculated_trades: list[dict[str, Any]] = []
+
+    for trade in trades:
+        # Create a copy to avoid mutating original
+        new_trade = trade.copy()
+
+        symbol = trade.get("symbol", "")
+        action = trade.get("action", "").upper()
+        quantity = float(trade.get("quantity", 0))
+        price = float(trade.get("price", 0))
+
+        if action == "BUY":
+            # Update average cost for this symbol
+            if symbol not in position_tracker:
+                position_tracker[symbol] = {"total_cost": 0.0, "total_qty": 0.0}
+
+            position_tracker[symbol]["total_cost"] += price * quantity
+            position_tracker[symbol]["total_qty"] += quantity
+
+            # BUY trades have no realized profit
+            new_trade["profit"] = 0.0
+
+        elif action == "SELL":
+            # Calculate profit based on average cost
+            if symbol in position_tracker and position_tracker[symbol]["total_qty"] > 0:
+                avg_cost = (
+                    position_tracker[symbol]["total_cost"]
+                    / position_tracker[symbol]["total_qty"]
+                )
+                profit = (price - avg_cost) * quantity
+                new_trade["profit"] = profit
+
+                # Update position after sell
+                # Reduce total cost proportionally
+                sell_ratio = min(quantity / position_tracker[symbol]["total_qty"], 1.0)
+                position_tracker[symbol]["total_cost"] *= (1 - sell_ratio)
+                position_tracker[symbol]["total_qty"] -= quantity
+
+                # Clean up if position is closed
+                if position_tracker[symbol]["total_qty"] <= 0:
+                    position_tracker[symbol] = {"total_cost": 0.0, "total_qty": 0.0}
+            else:
+                # Short sell or no prior position - profit = 0
+                new_trade["profit"] = 0.0
+
+        recalculated_trades.append(new_trade)
+
+    return recalculated_trades
+
+
+# =============================================================================
 # Result Formatter Service
 # =============================================================================
 
@@ -631,6 +727,9 @@ class ResultFormatter:
         Returns:
             FormattedResults with all metrics and chart data
         """
+        # Recalculate trade profits if all are zero (handles hardcoded 0.0 bug)
+        trades = _recalculate_trade_profits(trades)
+
         # Calculate metrics
         metrics = self.calculate_metrics(equity_series, trades, start_date, end_date)
 

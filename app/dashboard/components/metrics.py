@@ -24,6 +24,7 @@ from app.dashboard.constants import (
     STATUS_BADGES,
     DEFAULT_STATUS_BADGE,
 )
+from app.dashboard.components.downloads import create_download_components
 
 
 def create_metric_card(
@@ -398,6 +399,8 @@ def create_results_dashboard() -> dbc.Card:
                     # Results content (hidden by default)
                     html.Div(
                         [
+                            # Download buttons row
+                            create_download_components(),
                             # Primary Metrics row
                             html.Div(
                                 id="div-primary-metrics",

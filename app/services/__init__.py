@@ -52,6 +52,16 @@ from app.services.result_formatter import (
     ChartDataPoint,
     create_result_formatter,
 )
+from app.services.csv_exporter import (
+    CSVExportService,
+    StandardCSVFormatter,
+    EquityCurveExporter,
+    DrawdownExporter,
+    MonthlyReturnsExporter,
+    PerformanceMetricsExporter,
+    TradeHistoryExporter,
+    create_csv_export_service,
+)
 
 __all__ = [
     # Code Generator
@@ -97,4 +107,13 @@ __all__ = [
     "FormattedResults",
     "ChartDataPoint",
     "create_result_formatter",
+    # CSV Exporter
+    "CSVExportService",
+    "StandardCSVFormatter",
+    "EquityCurveExporter",
+    "DrawdownExporter",
+    "MonthlyReturnsExporter",
+    "PerformanceMetricsExporter",
+    "TradeHistoryExporter",
+    "create_csv_export_service",
 ]
