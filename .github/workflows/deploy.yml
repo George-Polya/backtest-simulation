@@ -132,36 +132,36 @@ jobs:
           port: 22
           script: |
             set -e
-            
+
             # Image name (lowercase)
             IMAGE_NAME="${{ needs.build-api.outputs.image_name }}"
-            
+
             echo "=== Logging in to GitHub Container Registry ==="
-            echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
+            echo "${{ secrets.GH_PAT }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
             echo "=== Creating app directory ==="
             mkdir -p ~/backtest-simulation/data
             cd ~/backtest-simulation
-            
+
             echo "=== Pulling latest images ==="
             # Pull main API image
-            docker pull ghcr.io/${IMAGE_NAME}:latest
-            
+            sudo docker pull ghcr.io/${IMAGE_NAME}:latest
+
             # Pull backtest runner image (used as sibling container)
-            docker pull ghcr.io/${IMAGE_NAME}/backtest-runner:latest
-            
+            sudo docker pull ghcr.io/${IMAGE_NAME}/backtest-runner:latest
+
             # Tag runner image for local reference (config.yaml expects backtest-runner:latest)
-            docker tag ghcr.io/${IMAGE_NAME}/backtest-runner:latest backtest-runner:latest
-            
+            sudo docker tag ghcr.io/${IMAGE_NAME}/backtest-runner:latest backtest-runner:latest
+
             echo "=== Stopping existing container ==="
-            docker stop backtest-api 2>/dev/null || true
-            docker rm backtest-api 2>/dev/null || true
-            
+            sudo docker stop backtest-api 2>/dev/null || true
+            sudo docker rm backtest-api 2>/dev/null || true
+
             echo "=== Starting new container ==="
             # Get Docker group ID for socket access
             DOCKER_GID=$(getent group docker | cut -d: -f3)
-            
-            docker run -d \
+
+            sudo docker run -d \
               --name backtest-api \
               --restart unless-stopped \
               -p 8000:8000 \
@@ -175,13 +175,13 @@ jobs:
               -v /tmp/backtest_workspaces:/tmp/backtest_workspaces \
               --group-add ${DOCKER_GID} \
               ghcr.io/${IMAGE_NAME}:latest
-            
+
             echo "=== Cleaning up old images ==="
-            docker image prune -f
-            
+            sudo docker image prune -f
+
             echo "=== Deployment Complete ==="
-            docker ps --filter name=backtest-api
-            
+            sudo docker ps --filter name=backtest-api
+
             echo "=== Testing health endpoint ==="
             sleep 10
             curl -sf http://localhost:8000/health || echo "Health check pending..."
