@@ -8,6 +8,7 @@ anthropic==0.75.0
 anyio==4.12.0
 attrs==25.4.0
 Authlib==1.6.5
+Backtesting==0.6.5
 bandit==1.9.2
 beautifulsoup4==4.14.3
 blinker==1.9.0
