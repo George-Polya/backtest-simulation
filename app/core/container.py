@@ -173,6 +173,20 @@ class Container:
                 )
                 await self._data_provider.initialize()
 
+            elif provider_type == DataProviderEnum.LOCAL:
+                from app.providers.data.local import LocalCSVDataProvider
+                from app.providers.data.yfinance import YFinanceDataProvider
+
+                # Local CSV with YFinance fallback
+                yfinance_fallback = YFinanceDataProvider()
+                await yfinance_fallback.initialize()
+
+                self._data_provider = LocalCSVDataProvider(
+                    storage_path=self.settings.data.local_storage_path,
+                    fallback_provider=yfinance_fallback,
+                )
+                await self._data_provider.initialize()
+
             else:
                 raise ValueError(f"Unsupported data provider: {provider_type}")
 

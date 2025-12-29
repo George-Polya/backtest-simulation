@@ -28,6 +28,7 @@ from app.providers.data.base import (
 from app.providers.data.mock import MockDataProvider
 from app.providers.data.supabase import SupabaseDataProvider
 from app.providers.data.yfinance import YFinanceDataProvider
+from app.providers.data.local import LocalCSVDataProvider
 
 logger = logging.getLogger(__name__)
 
@@ -347,11 +348,21 @@ def _create_supabase_provider(settings: Settings) -> DataProvider:
     )
 
 
+def _create_local_provider(settings: Settings) -> DataProvider:
+    """Create Local CSV data provider with YFinance fallback."""
+    yfinance_fallback = YFinanceDataProvider()
+    return LocalCSVDataProvider(
+        storage_path=settings.data.local_storage_path,
+        fallback_provider=yfinance_fallback,
+    )
+
+
 # Initialize registry
 _PROVIDER_REGISTRY = {
     DataProviderEnum.YFINANCE: _create_yfinance_provider,
     DataProviderEnum.MOCK: _create_mock_provider,
     DataProviderEnum.SUPABASE: _create_supabase_provider,
+    DataProviderEnum.LOCAL: _create_local_provider,
 }
 
 

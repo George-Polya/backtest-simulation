@@ -30,6 +30,7 @@ class DataProvider(str, Enum):
     YFINANCE = "yfinance"
     MOCK = "mock"
     SUPABASE = "supabase"
+    LOCAL = "local"
 
 
 class ExecutionProvider(str, Enum):
@@ -158,6 +159,10 @@ class DataConfig(BaseModel):
         ge=0.0,
         le=30.0,
         description="Delay between retry attempts in seconds",
+    )
+    local_storage_path: str = Field(
+        default="./data/prices",
+        description="Local CSV storage path (used when provider='local')",
     )
 
     @field_validator("fallback_providers")

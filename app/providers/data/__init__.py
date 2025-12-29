@@ -31,6 +31,7 @@ from app.providers.data.fallback import (
 from app.providers.data.mock import MockDataConfig, MockDataProvider
 from app.providers.data.supabase import SupabaseDataProvider
 from app.providers.data.yfinance import YFinanceDataProvider
+from app.providers.data.local import LocalCSVDataProvider
 
 __all__ = [
     # Base classes and types
@@ -50,6 +51,7 @@ __all__ = [
     # Implementations
     "YFinanceDataProvider",
     "SupabaseDataProvider",
+    "LocalCSVDataProvider",
     "MockDataProvider",
     "MockDataConfig",
     # Factory and utilities

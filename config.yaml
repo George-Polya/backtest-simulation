@@ -15,7 +15,8 @@ llm:
 
 # Data Provider Configuration
 data:
-  provider: "supabase"  # supabase (Supabase DB + YFinance fallback) | yfinance | mock
+  provider: "local"  # supabase | local (YFinance fallback for both)
+  local_storage_path: "./data/prices"  # CSV storage path (used when provider='local')
   is_paper: true  # Use paper trading mode (when live trading API key unavailable)
   fallback_providers: ["yfinance", "mock"]  # Fallback to yfinance if not in Supabase
   cache_ttl_seconds: 300
