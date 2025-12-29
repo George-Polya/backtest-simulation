@@ -5,9 +5,10 @@ FROM python:3.13-slim AS builder
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PYTHONDONTWRITEBYTECODE=1
+
+# Copy uv binary from official image (much faster than pip)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -15,13 +16,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Create virtual environment
-RUN python -m venv /opt/venv
+# Create virtual environment with uv
+RUN uv venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy and install server dependencies (excludes PyQt6/PySide6)
+# Copy and install server dependencies (10-100x faster than pip)
 COPY requirements-server.txt .
-RUN pip install --no-cache-dir -r requirements-server.txt
+RUN uv pip install --python /opt/venv/bin/python -r requirements-server.txt
 
 # ============================================
 # Stage 2: Runtime - Minimal production image
