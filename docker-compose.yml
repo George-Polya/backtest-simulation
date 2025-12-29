@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # ===========================================
+  # Main FastAPI Application
+  # ===========================================
+  backtest-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghcr.io/${GITHUB_REPOSITORY:-local}/backtest-api:latest
+    container_name: backtest-api
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+    volumes:
+      # Persist price cache data
+      - ./data:/app/data
+      # Mount config for easy updates (optional, remove in production)
+      - ./config.yaml:/app/config.yaml:ro
+      # Docker socket for DooD (Docker out of Docker)
+      # Allows spawning sibling containers for isolated code execution
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Workspace for code execution (must be accessible by sibling containers)
+      - /tmp/backtest_workspaces:/tmp/backtest_workspaces
+    # Grant access to docker socket
+    group_add:
+      - ${DOCKER_GID:-999}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - backtest-network
+    depends_on:
+      backtest-runner-build:
+        condition: service_completed_successfully
+
+  # ===========================================
+  # Backtest Runner Image Builder (one-time)
+  # This builds the sandbox image on first run
+  # ===========================================
+  backtest-runner-build:
+    build:
+      context: .
+      dockerfile: docker/backtest-runner/Dockerfile
+    image: backtest-runner:latest
+    container_name: backtest-runner-build
+    # This container just builds the image and exits
+    command: ["echo", "Backtest runner image built successfully"]
+    restart: "no"
+
+networks:
+  backtest-network:
+    driver: bridge

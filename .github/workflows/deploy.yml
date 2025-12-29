@@ -1,0 +1,175 @@
+name: Build and Deploy to Oracle Cloud
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  # Allow manual trigger
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ============================================
+  # Job 1: Build and Push Main API Image
+  # ============================================
+  build-api:
+    name: Build & Push API Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+  # ============================================
+  # Job 2: Build and Push Backtest Runner Image
+  # ============================================
+  build-runner:
+    name: Build & Push Runner Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Runner image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/backtest-runner/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backtest-runner:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+  # ============================================
+  # Job 3: Deploy to Oracle Cloud VM
+  # ============================================
+  deploy:
+    name: Deploy to Oracle Cloud
+    runs-on: ubuntu-latest
+    needs: [build-api, build-runner]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Deploy to Oracle Cloud via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USER }}
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            
+            echo "=== Logging in to GitHub Container Registry ==="
+            echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            echo "=== Creating app directory ==="
+            mkdir -p ~/backtest-simulation/data
+            cd ~/backtest-simulation
+            
+            echo "=== Pulling latest images ==="
+            # Pull main API image
+            docker pull ghcr.io/${{ github.repository }}:latest
+            
+            # Pull backtest runner image (used as sibling container)
+            docker pull ghcr.io/${{ github.repository }}/backtest-runner:latest
+            
+            # Tag runner image for local reference (config.yaml expects backtest-runner:latest)
+            docker tag ghcr.io/${{ github.repository }}/backtest-runner:latest backtest-runner:latest
+            
+            echo "=== Stopping existing container ==="
+            docker stop backtest-api 2>/dev/null || true
+            docker rm backtest-api 2>/dev/null || true
+            
+            echo "=== Starting new container ==="
+            # Get Docker group ID for socket access
+            DOCKER_GID=$(getent group docker | cut -d: -f3)
+            
+            docker run -d \
+              --name backtest-api \
+              --restart unless-stopped \
+              -p 8000:8000 \
+              -e APP_DEBUG="${{ secrets.APP_DEBUG }}" \
+              -e OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
+              -e SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+              -e SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
+              -e SUPABASE_SERVICE_KEY="${{ secrets.SUPABASE_SERVICE_KEY }}" \
+              -v ~/backtest-simulation/data:/app/data \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -v /tmp/backtest_workspaces:/tmp/backtest_workspaces \
+              --group-add ${DOCKER_GID} \
+              ghcr.io/${{ github.repository }}:latest
+            
+            echo "=== Cleaning up old images ==="
+            docker image prune -f
+            
+            echo "=== Deployment Complete ==="
+            docker ps --filter name=backtest-api
+            
+            echo "=== Testing health endpoint ==="
+            sleep 10
+            curl -sf http://localhost:8000/health || echo "Health check pending..."
+
+      - name: External Health Check
+        run: |
+          echo "Waiting for service to stabilize..."
+          sleep 20
+          curl -sf http://${{ secrets.ORACLE_HOST }}:8000/health && echo "✅ Service is healthy!" || echo "⚠️ Health check failed - please verify manually"

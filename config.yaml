@@ -2,7 +2,7 @@
 llm:
   provider: "openrouter"  # openrouter | anthropic | openai
   model: "openai/gpt-5.2"
-  temperature: 0.2  # Lower = more deterministic (0.0 = most deterministic)
+  temperature: 0.0 # Lower = more deterministic (0.0 = most deterministic)
   seed: 42  # Random seed for reproducible outputs
   max_tokens: 128000  # Max output tokens (gpt-5.2: 128K)
   max_context_tokens: 400000  # Context window (input+output, gpt-5.2: 400K)
@@ -15,7 +15,7 @@ llm:
 
 # Data Provider Configuration
 data:
-  provider: "local"  # supabase | local (YFinance fallback for both)
+  provider: "supabase"  # supabase | local (YFinance fallback for both)
   local_storage_path: "./data/prices"  # CSV storage path (used when provider='local')
   is_paper: true  # Use paper trading mode (when live trading API key unavailable)
   fallback_providers: ["yfinance", "mock"]  # Fallback to yfinance if not in Supabase

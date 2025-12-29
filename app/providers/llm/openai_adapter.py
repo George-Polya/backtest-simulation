@@ -176,6 +176,7 @@ class OpenAIAdapter(LLMProvider):
             config = GenerationConfig(
                 temperature=self._llm_config.temperature,
                 max_tokens=self._llm_config.max_tokens,
+                seed=self._llm_config.seed,
             )
 
         messages = self._build_messages(prompt, system_prompt)

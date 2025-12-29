@@ -1,0 +1,76 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Local development
+.env
+.env.local
+*.log
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Cache
+.cache/
+*.cache
+
+# Docker (don't include docker files in docker context)
+docker/
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Claude/AI configs
+.claude/
+.taskmaster/
+CLAUDE.md
+
+# Test files
+tests/
+test_*.py
+
+# Data (if large)
+data/prices/*.csv
+*.db
+*.sqlite
+
+# Misc
+.DS_Store
+Thumbs.db
+*.bak
