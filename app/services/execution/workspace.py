@@ -129,6 +129,8 @@ class LocalWorkspaceManager(WorkspaceManager):
 
         workspace = self._base_path / dir_name
         workspace.mkdir(parents=True, exist_ok=True)
+        # Make workspace writable by execution backends (may run as different user)
+        os.chmod(workspace, 0o777)
 
         try:
             # Write code file
@@ -307,6 +309,8 @@ class DooDBWorkspaceManager(WorkspaceManager):
 
         workspace = self._container_base_path / dir_name
         workspace.mkdir(parents=True, exist_ok=True)
+        # Make workspace writable by sibling containers (runner runs as different user)
+        os.chmod(workspace, 0o777)
 
         try:
             # Write code file

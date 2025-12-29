@@ -163,6 +163,11 @@ jobs:
             sudo docker stop backtest-api 2>/dev/null || true
             sudo docker rm backtest-api 2>/dev/null || true
 
+            echo "=== Preparing workspace directory ==="
+            # Create workspace directory with proper permissions for appuser
+            sudo mkdir -p /tmp/backtest_workspaces
+            sudo chmod 777 /tmp/backtest_workspaces
+
             echo "=== Starting new container ==="
             # Get Docker group ID for socket access
             DOCKER_GID=$(getent group docker | cut -d: -f3)
