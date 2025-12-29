@@ -142,14 +142,16 @@ class TestYFinanceDailyPrices:
 
     @pytest.mark.asyncio
     async def test_get_daily_prices_empty_result(self, provider):
-        """Test ticker not found when empty result."""
+        """Test empty result returns empty list (holidays/non-trading days)."""
         empty_df = pd.DataFrame()
 
         with patch.object(provider, "_fetch_history_sync", return_value=empty_df):
-            with pytest.raises(TickerNotFoundError):
-                await provider.get_daily_prices(
-                    "INVALID", date(2024, 1, 1), date(2024, 1, 5)
-                )
+            prices = await provider.get_daily_prices(
+                "AAPL", date(2024, 1, 1), date(2024, 1, 5)
+            )
+            # Empty result is returned as empty list (not an error)
+            # This handles cases like holidays or non-trading days
+            assert prices == []
 
     @pytest.mark.asyncio
     async def test_get_daily_prices_invalid_date_range(self, provider):

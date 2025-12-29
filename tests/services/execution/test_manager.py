@@ -29,6 +29,9 @@ def create_mock_settings(
     timeout: int = 300,
     memory_limit: str = "2g",
     allowed_modules: list[str] | None = None,
+    docker_image: str = "backtest-runner:latest",
+    fallback_to_local: bool = True,
+    docker_socket_url: str | None = None,
 ) -> MagicMock:
     """Create a properly configured mock Settings object."""
     mock_settings = MagicMock(spec=Settings)
@@ -37,6 +40,9 @@ def create_mock_settings(
     mock_execution.timeout = timeout
     mock_execution.memory_limit = memory_limit
     mock_execution.allowed_modules = allowed_modules or []
+    mock_execution.docker_image = docker_image
+    mock_execution.fallback_to_local = fallback_to_local
+    mock_execution.docker_socket_url = docker_socket_url
     mock_settings.execution = mock_execution
     return mock_settings
 

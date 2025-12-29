@@ -70,7 +70,7 @@ class SMAStrategy(Strategy):
             self.sell()
 
 result = {
-    "equity_curve": [100000, 101000, 102000],
+    "equity_series": [100000, 101000, 102000],
     "trades": [],
     "final_value": 102000,
 }
@@ -83,7 +83,7 @@ def malicious_code_os_system() -> str:
     return '''
 import os
 os.system("rm -rf /")
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
 
 
@@ -94,7 +94,7 @@ def malicious_code_eval() -> str:
 import pandas as pd
 code = "print('hacked')"
 eval(code)
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
 
 
@@ -104,7 +104,7 @@ def malicious_code_subprocess() -> str:
     return '''
 import subprocess
 subprocess.call(["ls", "-la"])
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
 
 
@@ -221,7 +221,9 @@ class TestSecurityConstants:
 
     def test_banned_methods_contains_expected_methods(self):
         """Verify banned methods contains dangerous methods."""
-        expected_banned = ["system", "popen", "call", "run", "Popen"]
+        # Note: "run" is not banned to allow bt.run(), Backtest.run() etc.
+        # subprocess.run() is blocked by import restriction
+        expected_banned = ["system", "popen", "call", "Popen"]
         for method in expected_banned:
             assert method in BANNED_METHODS, f"{method} should be in BANNED_METHODS"
 
@@ -237,7 +239,7 @@ class TestSecurityConstants:
 
     def test_required_result_keys(self):
         """Verify required keys in result dictionary."""
-        assert "equity_curve" in REQUIRED_RESULT_KEYS
+        assert "equity_series" in REQUIRED_RESULT_KEYS
         assert "trades" in REQUIRED_RESULT_KEYS
 
 
@@ -327,7 +329,7 @@ class TestSecurityValidation:
         code = '''
 import pandas as pd
 exec("print('hacked')")
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         assert result.is_valid is False
@@ -338,7 +340,7 @@ result = {"equity_curve": [], "trades": []}
         code = '''
 import pandas as pd
 compiled = compile("x=1", "", "exec")
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         assert result.is_valid is False
@@ -349,7 +351,7 @@ result = {"equity_curve": [], "trades": []}
         code = '''
 import pandas as pd
 f = open("file.txt", "r")
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         assert result.is_valid is False
@@ -359,7 +361,7 @@ result = {"equity_curve": [], "trades": []}
         """Test that 'from os import *' is detected."""
         code = '''
 from os import path
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         assert result.is_valid is False
@@ -370,7 +372,7 @@ result = {"equity_curve": [], "trades": []}
         code = '''
 import pandas as pd
 # Trying to access os via indirect means
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         # This code should be valid since it doesn't actually access os
         result = validator.validate(code)
@@ -381,7 +383,7 @@ result = {"equity_curve": [], "trades": []}
         """Test that wildcard imports generate a warning."""
         code = '''
 from math import *
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         # Wildcard is a warning, not error
@@ -392,7 +394,7 @@ result = {"equity_curve": [], "trades": []}
         code = '''
 import pandas as pd
 df = pd.DataFrame({"a": [1, 2, 3]})
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         # Should not have errors about pandas
@@ -403,7 +405,7 @@ result = {"equity_curve": [], "trades": []}
         code = '''
 import numpy as np
 arr = np.array([1, 2, 3])
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         # Should not have errors about numpy
@@ -413,7 +415,7 @@ result = {"equity_curve": [], "trades": []}
         """Test that nested banned imports are detected."""
         code = '''
 import os.path
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         assert result.is_valid is False
@@ -426,7 +428,7 @@ import os
 import subprocess
 eval("1+1")
 exec("x=1")
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         assert result.is_valid is False
@@ -453,7 +455,7 @@ class TestStructureValidation:
         """Test that code with result variable passes."""
         code = '''
 import pandas as pd
-result = {"equity_curve": [1, 2, 3], "trades": []}
+result = {"equity_series": [1, 2, 3], "trades": []}
 '''
         result = validator.validate(code)
         # Should not have warning about missing result
@@ -463,7 +465,7 @@ result = {"equity_curve": [1, 2, 3], "trades": []}
         """Test warning when Strategy class is missing."""
         code = '''
 import pandas as pd
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         assert any("strategy" in w.lower() for w in result.warnings)
@@ -500,7 +502,7 @@ class MyStrategy(Strategy):
     def next(self):
         pass
 
-result = {"equity_curve": [100, 101], "trades": []}
+result = {"equity_series": [100, 101], "trades": []}
 '''
         result = validator.validate(code)
         # Should not warn about missing keys
@@ -577,7 +579,7 @@ class MyStrategy(Strategy):
     def next(self):
         pass
 
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         assert result.is_valid is True
@@ -634,7 +636,7 @@ class TestEdgeCases:
 import pandas as pd
 # 한글 주석
 message = "안녕하세요"
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         # Should handle unicode without errors
@@ -647,7 +649,7 @@ result = {"equity_curve": [], "trades": []}
         lines = ["import pandas as pd"]
         for i in range(1000):
             lines.append(f"x{i} = {i}")
-        lines.append("result = {'equity_curve': [], 'trades': []}")
+        lines.append("result = {'equity_series': [], 'trades': []}")
         code = "\n".join(lines)
 
         result = validator.validate(code)
@@ -672,7 +674,7 @@ def outer():
         return inner
     return middle
 
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         # Should handle nested structures
@@ -698,7 +700,7 @@ class MyStrategy(Strategy):
     def next(self):
         pass
 
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         assert isinstance(result, ValidationResult)
@@ -711,7 +713,7 @@ import asyncio
 async def main():
     await asyncio.sleep(1)
 
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         assert result.is_valid is False
@@ -731,7 +733,7 @@ class MyStrategy(Strategy):
     def next(self):
         pass
 
-result = {"equity_curve": list(lst), "trades": []}
+result = {"equity_series": list(lst), "trades": []}
 '''
         result = validator.validate(code)
         assert isinstance(result, ValidationResult)
@@ -745,7 +747,7 @@ import pandas as pd
 # This should be caught
 func = __builtins__["eval"]
 
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         # Note: __builtins__ access might not be caught by simple AST analysis
         # but direct reference to __builtins__ is in banned list
@@ -758,7 +760,7 @@ result = {"equity_curve": [], "trades": []}
 import pandas as pd
 obj = object()
 val = getattr(obj, "attr", None)
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         assert result.is_valid is False
@@ -782,7 +784,7 @@ class TestFormattingIntegration:
         validator = ASTCodeValidator(enable_formatting=True)
         code = '''
 import os
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         assert result.is_valid is False
@@ -804,7 +806,7 @@ class TestRegressions:
 # Relative imports have module=None
 # This is valid Python but we should handle it
 x = 1
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         # Should not crash
@@ -816,7 +818,7 @@ result = {"equity_curve": [], "trades": []}
 import pandas as pd
 df = pd.DataFrame()
 value = df["col"].iloc[0].values
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         # Should handle subscript in chain
@@ -828,7 +830,7 @@ result = {"equity_curve": [], "trades": []}
 import pandas as pd
 funcs = [lambda x: x]
 result_value = funcs[0](10)
-result = {"equity_curve": [], "trades": []}
+result = {"equity_series": [], "trades": []}
 '''
         result = validator.validate(code)
         # Should handle lambda calls without error

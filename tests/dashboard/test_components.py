@@ -133,12 +133,12 @@ class TestMetricsComponents:
         )
         assert isinstance(card, dbc.Card)
 
-    def test_create_metrics_row_returns_row(self):
-        """Test that create_metrics_row returns a dbc.Row."""
+    def test_create_metrics_row_returns_div(self):
+        """Test that create_metrics_row returns an html.Div."""
         from app.dashboard.components.metrics import create_metrics_row
 
-        row = create_metrics_row()
-        assert isinstance(row, dbc.Row)
+        result = create_metrics_row()
+        assert isinstance(result, html.Div)
 
     def test_create_metrics_row_with_data(self):
         """Test that create_metrics_row handles metric data correctly."""
@@ -153,8 +153,8 @@ class TestMetricsComponents:
             "calmar_ratio": 0.81,
         }
 
-        row = create_metrics_row(metrics)
-        assert isinstance(row, dbc.Row)
+        result = create_metrics_row(metrics)
+        assert isinstance(result, html.Div)
 
     def test_create_results_dashboard_returns_card(self):
         """Test that create_results_dashboard returns a dbc.Card."""

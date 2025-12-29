@@ -91,8 +91,11 @@ class TestExecutionConfig:
 class TestSettings:
     """Tests for Settings model."""
 
-    def test_default_settings(self) -> None:
+    def test_default_settings(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test default settings values."""
+        # Clear any existing APP_DEBUG env var to test true defaults
+        monkeypatch.delenv("APP_DEBUG", raising=False)
+
         settings = Settings()
         assert settings.app_name == "Natural Language Backtesting Service"
         assert settings.app_version == "0.1.0"
