@@ -275,6 +275,16 @@ class Settings(BaseSettings):
         alias="APP_DEBUG",
     )
 
+    @field_validator("debug", mode="before")
+    @classmethod
+    def parse_debug_bool(cls, v):
+        """Handle empty string as False for boolean debug field."""
+        if v == "" or v is None:
+            return False
+        if isinstance(v, str):
+            return v.lower() in ("true", "1", "yes", "on")
+        return v
+
     # LLM API Keys (from .env)
     openrouter_api_key: str = Field(
         default="",
