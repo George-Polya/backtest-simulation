@@ -176,23 +176,16 @@ def register_routes(app: FastAPI) -> None:
         "/",
         tags=["Root"],
         summary="Root",
-        description="Root endpoint returning service information.",
+        description="Redirect to dashboard.",
+        response_class=RedirectResponse,
     )
-    async def root(
-        settings: Settings = Depends(get_settings_dep),
-    ) -> dict[str, Any]:
+    async def root() -> RedirectResponse:
         """
         Root endpoint.
 
-        Returns basic service information.
+        Redirects to the dashboard.
         """
-        return {
-            "service": settings.app_name,
-            "version": settings.app_version,
-            "docs": "/docs" if settings.debug else None,
-            "health": "/health",
-            "dashboard": "/dashboard/",
-        }
+        return RedirectResponse(url="/dashboard/", status_code=302)
 
 
 # Create the application instance
