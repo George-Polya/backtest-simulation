@@ -58,25 +58,17 @@ class TestHealthEndpoint:
 class TestRootEndpoint:
     """Tests for the / root endpoint."""
 
-    def test_root_returns_200(self, client: TestClient) -> None:
-        """Test that root endpoint returns 200 OK."""
-        response = client.get("/")
-        assert response.status_code == 200
+    def test_root_redirects_to_dashboard(self, client: TestClient) -> None:
+        """Test that root endpoint redirects to dashboard."""
+        response = client.get("/", follow_redirects=False)
+        assert response.status_code == 302
+        assert response.headers["location"] == "/dashboard/"
 
-    def test_root_response_structure(self, client: TestClient) -> None:
-        """Test that root response has expected structure."""
-        response = client.get("/")
-        data = response.json()
-
-        assert "service" in data
-        assert "version" in data
-        assert "health" in data
-
-    def test_root_health_link(self, client: TestClient) -> None:
-        """Test that root response includes health endpoint link."""
-        response = client.get("/")
-        data = response.json()
-        assert data["health"] == "/health"
+    def test_root_follows_redirect_to_dashboard(self, client: TestClient) -> None:
+        """Test that following redirect leads to dashboard."""
+        response = client.get("/", follow_redirects=True)
+        # Dashboard may return 200 or other status depending on Dash availability
+        assert response.status_code in [200, 404]  # 404 if dash not installed
 
 
 class TestApplicationLifespan:

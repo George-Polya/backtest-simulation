@@ -459,17 +459,11 @@ class TestHealthAndRootEndpoints:
         assert "timestamp" in data
 
     def test_root_endpoint(self, client):
-        """Test that root endpoint returns service information."""
-        response = client.get("/")
+        """Test that root endpoint redirects to dashboard."""
+        response = client.get("/", follow_redirects=False)
 
-        assert response.status_code == 200
-        data = response.json()
-
-        # Verify root response
-        assert "service" in data
-        assert "version" in data
-        assert "docs" in data
-        assert "health" in data
+        assert response.status_code == 302
+        assert response.headers["location"] == "/dashboard/"
 
     def test_docs_endpoint_available_in_debug(self, client):
         """Test that /docs is available (depends on debug mode)."""
