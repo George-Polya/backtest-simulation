@@ -1,0 +1,118 @@
+version: '3.8'
+
+# ===========================================
+# Production Docker Compose with Nginx + TLS
+# ===========================================
+# Usage:
+#   docker-compose -f docker-compose.prod.yml up -d
+
+services:
+  # ===========================================
+  # Nginx Reverse Proxy (handles SSL termination)
+  # ===========================================
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:latest
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - certs:/etc/nginx/certs:ro
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - ./nginx/custom.conf:/etc/nginx/conf.d/custom.conf:ro
+    environment:
+      - TRUST_DOWNSTREAM_PROXY=false
+    restart: always
+    networks:
+      - proxy-network
+
+  # ===========================================
+  # Let's Encrypt Companion (auto SSL certificates)
+  # ===========================================
+  acme-companion:
+    image: nginxproxy/acme-companion:latest
+    container_name: acme-companion
+    environment:
+      - DEFAULT_EMAIL=${LETSENCRYPT_EMAIL:-admin@yoyak.org}
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - certs:/etc/nginx/certs:rw
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - acme:/etc/acme.sh
+    depends_on:
+      - nginx-proxy
+    restart: always
+    networks:
+      - proxy-network
+
+  # ===========================================
+  # Main FastAPI Application
+  # ===========================================
+  backtest-api:
+    image: ghcr.io/${GITHUB_REPOSITORY:-local}/backtest-api:latest
+    container_name: backtest-api
+    # No direct port exposure - nginx handles traffic
+    expose:
+      - "8000"
+    environment:
+      # === App Configuration ===
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      # === Nginx Proxy Configuration ===
+      - VIRTUAL_HOST=yoyak.org,www.yoyak.org
+      - VIRTUAL_PORT=8000
+      # === Let's Encrypt Configuration ===
+      - LETSENCRYPT_HOST=yoyak.org,www.yoyak.org
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-admin@yoyak.org}
+    volumes:
+      # Persist price cache data
+      - ./data:/app/data
+      # Mount config for easy updates
+      - ./config.yaml:/app/config.yaml:ro
+      # Docker socket for DooD (Docker out of Docker)
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Workspace for code execution
+      - /tmp/backtest_workspaces:/tmp/backtest_workspaces
+    group_add:
+      - ${DOCKER_GID:-999}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - proxy-network
+      - backtest-network
+
+# ===========================================
+# Persistent Volumes
+# ===========================================
+volumes:
+  certs:
+    name: nginx-certs
+  vhost:
+    name: nginx-vhost
+  html:
+    name: nginx-html
+  acme:
+    name: acme-data
+
+# ===========================================
+# Networks
+# ===========================================
+networks:
+  proxy-network:
+    name: proxy-network
+    driver: bridge
+  backtest-network:
+    name: backtest-network
+    driver: bridge

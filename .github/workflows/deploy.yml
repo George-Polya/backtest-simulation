@@ -141,13 +141,35 @@ jobs:
 
             # Image name (lowercase)
             IMAGE_NAME="${{ needs.build-api.outputs.image_name }}"
+            DOMAIN="yoyak.org"
 
             echo "=== Logging in to GitHub Container Registry ==="
             echo "${{ secrets.GH_PAT }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             echo "=== Creating app directory ==="
             mkdir -p ~/backtest-simulation/data
+            mkdir -p ~/backtest-simulation/nginx
             cd ~/backtest-simulation
+
+            echo "=== Creating nginx custom config ==="
+            cat > ~/backtest-simulation/nginx/custom.conf << 'NGINX_CONF'
+            # Custom Nginx Configuration
+            proxy_buffer_size 128k;
+            proxy_buffers 4 256k;
+            proxy_busy_buffers_size 256k;
+            proxy_connect_timeout 300s;
+            proxy_send_timeout 300s;
+            proxy_read_timeout 300s;
+            gzip on;
+            gzip_vary on;
+            gzip_min_length 1024;
+            gzip_proxied any;
+            gzip_types application/json application/javascript text/css text/plain text/xml application/xml;
+            add_header X-Content-Type-Options "nosniff" always;
+            add_header X-Frame-Options "SAMEORIGIN" always;
+            add_header X-XSS-Protection "1; mode=block" always;
+            client_max_body_size 10M;
+            NGINX_CONF
 
             echo "=== Pulling latest images ==="
             # Pull main API image
@@ -159,28 +181,66 @@ jobs:
             # Tag runner image for local reference (config.yaml expects backtest-runner:latest)
             sudo docker tag ghcr.io/${IMAGE_NAME}/backtest-runner:latest backtest-runner:latest
 
-            echo "=== Stopping existing container ==="
-            sudo docker stop backtest-api 2>/dev/null || true
-            sudo docker rm backtest-api 2>/dev/null || true
-
             echo "=== Preparing workspace directory ==="
-            # Create workspace directory with proper permissions for appuser
             sudo mkdir -p /tmp/backtest_workspaces
             sudo chmod 777 /tmp/backtest_workspaces
 
-            echo "=== Starting new container ==="
-            # Get Docker group ID for socket access
+            echo "=== Creating Docker network ==="
+            sudo docker network create proxy-network 2>/dev/null || true
+
+            echo "=== Stopping existing containers ==="
+            sudo docker stop backtest-api nginx-proxy acme-companion 2>/dev/null || true
+            sudo docker rm backtest-api nginx-proxy acme-companion 2>/dev/null || true
+
+            echo "=== Starting Nginx Reverse Proxy ==="
+            sudo docker run -d \
+              --name nginx-proxy \
+              --restart always \
+              --network proxy-network \
+              -p 80:80 \
+              -p 443:443 \
+              -v /var/run/docker.sock:/tmp/docker.sock:ro \
+              -v nginx-certs:/etc/nginx/certs:ro \
+              -v nginx-vhost:/etc/nginx/vhost.d \
+              -v nginx-html:/usr/share/nginx/html \
+              -v ~/backtest-simulation/nginx/custom.conf:/etc/nginx/conf.d/custom.conf:ro \
+              -e TRUST_DOWNSTREAM_PROXY=false \
+              nginxproxy/nginx-proxy:latest
+
+            echo "=== Starting Let's Encrypt Companion ==="
+            sudo docker run -d \
+              --name acme-companion \
+              --restart always \
+              --network proxy-network \
+              -e DEFAULT_EMAIL="${{ secrets.LETSENCRYPT_EMAIL }}" \
+              -e NGINX_PROXY_CONTAINER=nginx-proxy \
+              -v /var/run/docker.sock:/var/run/docker.sock:ro \
+              -v nginx-certs:/etc/nginx/certs:rw \
+              -v nginx-vhost:/etc/nginx/vhost.d \
+              -v nginx-html:/usr/share/nginx/html \
+              -v acme-data:/etc/acme.sh \
+              nginxproxy/acme-companion:latest
+
+            # Wait for nginx to be ready
+            sleep 5
+
+            echo "=== Starting Backend API ==="
             DOCKER_GID=$(getent group docker | cut -d: -f3)
 
             sudo docker run -d \
               --name backtest-api \
               --restart unless-stopped \
-              -p 8000:8000 \
+              --network proxy-network \
+              --expose 8000 \
               -e APP_DEBUG="${{ secrets.APP_DEBUG }}" \
               -e OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
               -e SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
               -e SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
               -e SUPABASE_SERVICE_KEY="${{ secrets.SUPABASE_SERVICE_KEY }}" \
+              -e VIRTUAL_HOST=${DOMAIN},www.${DOMAIN} \
+              -e VIRTUAL_PORT=8000 \
+              -e LETSENCRYPT_HOST=${DOMAIN},www.${DOMAIN} \
+              -e LETSENCRYPT_EMAIL="${{ secrets.LETSENCRYPT_EMAIL }}" \
               -v ~/backtest-simulation/data:/app/data \
               -v /var/run/docker.sock:/var/run/docker.sock \
               -v /tmp/backtest_workspaces:/tmp/backtest_workspaces \
@@ -191,15 +251,30 @@ jobs:
             sudo docker image prune -f
 
             echo "=== Deployment Complete ==="
-            sudo docker ps --filter name=backtest-api
+            sudo docker ps
 
-            echo "=== Testing health endpoint ==="
+            echo "=== Testing internal health endpoint ==="
             sleep 10
-            curl -sf http://localhost:8000/health || echo "Health check pending..."
+            curl -sf http://localhost:8000/health 2>/dev/null || echo "Direct access blocked (expected with nginx)"
+            sudo docker exec nginx-proxy curl -sf http://backtest-api:8000/health || echo "Health check via nginx pending..."
 
       - name: External Health Check
         run: |
-          echo "Waiting for service to stabilize..."
-          sleep 20
-          curl -sf http://${{ secrets.ORACLE_HOST }}:8000/health && echo "✅ Service is healthy!" || echo "⚠️ Health check failed - please verify manually"
+          echo "Waiting for SSL certificate to be issued (this may take 1-2 minutes)..."
+          sleep 60
+          
+          # Try HTTPS first
+          if curl -sf https://yoyak.org/health; then
+            echo "✅ HTTPS is working! Service is healthy!"
+          else
+            echo "⚠️ HTTPS not ready yet. Trying HTTP fallback..."
+            curl -sf http://${{ secrets.ORACLE_HOST }}/health && echo "✅ HTTP is working!" || echo "⚠️ Health check failed - please verify manually"
+          fi
+          
+          echo ""
+          echo "=========================================="
+          echo "Your site should be available at:"
+          echo "  https://yoyak.org"
+          echo "  https://www.yoyak.org"
+          echo "=========================================="
 
