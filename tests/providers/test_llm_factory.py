@@ -11,13 +11,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.core.config import LLMConfig, LLMProvider as LLMProviderEnum, Settings
-from app.providers.llm.base import LLMProvider, LLMProviderError
-from app.providers.llm.anthropic_adapter import AnthropicAdapter
-from app.providers.llm.factory import LLMProviderFactory
-from app.providers.llm.langchain_adapter import LangChainAdapter
-from app.providers.llm.openai_adapter import OpenAIAdapter
-from app.providers.llm.openrouter import OpenRouterAdapter
+from backend.core.config import LLMConfig, LLMProvider as LLMProviderEnum, Settings
+from backend.providers.llm.base import LLMProvider, LLMProviderError
+from backend.providers.llm.anthropic_adapter import AnthropicAdapter
+from backend.providers.llm.factory import LLMProviderFactory
+from backend.providers.llm.langchain_adapter import LangChainAdapter
+from backend.providers.llm.openai_adapter import OpenAIAdapter
+from backend.providers.llm.openrouter import OpenRouterAdapter
 
 
 @pytest.fixture
@@ -148,7 +148,7 @@ class TestLLMProviderFactory:
 
     def test_register_custom_provider_override(self) -> None:
         """Test registering a custom provider factory can override existing."""
-        from app.providers.llm.factory import _PROVIDER_REGISTRY
+        from backend.providers.llm.factory import _PROVIDER_REGISTRY
 
         # Save original factory
         original_factory = _PROVIDER_REGISTRY.get(LLMProviderEnum.ANTHROPIC)
@@ -184,7 +184,7 @@ class TestLLMProviderFactory:
 
     def test_unregister_and_reregister_provider(self) -> None:
         """Test unregistering and re-registering a provider."""
-        from app.providers.llm.factory import _PROVIDER_REGISTRY
+        from backend.providers.llm.factory import _PROVIDER_REGISTRY
 
         # Save original factory
         original_factory = _PROVIDER_REGISTRY.get(LLMProviderEnum.ANTHROPIC)

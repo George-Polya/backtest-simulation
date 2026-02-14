@@ -11,13 +11,13 @@ import tempfile
 
 import pytest
 
-from app.core.config import ExecutionProvider, Settings, ExecutionConfig
-from app.models.execution import ExecutionJob, ExecutionResult, JobStatus
-from app.services.execution.backend import LocalBackend
-from app.services.execution.docker_backend import DockerBackend
-from app.services.execution.storage import InMemoryJobStorage
-from app.services.execution.workspace import LocalWorkspaceManager
-from app.services.execution.manager import (
+from backend.core.config import ExecutionProvider, Settings, ExecutionConfig
+from backend.models.execution import ExecutionJob, ExecutionResult, JobStatus
+from backend.services.execution.backend import LocalBackend
+from backend.services.execution.docker_backend import DockerBackend
+from backend.services.execution.storage import InMemoryJobStorage
+from backend.services.execution.workspace import LocalWorkspaceManager
+from backend.services.execution.manager import (
     BackendFactory,
     JobManager,
     create_job_manager,
@@ -65,7 +65,7 @@ class TestBackendFactory:
 
         assert isinstance(backend, DockerBackend)
 
-    @patch("app.services.execution.manager.get_settings")
+    @patch("backend.services.execution.manager.get_settings")
     def test_create_from_settings_local(self, mock_get_settings):
         """Test creating backend from settings with local provider."""
         mock_settings = create_mock_settings(
@@ -79,7 +79,7 @@ class TestBackendFactory:
 
         assert isinstance(backend, LocalBackend)
 
-    @patch("app.services.execution.manager.get_settings")
+    @patch("backend.services.execution.manager.get_settings")
     def test_create_from_settings_docker(self, mock_get_settings):
         """Test creating backend from settings with docker provider."""
         mock_settings = create_mock_settings(
@@ -390,7 +390,7 @@ def run_backtest(params):
 class TestCreateJobManager:
     """Tests for the factory function."""
 
-    @patch("app.services.execution.manager.get_settings")
+    @patch("backend.services.execution.manager.get_settings")
     def test_create_with_local_settings(self, mock_get_settings):
         """Test creating job manager with local settings."""
         mock_settings = create_mock_settings(
@@ -404,7 +404,7 @@ class TestCreateJobManager:
 
         assert isinstance(manager.backend, LocalBackend)
 
-    @patch("app.services.execution.manager.get_settings")
+    @patch("backend.services.execution.manager.get_settings")
     def test_create_with_docker_override(self, mock_get_settings):
         """Test creating job manager with Docker override."""
         mock_settings = create_mock_settings(
@@ -418,7 +418,7 @@ class TestCreateJobManager:
 
         assert isinstance(manager.backend, DockerBackend)
 
-    @patch("app.services.execution.manager.get_settings")
+    @patch("backend.services.execution.manager.get_settings")
     def test_create_with_local_override(self, mock_get_settings):
         """Test creating job manager with local override."""
         mock_settings = create_mock_settings(

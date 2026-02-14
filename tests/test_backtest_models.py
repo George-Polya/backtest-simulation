@@ -13,7 +13,7 @@ from datetime import date, timedelta
 import pytest
 from pydantic import ValidationError
 
-from app.models import (
+from backend.models import (
     ContributionFrequency,
     ContributionPlan,
     FeeSettings,
@@ -24,8 +24,8 @@ from app.models import (
     GeneratedCode,
     GenerationConfig,
 )
-from app.models.backtest import AVAILABLE_DATA_START, AVAILABLE_DATA_END
-from app.core.config import LLMProvider
+from backend.models.backtest import AVAILABLE_DATA_START, AVAILABLE_DATA_END
+from backend.core.config import LLMProvider
 
 
 # =============================================================================

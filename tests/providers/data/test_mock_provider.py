@@ -9,13 +9,13 @@ from decimal import Decimal
 
 import pytest
 
-from app.providers.data.mock import (
+from backend.providers.data.mock import (
     MOCK_TICKER_INFO,
     MOCK_TICKERS,
     MockDataConfig,
     MockDataProvider,
 )
-from app.providers.data.base import (
+from backend.providers.data.base import (
     CurrentPrice,
     DataProviderError,
     Exchange,

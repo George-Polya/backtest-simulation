@@ -14,7 +14,7 @@ class TestDashAppCreation:
 
     def test_create_dash_app_returns_dash_instance(self):
         """Test that create_dash_app returns a Dash application."""
-        from app.dashboard.app import create_dash_app
+        from frontend.app import create_dash_app
         import dash
 
         app = create_dash_app()
@@ -22,14 +22,14 @@ class TestDashAppCreation:
 
     def test_dash_app_has_correct_title(self):
         """Test that the app has the correct title."""
-        from app.dashboard.app import create_dash_app, APP_TITLE
+        from frontend.app import create_dash_app, APP_TITLE
 
         app = create_dash_app()
         assert app.title == APP_TITLE
 
     def test_dash_app_has_bootstrap_stylesheet(self):
         """Test that Bootstrap stylesheet is included."""
-        from app.dashboard.app import create_dash_app
+        from frontend.app import create_dash_app
         import dash_bootstrap_components as dbc
 
         app = create_dash_app()
@@ -40,7 +40,7 @@ class TestDashAppCreation:
 
     def test_dash_app_requests_pathname_prefix(self):
         """Test that the requests pathname prefix is set correctly."""
-        from app.dashboard.app import create_dash_app
+        from frontend.app import create_dash_app
 
         custom_prefix = "/test-dashboard/"
         app = create_dash_app(requests_pathname_prefix=custom_prefix)
@@ -49,7 +49,7 @@ class TestDashAppCreation:
 
     def test_dash_app_suppress_callback_exceptions(self):
         """Test that callback exceptions are suppressed for dynamic content."""
-        from app.dashboard.app import create_dash_app
+        from frontend.app import create_dash_app
 
         app = create_dash_app()
         assert app.config.suppress_callback_exceptions is True
@@ -60,7 +60,7 @@ class TestDashAppLayout:
 
     def test_create_layout_returns_container(self):
         """Test that create_layout returns a Bootstrap Container."""
-        from app.dashboard.layout import create_layout
+        from frontend.layout import create_layout
         import dash_bootstrap_components as dbc
 
         layout = create_layout()
@@ -68,7 +68,7 @@ class TestDashAppLayout:
 
     def test_layout_has_stores(self):
         """Test that the layout includes data stores."""
-        from app.dashboard.layout import create_layout
+        from frontend.layout import create_layout
         from dash import dcc
 
         layout = create_layout()
@@ -82,7 +82,7 @@ class TestDashAppLayout:
 
     def test_layout_has_interval_component(self):
         """Test that the layout includes an interval component for polling."""
-        from app.dashboard.layout import create_layout
+        from frontend.layout import create_layout
         from dash import dcc
 
         layout = create_layout()
@@ -92,7 +92,7 @@ class TestDashAppLayout:
 
     def test_layout_has_action_buttons(self):
         """Test that the layout includes generate and execute buttons."""
-        from app.dashboard.layout import create_layout
+        from frontend.layout import create_layout
         import dash_bootstrap_components as dbc
 
         layout = create_layout()
@@ -109,13 +109,13 @@ class TestFastAPIIntegration:
 
     def test_mount_dashboard_imports_correctly(self):
         """Test that mount_dashboard can be imported."""
-        from app.main import mount_dashboard
+        from backend.main import mount_dashboard
 
         assert callable(mount_dashboard)
 
     def test_app_has_dashboard_route(self):
         """Test that the FastAPI app has the dashboard mounted."""
-        from app.main import app
+        from backend.main import app
 
         # Check routes for dashboard mount
         routes = [route.path for route in app.routes]
@@ -129,7 +129,7 @@ class TestCallbackValidation:
 
     def test_validate_inputs_empty_strategy(self):
         """Test validation rejects empty strategy."""
-        from app.dashboard.callbacks import _validate_inputs
+        from frontend.callbacks import _validate_inputs
 
         error = _validate_inputs(
             strategy="",
@@ -144,7 +144,7 @@ class TestCallbackValidation:
 
     def test_validate_inputs_missing_dates(self):
         """Test validation rejects missing dates."""
-        from app.dashboard.callbacks import _validate_inputs
+        from frontend.callbacks import _validate_inputs
 
         error = _validate_inputs(
             strategy="A valid strategy description for testing",
@@ -159,7 +159,7 @@ class TestCallbackValidation:
 
     def test_validate_inputs_invalid_capital(self):
         """Test validation rejects invalid capital."""
-        from app.dashboard.callbacks import _validate_inputs
+        from frontend.callbacks import _validate_inputs
 
         error = _validate_inputs(
             strategy="A valid strategy description for testing",
@@ -174,7 +174,7 @@ class TestCallbackValidation:
 
     def test_validate_inputs_missing_benchmarks(self):
         """Test validation rejects missing benchmarks."""
-        from app.dashboard.callbacks import _validate_inputs
+        from frontend.callbacks import _validate_inputs
 
         error = _validate_inputs(
             strategy="A valid strategy description for testing",
@@ -189,7 +189,7 @@ class TestCallbackValidation:
 
     def test_validate_inputs_valid(self):
         """Test validation passes for valid inputs."""
-        from app.dashboard.callbacks import _validate_inputs
+        from frontend.callbacks import _validate_inputs
 
         error = _validate_inputs(
             strategy="A valid strategy description for testing purposes",

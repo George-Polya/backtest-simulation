@@ -12,9 +12,9 @@ import tempfile
 
 import pytest
 
-from app.models.execution import ExecutionJob, JobStatus
-from app.services.execution.backend import ExecutionBackend
-from app.services.execution.docker_backend import (
+from backend.models.execution import ExecutionJob, JobStatus
+from backend.services.execution.backend import ExecutionBackend
+from backend.services.execution.docker_backend import (
     DockerBackend,
     DEFAULT_PYTHON_IMAGE,
 )

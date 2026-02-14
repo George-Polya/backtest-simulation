@@ -10,16 +10,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.core.config import DataConfig, DataProvider as DataProviderEnum, Settings
-from app.providers.data.factory import (
+from backend.core.config import DataConfig, DataProvider as DataProviderEnum, Settings
+from backend.providers.data.factory import (
     CachedDataProvider,
     DataProviderFactory,
     LRUCache,
     get_data_provider,
 )
-from app.providers.data.base import DataProvider, DataProviderError, Exchange, PriceData
-from app.providers.data.mock import MockDataProvider
-from app.providers.data.yfinance import YFinanceDataProvider
+from backend.providers.data.base import DataProvider, DataProviderError, Exchange, PriceData
+from backend.providers.data.mock import MockDataProvider
+from backend.providers.data.yfinance import YFinanceDataProvider
 
 
 class TestLRUCache:

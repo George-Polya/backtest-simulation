@@ -10,8 +10,8 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from app.models.execution import ExecutionJob, JobStatus
-from app.services.execution.storage import (
+from backend.models.execution import ExecutionJob, JobStatus
+from backend.services.execution.storage import (
     InMemoryJobStorage,
     JobNotFoundError,
 )
@@ -344,7 +344,7 @@ class TestExecutionResult:
         sample_job.mark_running()
         sample_job.mark_completed({"portfolio_value": 15000}, logs="Done")
 
-        from app.models.execution import ExecutionResult
+        from backend.models.execution import ExecutionResult
 
         result = ExecutionResult.from_job(sample_job)
 
@@ -360,7 +360,7 @@ class TestExecutionResult:
         sample_job.mark_running()
         sample_job.mark_failed("Something went wrong")
 
-        from app.models.execution import ExecutionResult
+        from backend.models.execution import ExecutionResult
 
         result = ExecutionResult.from_job(sample_job)
 

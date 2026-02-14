@@ -11,9 +11,9 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 
-from app.main import create_app
-from app.models.execution import ExecutionResult, JobStatus
-from app.services.execution.storage import JobNotFoundError
+from backend.main import create_app
+from backend.models.execution import ExecutionResult, JobStatus
+from backend.services.execution.storage import JobNotFoundError
 
 
 @pytest.fixture
@@ -63,7 +63,7 @@ class TestExecuteBacktestEndpoint:
     def test_execute_backtest_async_mode_success(self, client, mock_job_manager):
         """Test successful async execution (default mode)."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.post(
@@ -91,7 +91,7 @@ class TestExecuteBacktestEndpoint:
     def test_execute_backtest_sync_mode_success(self, client, mock_job_manager):
         """Test successful sync execution."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.post(
@@ -130,7 +130,7 @@ class TestExecuteBacktestEndpoint:
         )
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.post(
@@ -152,7 +152,7 @@ class TestExecuteBacktestEndpoint:
     def test_execute_backtest_with_timeout(self, client, mock_job_manager):
         """Test execution with custom timeout."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.post(
@@ -173,7 +173,7 @@ class TestExecuteBacktestEndpoint:
     def test_execute_backtest_missing_code(self, client, mock_job_manager):
         """Test validation error when both code and code_reference are missing."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.post(
@@ -187,7 +187,7 @@ class TestExecuteBacktestEndpoint:
     def test_execute_backtest_both_code_and_reference(self, client, mock_job_manager):
         """Test validation error when both code and code_reference are provided."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.post(
@@ -205,7 +205,7 @@ class TestExecuteBacktestEndpoint:
     def test_execute_backtest_empty_code(self, client, mock_job_manager):
         """Test validation error for empty code string."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.post(
@@ -221,7 +221,7 @@ class TestExecuteBacktestEndpoint:
     def test_execute_backtest_code_reference_not_implemented(self, client, mock_job_manager):
         """Test that code_reference raises NotImplementedError."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.post(
@@ -238,7 +238,7 @@ class TestExecuteBacktestEndpoint:
     def test_execute_backtest_invalid_timeout(self, client, mock_job_manager):
         """Test validation error for invalid timeout."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.post(
@@ -259,7 +259,7 @@ class TestExecuteBacktestEndpoint:
         )
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.post(
@@ -280,7 +280,7 @@ class TestGetJobStatusEndpoint:
     def test_get_job_status_success(self, client, mock_job_manager):
         """Test successful job status retrieval."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.get("/api/v1/backtest/status/backtest-test123")
@@ -299,7 +299,7 @@ class TestGetJobStatusEndpoint:
         )
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.get("/api/v1/backtest/status/nonexistent-job")
@@ -314,7 +314,7 @@ class TestGetJobResultEndpoint:
     def test_get_job_result_success(self, client, mock_job_manager):
         """Test successful job result retrieval."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.get("/api/v1/backtest/result/backtest-result789")
@@ -337,7 +337,7 @@ class TestGetJobResultEndpoint:
         )
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.get("/api/v1/backtest/result/nonexistent-job")
@@ -352,7 +352,7 @@ class TestRequestValidation:
     def test_code_max_length_validation(self, client, mock_job_manager):
         """Test that code exceeding max length is rejected."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             # Create code that exceeds 100000 characters
@@ -371,7 +371,7 @@ class TestRequestValidation:
     def test_default_async_mode(self, client, mock_job_manager):
         """Test that async_mode defaults to True."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.post(
@@ -389,7 +389,7 @@ class TestRequestValidation:
     def test_default_params(self, client, mock_job_manager):
         """Test that params defaults to empty dict."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             response = client.post(
@@ -428,7 +428,7 @@ class TestEndpointIntegration:
         )
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             # Step 1: Submit backtest

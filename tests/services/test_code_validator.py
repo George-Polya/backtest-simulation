@@ -13,7 +13,7 @@ Covers:
 
 import pytest
 
-from app.services.code_validator import (
+from backend.services.code_validator import (
     ASTCodeValidator,
     ValidationResult,
     ValidationError,

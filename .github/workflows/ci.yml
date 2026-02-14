@@ -35,17 +35,17 @@ jobs:
 
       - name: Lint with Ruff
         run: |
-          ruff check app/ --output-format=github
+          ruff check backend/ --output-format=github
         continue-on-error: true
 
       - name: Type check with MyPy
         run: |
-          mypy app/ --ignore-missing-imports
+          mypy backend/ --ignore-missing-imports
         continue-on-error: true
 
       - name: Run tests
         run: |
-          pytest tests/ -v --tb=short --cov=app --cov-report=term-missing
+          pytest tests/ -v --tb=short --cov=backend --cov-report=term-missing
         env:
           APP_DEBUG: true
 

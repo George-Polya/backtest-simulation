@@ -11,9 +11,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from app.main import create_app
-from app.models.backtest import GeneratedCode, ModelInfo
-from app.services.code_generator import (
+from backend.main import create_app
+from backend.models.backtest import GeneratedCode, ModelInfo
+from backend.services.code_generator import (
     CodeGenerationError,
     DataAvailabilityError,
     ValidationError,
@@ -89,7 +89,7 @@ class TestGenerateBacktestCodeEndpoint:
     ):
         """Test successful code generation."""
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             response = client.post(
@@ -127,7 +127,7 @@ class TestGenerateBacktestCodeEndpoint:
     ):
         """Test validation error for invalid strategy (too short)."""
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             response = client.post(
@@ -148,7 +148,7 @@ class TestGenerateBacktestCodeEndpoint:
     def test_generate_backtest_code_missing_params(self, client, mock_code_generator):
         """Test validation error for missing required params."""
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             response = client.post(
@@ -166,7 +166,7 @@ class TestGenerateBacktestCodeEndpoint:
     ):
         """Test validation error for invalid date range."""
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             # Start date after end date
@@ -193,7 +193,7 @@ class TestGenerateBacktestCodeEndpoint:
         )
 
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             response = client.post(
@@ -216,7 +216,7 @@ class TestGenerateBacktestCodeEndpoint:
         )
 
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             response = client.post(
@@ -236,7 +236,7 @@ class TestGenerateBacktestCodeEndpoint:
         )
 
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             response = client.post(
@@ -255,7 +255,7 @@ class TestGenerateBacktestCodeEndpoint:
         )
 
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             response = client.post(
@@ -271,7 +271,7 @@ class TestGenerateBacktestCodeEndpoint:
     ):
         """Test that model info is properly structured in response."""
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             response = client.post(
@@ -295,7 +295,7 @@ class TestGenerateBacktestCodeEndpoint:
     ):
         """Test validation error for empty benchmarks list."""
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             invalid_request = valid_backtest_request.copy()
@@ -313,7 +313,7 @@ class TestGenerateBacktestCodeEndpoint:
     ):
         """Test validation error for negative initial capital."""
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             invalid_request = valid_backtest_request.copy()
@@ -331,7 +331,7 @@ class TestGenerateBacktestCodeEndpoint:
     ):
         """Test that contribution defaults work correctly."""
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             # Remove contribution from request
@@ -350,7 +350,7 @@ class TestGenerateBacktestCodeEndpoint:
     ):
         """Test that fee defaults work correctly."""
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             # Remove fees from request
@@ -373,7 +373,7 @@ class TestGenerateBacktestCodeEndpoint:
         )
 
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             request_with_multiple = valid_backtest_request.copy()
@@ -403,7 +403,7 @@ class TestGenerateEndpointIntegration:
     ):
         """Test complete generation workflow."""
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             # Generate code
@@ -433,7 +433,7 @@ class TestGenerateEndpointIntegration:
         providers = ["openrouter", "anthropic", "openai"]
 
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ):
             for provider in providers:

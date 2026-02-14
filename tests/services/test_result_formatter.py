@@ -16,7 +16,7 @@ import pandas as pd
 import pytest
 from datetime import date, timedelta
 
-from app.services.result_formatter import (
+from backend.services.result_formatter import (
     ResultFormatter,
     StandardMetricsCalculator,
     PerformanceMetrics,

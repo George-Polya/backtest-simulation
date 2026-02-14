@@ -10,9 +10,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.core.config import DataConfig, DataProvider as DataProviderEnum, Settings
-from app.providers.data.fallback import FallbackDataProvider, get_resilient_data_provider
-from app.providers.data.base import (
+from backend.core.config import DataConfig, DataProvider as DataProviderEnum, Settings
+from backend.providers.data.fallback import FallbackDataProvider, get_resilient_data_provider
+from backend.providers.data.base import (
     CurrentPrice,
     DataProvider,
     DataProviderError,
@@ -24,7 +24,7 @@ from app.providers.data.base import (
     TickerInfo,
     TickerNotFoundError,
 )
-from app.providers.data.mock import MockDataProvider
+from backend.providers.data.mock import MockDataProvider
 
 
 class TestFallbackDataProviderInit:

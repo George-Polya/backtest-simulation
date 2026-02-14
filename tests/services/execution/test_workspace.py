@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from app.models.execution import ExecutionJob
-from app.services.execution.workspace import (
+from backend.models.execution import ExecutionJob
+from backend.services.execution.workspace import (
     LocalWorkspaceManager,
     DooDBWorkspaceManager,
     WorkspaceError,

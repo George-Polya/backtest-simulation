@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pandas as pd
 import pytest
 
-from app.providers.data.yfinance import YFinanceDataProvider
-from app.providers.data.base import (
+from backend.providers.data.yfinance import YFinanceDataProvider
+from backend.providers.data.base import (
     CurrentPrice,
     DataProviderError,
     Exchange,
@@ -156,7 +156,7 @@ class TestYFinanceDailyPrices:
     @pytest.mark.asyncio
     async def test_get_daily_prices_invalid_date_range(self, provider):
         """Test invalid date range raises error."""
-        from app.providers.data.base import InvalidDateRangeError
+        from backend.providers.data.base import InvalidDateRangeError
 
         with pytest.raises(InvalidDateRangeError):
             await provider.get_daily_prices(

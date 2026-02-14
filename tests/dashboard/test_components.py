@@ -15,14 +15,14 @@ class TestStrategyInputCard:
 
     def test_create_strategy_input_card_returns_card(self):
         """Test that create_strategy_input_card returns a dbc.Card."""
-        from app.dashboard.components.inputs import create_strategy_input_card
+        from frontend.components.inputs import create_strategy_input_card
 
         card = create_strategy_input_card()
         assert isinstance(card, dbc.Card)
 
     def test_strategy_input_card_has_textarea(self):
         """Test that the card contains a textarea with correct ID."""
-        from app.dashboard.components.inputs import create_strategy_input_card
+        from frontend.components.inputs import create_strategy_input_card
 
         card = create_strategy_input_card()
 
@@ -32,7 +32,7 @@ class TestStrategyInputCard:
 
     def test_strategy_input_card_has_character_counter(self):
         """Test that the card contains a character counter."""
-        from app.dashboard.components.inputs import create_strategy_input_card
+        from frontend.components.inputs import create_strategy_input_card
 
         card = create_strategy_input_card()
 
@@ -45,14 +45,14 @@ class TestBacktestConfigCard:
 
     def test_create_backtest_config_card_returns_card(self):
         """Test that create_backtest_config_card returns a dbc.Card."""
-        from app.dashboard.components.inputs import create_backtest_config_card
+        from frontend.components.inputs import create_backtest_config_card
 
         card = create_backtest_config_card()
         assert isinstance(card, dbc.Card)
 
     def test_config_card_has_date_picker(self):
         """Test that the card contains a date picker range."""
-        from app.dashboard.components.inputs import create_backtest_config_card
+        from frontend.components.inputs import create_backtest_config_card
 
         card = create_backtest_config_card()
 
@@ -61,7 +61,7 @@ class TestBacktestConfigCard:
 
     def test_config_card_has_capital_input(self):
         """Test that the card contains a capital input."""
-        from app.dashboard.components.inputs import create_backtest_config_card
+        from frontend.components.inputs import create_backtest_config_card
 
         card = create_backtest_config_card()
 
@@ -70,7 +70,7 @@ class TestBacktestConfigCard:
 
     def test_config_card_has_benchmark_input(self):
         """Test that the card contains a benchmark input."""
-        from app.dashboard.components.inputs import create_backtest_config_card
+        from frontend.components.inputs import create_backtest_config_card
 
         card = create_backtest_config_card()
 
@@ -79,7 +79,7 @@ class TestBacktestConfigCard:
 
     def test_config_card_has_dividend_checkbox(self):
         """Test that the card contains a dividend reinvestment checkbox."""
-        from app.dashboard.components.inputs import create_backtest_config_card
+        from frontend.components.inputs import create_backtest_config_card
 
         card = create_backtest_config_card()
 
@@ -92,14 +92,14 @@ class TestCodeViewerContent:
 
     def test_create_code_viewer_content_returns_div(self):
         """Test that create_code_viewer_content returns an html.Div."""
-        from app.dashboard.components.code_view import create_code_viewer_content
+        from frontend.components.code_view import create_code_viewer_content
 
         content = create_code_viewer_content()
         assert isinstance(content, html.Div)
 
     def test_code_viewer_has_ace_editor(self):
         """Test that the content contains an ace editor component."""
-        from app.dashboard.components.code_view import create_code_viewer_content
+        from frontend.components.code_view import create_code_viewer_content
 
         content = create_code_viewer_content()
 
@@ -108,7 +108,7 @@ class TestCodeViewerContent:
 
     def test_format_code_for_display(self):
         """Test that code formatting adds markdown code fence."""
-        from app.dashboard.components.code_view import format_code_for_display
+        from frontend.components.code_view import format_code_for_display
 
         code = "print('hello')"
         formatted = format_code_for_display(code)
@@ -123,7 +123,7 @@ class TestMetricsComponents:
 
     def test_create_metric_card_returns_card(self):
         """Test that create_metric_card returns a dbc.Card."""
-        from app.dashboard.components.metrics import create_metric_card
+        from frontend.components.metrics import create_metric_card
 
         card = create_metric_card(
             title="CAGR",
@@ -135,14 +135,14 @@ class TestMetricsComponents:
 
     def test_create_metrics_row_returns_div(self):
         """Test that create_metrics_row returns an html.Div."""
-        from app.dashboard.components.metrics import create_metrics_row
+        from frontend.components.metrics import create_metrics_row
 
         result = create_metrics_row()
         assert isinstance(result, html.Div)
 
     def test_create_metrics_row_with_data(self):
         """Test that create_metrics_row handles metric data correctly."""
-        from app.dashboard.components.metrics import create_metrics_row
+        from frontend.components.metrics import create_metrics_row
 
         metrics = {
             "total_return": 25.5,
@@ -158,14 +158,14 @@ class TestMetricsComponents:
 
     def test_create_results_dashboard_returns_card(self):
         """Test that create_results_dashboard returns a dbc.Card."""
-        from app.dashboard.components.metrics import create_results_dashboard
+        from frontend.components.metrics import create_results_dashboard
 
         card = create_results_dashboard()
         assert isinstance(card, dbc.Card)
 
     def test_create_job_status_badge(self):
         """Test that create_job_status_badge returns correct badges."""
-        from app.dashboard.components.metrics import create_job_status_badge
+        from frontend.components.metrics import create_job_status_badge
 
         for status in ["pending", "running", "completed", "failed"]:
             badge = create_job_status_badge(status)

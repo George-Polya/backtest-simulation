@@ -17,7 +17,7 @@ from decimal import Decimal
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.models.backtest import (
+from backend.models.backtest import (
     BacktestParams,
     BacktestRequest,
     ContributionFrequency,
@@ -26,14 +26,14 @@ from app.models.backtest import (
     GeneratedCode,
     LLMSettings,
 )
-from app.providers.data.base import DateRange, DataProvider
-from app.providers.llm.base import (
+from backend.providers.data.base import DateRange, DataProvider
+from backend.providers.llm.base import (
     GenerationConfig,
     GenerationResult,
     LLMProvider,
     ModelInfo,
 )
-from app.services.code_generator import (
+from backend.services.code_generator import (
     BacktestCodeGenerator,
     CodeGenerationError,
     DataAvailabilityError,

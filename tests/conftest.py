@@ -8,9 +8,9 @@ from typing import Generator
 import pytest
 from fastapi.testclient import TestClient
 
-from app.core.config import Settings, get_settings
-from app.core.container import Container, clear_container_cache, get_container
-from app.main import app, create_app
+from backend.core.config import Settings, get_settings
+from backend.core.container import Container, clear_container_cache, get_container
+from backend.main import app, create_app
 
 
 @pytest.fixture(autouse=True)

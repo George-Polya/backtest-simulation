@@ -10,7 +10,7 @@ Tests dual-phase ticker validation system including:
 import pytest
 import pandas as pd
 
-from app.utils.ticker_extraction import (
+from backend.utils.ticker_extraction import (
     extract_tickers_from_code,
     merge_ticker_sources,
     validate_required_tickers,

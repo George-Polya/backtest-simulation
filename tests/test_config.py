@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from app.core.config import (
+from backend.core.config import (
     DataConfig,
     DataProvider,
     ExecutionConfig,

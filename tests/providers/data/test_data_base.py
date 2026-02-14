@@ -14,7 +14,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.providers.data.base import (
+from backend.providers.data.base import (
     AuthenticationError,
     CurrentPrice,
     DataProvider,

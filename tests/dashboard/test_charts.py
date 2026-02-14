@@ -35,14 +35,14 @@ class TestEquityChart:
 
     def test_create_equity_chart_returns_figure(self, sample_equity_df):
         """Test that create_equity_chart returns a Plotly Figure."""
-        from app.dashboard.components.charts import create_equity_chart
+        from frontend.components.charts import create_equity_chart
 
         fig = create_equity_chart(sample_equity_df)
         assert isinstance(fig, go.Figure)
 
     def test_equity_chart_has_strategy_trace(self, sample_equity_df):
         """Test that the chart includes a strategy trace."""
-        from app.dashboard.components.charts import create_equity_chart
+        from frontend.components.charts import create_equity_chart
 
         fig = create_equity_chart(sample_equity_df)
 
@@ -51,7 +51,7 @@ class TestEquityChart:
 
     def test_equity_chart_has_benchmark_trace(self, sample_equity_df):
         """Test that the chart includes a benchmark trace when available."""
-        from app.dashboard.components.charts import create_equity_chart
+        from frontend.components.charts import create_equity_chart
 
         fig = create_equity_chart(sample_equity_df, include_benchmark=True)
 
@@ -60,7 +60,7 @@ class TestEquityChart:
 
     def test_equity_chart_log_scale(self, sample_equity_df):
         """Test that log scale option is applied correctly."""
-        from app.dashboard.components.charts import create_equity_chart
+        from frontend.components.charts import create_equity_chart
 
         fig = create_equity_chart(sample_equity_df, log_scale=True)
 
@@ -69,7 +69,7 @@ class TestEquityChart:
 
     def test_equity_chart_linear_scale(self, sample_equity_df):
         """Test that linear scale is applied by default."""
-        from app.dashboard.components.charts import create_equity_chart
+        from frontend.components.charts import create_equity_chart
 
         fig = create_equity_chart(sample_equity_df, log_scale=False)
 
@@ -96,14 +96,14 @@ class TestDrawdownChart:
 
     def test_create_drawdown_chart_returns_figure(self, sample_drawdown_series):
         """Test that create_drawdown_chart returns a Plotly Figure."""
-        from app.dashboard.components.charts import create_drawdown_chart
+        from frontend.components.charts import create_drawdown_chart
 
         fig = create_drawdown_chart(sample_drawdown_series)
         assert isinstance(fig, go.Figure)
 
     def test_drawdown_chart_has_fill(self, sample_drawdown_series):
         """Test that the drawdown chart has fill area."""
-        from app.dashboard.components.charts import create_drawdown_chart
+        from frontend.components.charts import create_drawdown_chart
 
         fig = create_drawdown_chart(sample_drawdown_series)
 
@@ -112,7 +112,7 @@ class TestDrawdownChart:
 
     def test_drawdown_chart_has_annotation(self, sample_drawdown_series):
         """Test that the chart has max drawdown annotation."""
-        from app.dashboard.components.charts import create_drawdown_chart
+        from frontend.components.charts import create_drawdown_chart
 
         fig = create_drawdown_chart(sample_drawdown_series)
 
@@ -153,14 +153,14 @@ class TestMonthlyHeatmap:
 
     def test_create_monthly_heatmap_returns_figure(self, sample_heatmap_data):
         """Test that create_monthly_heatmap returns a Plotly Figure."""
-        from app.dashboard.components.charts import create_monthly_heatmap
+        from frontend.components.charts import create_monthly_heatmap
 
         fig = create_monthly_heatmap(sample_heatmap_data)
         assert isinstance(fig, go.Figure)
 
     def test_heatmap_has_correct_dimensions(self, sample_heatmap_data):
         """Test that the heatmap has correct number of rows and columns."""
-        from app.dashboard.components.charts import create_monthly_heatmap
+        from frontend.components.charts import create_monthly_heatmap
 
         fig = create_monthly_heatmap(sample_heatmap_data)
 
@@ -193,14 +193,14 @@ class TestAssetAllocationChart:
 
     def test_create_asset_allocation_chart_returns_figure(self, sample_allocation_df):
         """Test that create_asset_allocation_chart returns a Plotly Figure."""
-        from app.dashboard.components.charts import create_asset_allocation_chart
+        from frontend.components.charts import create_asset_allocation_chart
 
         fig = create_asset_allocation_chart(sample_allocation_df)
         assert isinstance(fig, go.Figure)
 
     def test_allocation_chart_has_traces_for_all_assets(self, sample_allocation_df):
         """Test that the chart has a trace for each asset."""
-        from app.dashboard.components.charts import create_asset_allocation_chart
+        from frontend.components.charts import create_asset_allocation_chart
 
         fig = create_asset_allocation_chart(sample_allocation_df)
 
@@ -210,7 +210,7 @@ class TestAssetAllocationChart:
 
     def test_allocation_chart_uses_stack_group(self, sample_allocation_df):
         """Test that traces use stackgroup for stacking."""
-        from app.dashboard.components.charts import create_asset_allocation_chart
+        from frontend.components.charts import create_asset_allocation_chart
 
         fig = create_asset_allocation_chart(sample_allocation_df)
 
@@ -240,7 +240,7 @@ class TestCombinedChart:
 
     def test_create_combined_chart_returns_figure(self, sample_data):
         """Test that create_combined_chart returns a Plotly Figure."""
-        from app.dashboard.components.charts import create_combined_chart
+        from frontend.components.charts import create_combined_chart
 
         equity_series, drawdown_series = sample_data
         fig = create_combined_chart(equity_series, drawdown_series)
@@ -248,7 +248,7 @@ class TestCombinedChart:
 
     def test_combined_chart_has_two_traces(self, sample_data):
         """Test that the combined chart has traces for both equity and drawdown."""
-        from app.dashboard.components.charts import create_combined_chart
+        from frontend.components.charts import create_combined_chart
 
         equity_series, drawdown_series = sample_data
         fig = create_combined_chart(equity_series, drawdown_series)

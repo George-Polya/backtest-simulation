@@ -4,8 +4,8 @@ Tests for the dependency injection container.
 
 import pytest
 
-from app.core.config import Settings
-from app.core.container import (
+from backend.core.config import Settings
+from backend.core.container import (
     Container,
     clear_container_cache,
     get_container,

@@ -12,7 +12,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.providers.llm.base import (
+from backend.providers.llm.base import (
     AuthenticationError,
     GenerationConfig,
     GenerationResult,

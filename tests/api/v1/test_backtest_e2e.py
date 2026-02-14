@@ -9,9 +9,9 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 
-from app.main import create_app
-from app.models.backtest import GeneratedCode, ModelInfo
-from app.models.execution import ExecutionResult, JobStatus
+from backend.main import create_app
+from backend.models.backtest import GeneratedCode, ModelInfo
+from backend.models.execution import ExecutionResult, JobStatus
 
 
 @pytest.fixture
@@ -205,10 +205,10 @@ class TestEndToEndBacktestWorkflow:
         This simulates the typical user flow for backtesting.
         """
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ), patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             # Step 1: Generate backtest code
@@ -285,10 +285,10 @@ class TestEndToEndBacktestWorkflow:
         This simulates a simpler user flow where immediate results are needed.
         """
         with patch(
-            "app.core.container.Container.get_code_generator",
+            "backend.core.container.Container.get_code_generator",
             return_value=mock_code_generator,
         ), patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ):
             # Step 1: Generate backtest code

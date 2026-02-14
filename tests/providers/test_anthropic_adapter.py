@@ -20,15 +20,15 @@ from anthropic import (
     NotFoundError as AnthropicNotFoundError,
 )
 
-from app.core.config import LLMConfig, LLMProvider as LLMProviderEnum
-from app.providers.llm.base import (
+from backend.core.config import LLMConfig, LLMProvider as LLMProviderEnum
+from backend.providers.llm.base import (
     AuthenticationError,
     GenerationConfig,
     LLMProviderError,
     ModelNotFoundError,
     RateLimitError,
 )
-from app.providers.llm.anthropic_adapter import AnthropicAdapter
+from backend.providers.llm.anthropic_adapter import AnthropicAdapter
 
 
 @pytest.fixture

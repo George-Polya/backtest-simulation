@@ -15,10 +15,10 @@ from fastapi.testclient import TestClient
 import pandas as pd
 import numpy as np
 
-from app.main import create_app
-from app.models.execution import ExecutionResult, JobStatus
-from app.services.execution.storage import JobNotFoundError
-from app.services.result_formatter import (
+from backend.main import create_app
+from backend.models.execution import ExecutionResult, JobStatus
+from backend.services.execution.storage import JobNotFoundError
+from backend.services.result_formatter import (
     FormattedResults,
     PerformanceMetrics,
     EquityCurveData,
@@ -191,10 +191,10 @@ class TestGetFormattedBacktestResult:
     def test_get_formatted_result_success(self, client, mock_job_manager, mock_result_formatter):
         """Test successful retrieval of formatted backtest results."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get("/api/v1/backtest/backtest-test123/result")
@@ -231,10 +231,10 @@ class TestGetFormattedBacktestResult:
         mock_job_manager.get_job_result.side_effect = JobNotFoundError("Job not found")
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get("/api/v1/backtest/nonexistent-job/result")
@@ -256,10 +256,10 @@ class TestGetFormattedBacktestResult:
         mock_job_manager.get_job_result.return_value = incomplete_result
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get("/api/v1/backtest/backtest-running/result")
@@ -281,10 +281,10 @@ class TestGetFormattedBacktestResult:
         mock_job_manager.get_job_result.return_value = failed_result
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get("/api/v1/backtest/backtest-failed/result")
@@ -299,10 +299,10 @@ class TestGetEquityChart:
     def test_get_equity_chart_success(self, client, mock_job_manager, mock_result_formatter):
         """Test successful retrieval of equity chart data."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get("/api/v1/backtest/backtest-test123/chart/equity")
@@ -328,10 +328,10 @@ class TestGetEquityChart:
         mock_result_formatter.format_for_chart.return_value.log_scale = False
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get(
@@ -345,10 +345,10 @@ class TestGetEquityChart:
     def test_get_equity_chart_without_benchmark(self, client, mock_job_manager, mock_result_formatter):
         """Test equity chart without benchmark data."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get(
@@ -374,10 +374,10 @@ class TestGetEquityChart:
         mock_job_manager.get_job_result.return_value = incomplete_result
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get("/api/v1/backtest/backtest-pending/chart/equity")
@@ -392,10 +392,10 @@ class TestGetDrawdownChart:
     def test_get_drawdown_chart_success(self, client, mock_job_manager, mock_result_formatter):
         """Test successful retrieval of drawdown chart data."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get("/api/v1/backtest/backtest-test123/chart/drawdown")
@@ -421,10 +421,10 @@ class TestGetDrawdownChart:
         mock_job_manager.get_job_result.side_effect = JobNotFoundError("Job not found")
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get("/api/v1/backtest/nonexistent/chart/drawdown")
@@ -438,10 +438,10 @@ class TestGetMonthlyReturns:
     def test_get_monthly_returns_success(self, client, mock_job_manager, mock_result_formatter):
         """Test successful retrieval of monthly returns heatmap data."""
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get("/api/v1/backtest/backtest-test123/chart/monthly-returns")
@@ -477,10 +477,10 @@ class TestGetMonthlyReturns:
         mock_job_manager.get_job_result.return_value = incomplete_result
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get("/api/v1/backtest/backtest-timeout/chart/monthly-returns")
@@ -502,10 +502,10 @@ class TestGetMonthlyReturns:
         mock_job_manager.get_job_result.return_value = bad_result
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=mock_result_formatter,
         ):
             response = client.get("/api/v1/backtest/backtest-bad/chart/monthly-returns")
@@ -520,15 +520,15 @@ class TestChartEndpointsIntegration:
     def test_log_scale_transformation(self, client, mock_job_manager):
         """Test that log scale transformation is applied correctly."""
         # Create real ResultFormatter instead of mock
-        from app.services.result_formatter import create_result_formatter
+        from backend.services.result_formatter import create_result_formatter
 
         real_formatter = create_result_formatter()
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=real_formatter,
         ):
             response = client.get(
@@ -548,15 +548,15 @@ class TestChartEndpointsIntegration:
 
     def test_drawdown_values_are_negative(self, client, mock_job_manager):
         """Test that drawdown values are properly negative percentages."""
-        from app.services.result_formatter import create_result_formatter
+        from backend.services.result_formatter import create_result_formatter
 
         real_formatter = create_result_formatter()
 
         with patch(
-            "app.core.container.Container.get_job_manager",
+            "backend.core.container.Container.get_job_manager",
             return_value=mock_job_manager,
         ), patch(
-            "app.core.container.Container.get_result_formatter",
+            "backend.core.container.Container.get_result_formatter",
             return_value=real_formatter,
         ):
             response = client.get("/api/v1/backtest/backtest-test123/chart/drawdown")

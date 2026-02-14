@@ -14,15 +14,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from openai import APIConnectionError, APIStatusError, RateLimitError as OpenAIRateLimitError
 
-from app.core.config import LLMConfig, LLMProvider as LLMProviderEnum
-from app.providers.llm.base import (
+from backend.core.config import LLMConfig, LLMProvider as LLMProviderEnum
+from backend.providers.llm.base import (
     AuthenticationError,
     GenerationConfig,
     LLMProviderError,
     ModelNotFoundError,
     RateLimitError,
 )
-from app.providers.llm.openai_adapter import OpenAIAdapter
+from backend.providers.llm.openai_adapter import OpenAIAdapter
 
 
 @pytest.fixture

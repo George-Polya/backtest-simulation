@@ -15,15 +15,15 @@ import pytest
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
-from app.core.config import LLMConfig, LLMProvider as LLMProviderEnum
-from app.providers.llm.base import (
+from backend.core.config import LLMConfig, LLMProvider as LLMProviderEnum
+from backend.providers.llm.base import (
     AuthenticationError,
     GenerationConfig,
     LLMProviderError,
     ModelNotFoundError,
     RateLimitError,
 )
-from app.providers.llm.langchain_adapter import LangChainAdapter
+from backend.providers.llm.langchain_adapter import LangChainAdapter
 
 
 @pytest.fixture
@@ -140,7 +140,7 @@ class TestGenerate:
         mock_client.ainvoke = AsyncMock(return_value=mock_response)
 
         with patch(
-            "app.providers.llm.langchain_adapter.ChatOpenAI",
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
             return_value=mock_client,
         ):
             adapter = LangChainAdapter(
@@ -170,7 +170,7 @@ class TestGenerate:
         mock_client.bind = MagicMock(return_value=mock_bound)
 
         with patch(
-            "app.providers.llm.langchain_adapter.ChatOpenAI",
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
             return_value=mock_client,
         ):
             adapter = LangChainAdapter(
@@ -196,7 +196,7 @@ class TestGenerate:
         mock_client.ainvoke = AsyncMock(return_value=mock_response)
 
         with patch(
-            "app.providers.llm.langchain_adapter.ChatOpenAI",
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
             return_value=mock_client,
         ):
             adapter = LangChainAdapter(
@@ -219,7 +219,7 @@ class TestGenerate:
         mock_client.ainvoke = AsyncMock(side_effect=Exception("429 Rate limit exceeded"))
 
         with patch(
-            "app.providers.llm.langchain_adapter.ChatOpenAI",
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
             return_value=mock_client,
         ):
             adapter = LangChainAdapter(
@@ -236,7 +236,7 @@ class TestGenerate:
         mock_client.ainvoke = AsyncMock(side_effect=Exception("401 Unauthorized"))
 
         with patch(
-            "app.providers.llm.langchain_adapter.ChatOpenAI",
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
             return_value=mock_client,
         ):
             adapter = LangChainAdapter(
@@ -253,7 +253,7 @@ class TestGenerate:
         mock_client.ainvoke = AsyncMock(side_effect=Exception("404 Model not found"))
 
         with patch(
-            "app.providers.llm.langchain_adapter.ChatOpenAI",
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
             return_value=mock_client,
         ):
             adapter = LangChainAdapter(
@@ -270,7 +270,7 @@ class TestGenerate:
         mock_client.ainvoke = AsyncMock(side_effect=Exception("Connection failed"))
 
         with patch(
-            "app.providers.llm.langchain_adapter.ChatOpenAI",
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
             return_value=mock_client,
         ):
             adapter = LangChainAdapter(
@@ -292,7 +292,7 @@ class TestHealthCheck:
         mock_client.ainvoke = AsyncMock(return_value=mock_response)
 
         with patch(
-            "app.providers.llm.langchain_adapter.ChatOpenAI",
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
             return_value=mock_client,
         ):
             adapter = LangChainAdapter(
@@ -310,7 +310,7 @@ class TestHealthCheck:
         mock_client.ainvoke = AsyncMock(side_effect=Exception("Connection failed"))
 
         with patch(
-            "app.providers.llm.langchain_adapter.ChatOpenAI",
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
             return_value=mock_client,
         ):
             adapter = LangChainAdapter(

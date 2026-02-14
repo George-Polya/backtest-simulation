@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from app.models.execution import ExecutionJob, JobStatus
-from app.services.execution.backend import (
+from backend.models.execution import ExecutionJob, JobStatus
+from backend.services.execution.backend import (
     ExecutionBackend,
     LocalBackend,
 )
