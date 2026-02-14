@@ -1,7 +1,7 @@
 # LLM Provider Configuration
 llm:
   provider: "openrouter"  # openrouter | anthropic | openai
-  model: "openai/gpt-5.2"
+  model: "openai/gpt-5.2-codex"
   temperature: 0.0 # Lower = more deterministic (0.0 = most deterministic)
   seed: 42  # Random seed for reproducible outputs
   max_tokens: 128000  # Max output tokens (gpt-5.2: 128K)

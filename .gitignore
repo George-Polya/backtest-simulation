@@ -189,8 +189,9 @@ node_modules/
 # OS specific
 .DS_Store
 
+*.csv
+.mcp.json
+
 # Task files
 # tasks.json
 # tasks/ 
-*.csv
-.mcp.json
