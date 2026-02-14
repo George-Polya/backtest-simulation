@@ -2,7 +2,7 @@
   "master": {
     "tasks": [
       {
-        "id": 1,
+        "id": "1",
         "title": "Scaffold Next.js project with TypeScript and App Router",
         "description": "Scaffold new Next.js project with TypeScript, strict mode, and App Router. Set up project structure with domain-based folders. Install required dependencies: React Query, Zustand, chart library (Recharts), code editor (Monaco), date handling, form validation (React Hook Form + Zod). Configure Tailwind CSS for styling.",
         "details": "Run `npx create-next-app@latest frontend --typescript --tailwind --eslint --app --src-dir` or similar. Set up environment files (.env.local.example with NEXT_PUBLIC_API_BASE_URL). Create folder structure: src/app (App Router pages), src/components (UI components), src/hooks (custom hooks), src/lib (utilities, api client), src/types (TypeScript types), src/stores (Zustand stores). Key dependencies: @tanstack/react-query, zustand, recharts, @monaco-editor/react, react-hook-form + @hookform/resolvers + zod, date-fns, axios. Configure next.config.js for standalone output mode.",
@@ -18,7 +18,8 @@
             "dependencies": [],
             "details": "Execute: npx create-next-app@latest frontend --typescript --tailwind --eslint --app --src-dir --no-import-alias. Verify the project structure includes src/app, src/components, src/hooks, src/lib, src/types, src/stores folders. Check that next.config.js has strict mode enabled. Create .env.local.example with NEXT_PUBLIC_API_BASE_URL variable. Remove any default Next.js demo pages and styles.",
             "status": "completed",
-            "testStrategy": "Run 'npm run build' to verify project compiles without TypeScript errors. Verify strict mode is enabled by checking tsconfig.json. Test that 'npm run dev' starts successfully."
+            "testStrategy": "Run 'npm run build' to verify project compiles without TypeScript errors. Verify strict mode is enabled by checking tsconfig.json. Test that 'npm run dev' starts successfully.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -29,7 +30,8 @@
             ],
             "details": "Run: npm install @tanstack/react-query zustand recharts @monaco-editor/react react-hook-form @hookform/resolvers zod date-fns axios. Create src/lib/api/client.ts with axios instance configured with base URL from NEXT_PUBLIC_API_BASE_URL env var, interceptors for request/response, and error handling. Create src/types/api.ts with TypeScript interfaces mirroring backend Pydantic models: BacktestRequest, BacktestParams, ContributionFrequency (enum), ContributionPlan, FeeSettings, LLMSettings, GeneratedCode, ModelInfo, JobStatus (enum), ExecuteBacktestRequest/Response, BacktestResultResponse, EquityChartResponse, DrawdownChartResponse, MonthlyReturnsResponse.",
             "status": "completed",
-            "testStrategy": "Verify all packages install without errors. Run TypeScript compilation to ensure types are correct. Test API client initialization with mock base URL."
+            "testStrategy": "Verify all packages install without errors. Run TypeScript compilation to ensure types are correct. Test API client initialization with mock base URL.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -40,7 +42,8 @@
             ],
             "details": "Edit next.config.js to add output: 'standalone' and experimental features. Create or update tsconfig.json paths for @/lib, @/components, @/hooks, @/types, @/stores aliases pointing to src directory. Configure next.config.js with proper headers for API calls, image optimization settings, and react strict mode. Set up proper environment variable schema validation using zod for required env vars.",
             "status": "completed",
-            "testStrategy": "Run 'npm run build' to verify standalone output is generated correctly. Check that the output/.next/standalone directory contains the necessary files. Verify path aliases work in imports."
+            "testStrategy": "Run 'npm run build' to verify standalone output is generated correctly. Check that the output/.next/standalone directory contains the necessary files. Verify path aliases work in imports.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -51,7 +54,8 @@
             ],
             "details": "Create directory structure: src/app, src/components/ui, src/components/backtest, src/hooks, src/lib/api, src/lib/utils, src/types, src/stores. Add index.ts barrel files for each directory. Create src/app/page.tsx as main landing page. Set up src/app/layout.tsx with proper metadata and basic structure. Create sample components to verify folder structure works correctly.",
             "status": "completed",
-            "testStrategy": "Verify all directories exist and contain index files. Test that imports using @/ alias work correctly. Run TypeScript compilation to verify no path resolution errors."
+            "testStrategy": "Verify all directories exist and contain index files. Test that imports using @/ alias work correctly. Run TypeScript compilation to verify no path resolution errors.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -62,19 +66,20 @@
             ],
             "details": "Update package.json with scripts: 'dev' (next dev), 'build' (next build), 'start' (next start), 'lint' (next lint), 'type-check' (tsc --noEmit). Verify .gitignore has proper patterns for Next.js projects. Create .env.local with NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1 for local development. Test that all npm scripts run without errors.",
             "status": "completed",
-            "testStrategy": "Run each npm script to verify they work: npm run dev, npm run build, npm run lint. Verify .gitignore patterns are correct by checking git status. Confirm environment files are properly excluded."
+            "testStrategy": "Run each npm script to verify they work: npm run dev, npm run build, npm run lint. Verify .gitignore patterns are correct by checking git status. Confirm environment files are properly excluded.",
+            "parentId": "undefined"
           }
         ]
       },
       {
-        "id": 2,
+        "id": "2",
         "title": "Build typed API client layer and DTOs",
         "description": "Create typed API client layer that mirrors backend Pydantic models. Generate TypeScript interfaces for all API request/response types aligned with backend models. Implement API client with axios wrapper with proper error handling.",
         "details": "Create src/types/api.ts with interfaces matching backend models: BacktestRequest, BacktestParams, ContributionFrequency (enum), ContributionPlan, FeeSettings, LLMSettings, GeneratedCode, ModelInfo, JobStatus (enum), ExecuteBacktestRequest/Response, BacktestResultResponse, EquityChartResponse, DrawdownChartResponse, MonthlyReturnsResponse. Create src/lib/api/client.ts with base URL from env var, axios instance with interceptors, and functions: generateCode(), executeBacktest(), getJobStatus(), getJobResult(), getFormattedResult().",
         "testStrategy": "Write unit tests for API client request/response mapping. Test error handling for 400/404/500 responses. Mock API responses for validation.",
         "priority": "high",
         "dependencies": [
-          1
+          "1"
         ],
         "status": "completed",
         "subtasks": [
@@ -85,7 +90,8 @@
             "dependencies": [],
             "details": "Run npm install --save-dev vitest @testing-library/react @testing-library/jest-dom jest-environment-jsdom msw @types/msw. Create frontend/vitest.config.ts with test environment: 'jsdom', aliases for @/* paths, globals: true. Add test scripts to package.json: test, test:run, test:coverage. Create tests/setup.ts for test environment.",
             "status": "completed",
-            "testStrategy": "Run npm run test to verify vitest works. Check test discovery works."
+            "testStrategy": "Run npm run test to verify vitest works. Check test discovery works.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -94,7 +100,8 @@
             "dependencies": [],
             "details": "Update src/types/api.ts: 1) Rename ModelInfo.model_name to model_id. 2) Rename GeneratedCode.detected_tickers to tickers. 3) Add missing LLMSettings fields: provider, model, seed. 4) Add CANCELLED and TIMEOUT to JobStatus enum. 5) Ensure all types are exported from src/types/index.ts. Run type-check.",
             "status": "completed",
-            "testStrategy": "Run npm run type-check to verify TypeScript compiles."
+            "testStrategy": "Run npm run type-check to verify TypeScript compiles.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -105,7 +112,8 @@
             ],
             "details": "Create tests/unit/api-types.test.ts: 1) Test ContributionFrequency enum values. 2) Test JobStatus enum values. 3) Test BacktestRequest has strategy and params. 4) Test BacktestParams structure. 5) Test GeneratedCode shape. 6) Test BacktestResultResponse fields.",
             "status": "completed",
-            "testStrategy": "Run npm run test to execute tests."
+            "testStrategy": "Run npm run test to execute tests.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -116,7 +124,8 @@
             ],
             "details": "Create tests/unit/api-client.test.ts: 1) Set up msw http server. 2) Create handlers for all API endpoints. 3) Test generateCode(), executeBacktest(), getJobStatus(), getJobResult(), getFormattedResult() with mock responses.",
             "status": "completed",
-            "testStrategy": "Run npm run test to execute API client tests."
+            "testStrategy": "Run npm run test to execute API client tests.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -128,19 +137,20 @@
             ],
             "details": "Create tests/unit/api-errors.test.ts: 1) Test 400 Bad Request error handling. 2) Test 401/403 authentication errors. 3) Test 404 Not Found error. 4) Test 500 Internal Server Error. 5) Test network error handling. 6) Test timeout error. Use msw to mock error responses.",
             "status": "completed",
-            "testStrategy": "Run npm run test to execute error handling tests."
+            "testStrategy": "Run npm run test to execute error handling tests.",
+            "parentId": "undefined"
           }
         ]
       },
       {
-        "id": 3,
+        "id": "3",
         "title": "Implement base layout and shared UI components",
         "description": "Implement base layout with responsive two-pane design, navigation, and shared UI components. Set up React Query provider and Zustand store for global state management.",
         "details": "Create src/app/layout.tsx with React Query Provider wrapper, global styles and Tailwind imports. Create src/components/ui/ with Button, Input, Textarea, Select, Card, Alert, LoadingSpinner components. Create src/stores/useBacktestStore.ts with Zustand for generatedCode, jobId, jobStatus, results, uiToggles. Create main page with two-pane layout: Left (config form + actions), Right (code editor + results).",
         "testStrategy": "Verify layout renders correctly on desktop and mobile breakpoints. Test React Query cache invalidation. Test Zustand store state updates.",
         "priority": "high",
         "dependencies": [
-          1
+          "1"
         ],
         "status": "completed",
         "subtasks": [
@@ -151,7 +161,8 @@
             "dependencies": [],
             "details": "Create Input.tsx with label, error message, and disabled state support using Tailwind for styling. Create Textarea.tsx with configurable rows and full-width. Create Select.tsx with options array containing value/label pairs. Create Alert.tsx with variant types (info, success, error, warning) and icon support. Create LoadingSpinner.tsx with size variants (sm, md, lg) and optional centering wrapper.",
             "status": "completed",
-            "testStrategy": "Test each component renders correctly with different props. Verify Input shows error state, Textarea resizes, Select shows options, Alert displays correct colors per variant, Spinner shows different sizes."
+            "testStrategy": "Test each component renders correctly with different props. Verify Input shows error state, Textarea resizes, Select shows options, Alert displays correct colors per variant, Spinner shows different sizes.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -162,7 +173,8 @@
             ],
             "details": "Add uiToggles interface with isCodeEditorOpen, isResultsOpen, isConfigExpanded, selectedTab (code/results). Add setUiToggle functions to update individual toggles. Update reset function to also clear uiToggles. Ensure store follows Zustand best practices with proper typing.",
             "status": "completed",
-            "testStrategy": "Verify uiToggles state updates correctly. Test reset clears all UI state. Verify type safety for all toggle functions."
+            "testStrategy": "Verify uiToggles state updates correctly. Test reset clears all UI state. Verify type safety for all toggle functions.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -174,7 +186,8 @@
             ],
             "details": "Create Header.tsx with Space Grotesk font logo, app title, and responsive design. Include hamburger menu for mobile. Add basic navigation structure. Export from src/components/layout/index.ts. Use existing CSS variables for theming.",
             "status": "completed",
-            "testStrategy": "Verify Header renders with logo and title. Test responsive mobile menu toggle. Verify it integrates with layout.tsx properly."
+            "testStrategy": "Verify Header renders with logo and title. Test responsive mobile menu toggle. Verify it integrates with layout.tsx properly.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -187,7 +200,8 @@
             ],
             "details": "Refactor BacktestWorkspace to use CSS Grid with md:grid-cols-2 for responsive two-pane. Create left pane with Card containing config form placeholder and action buttons. Create right pane with tabbed interface for code editor and results. Add proper spacing and gap utilities. Use uiToggles from store to control pane visibility.",
             "status": "completed",
-            "testStrategy": "Verify layout renders side-by-side on desktop (md breakpoint). Verify stacks vertically on mobile. Test tab switching in right pane. Verify action buttons render in left pane."
+            "testStrategy": "Verify layout renders side-by-side on desktop (md breakpoint). Verify stacks vertically on mobile. Test tab switching in right pane. Verify action buttons render in left pane.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -201,22 +215,23 @@
             ],
             "details": "Add export statements for Input, Textarea, Select, Alert, LoadingSpinner in index.ts. Verify all imports work in other components. Test that components can be imported individually or as named exports from @/components/ui.",
             "status": "completed",
-            "testStrategy": "Verify all UI components can be imported from @/components/ui. Test no import errors in BacktestWorkspace. Verify no circular dependency issues."
+            "testStrategy": "Verify all UI components can be imported from @/components/ui. Test no import errors in BacktestWorkspace. Verify no circular dependency issues.",
+            "parentId": "undefined"
           }
         ]
       },
       {
-        "id": 4,
+        "id": "4",
         "title": "Implement config form with validation",
         "description": "Build strategy and parameter input form with all fields specified in FR-2: strategy text, date range, initial capital, benchmarks, contribution settings, fees, dividend reinvestment toggle, web search toggle. Add client-side validation.",
         "details": "Create src/components/backtest/ConfigForm.tsx using React Hook Form + Zod. Schema: strategy (10-10000 chars), start_date (>=2001-01-01), end_date (<=today), initial_capital (>=1000), benchmarks (min 1), contribution.frequency/amount, fees (0-10%), dividend_reinvestment, llm_settings.web_search_enabled. Components: StrategyInput, DateRangePicker, CapitalInput, BenchmarkSelect, ContributionSettings, FeeSettings, Toggles, ValidationSummary.",
         "testStrategy": "Test form validation for all fields. Test character counter. Verify date range validation. Test submission with valid/invalid data.",
         "priority": "high",
         "dependencies": [
-          2,
-          3
+          "2",
+          "3"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -226,8 +241,10 @@
               3
             ],
             "details": "Input component needs type prop, label, placeholder, error message, helper text. Textarea needs rows, maxLength, showCount option. Select needs options array with label/value, placeholder. Toggle needs label and description. All should follow existing Button/Card styling patterns using Tailwind.",
-            "status": "pending",
-            "testStrategy": "Test Input renders with label and displays error. Test Textarea character counter. Test Select options rendering. Test Toggle switch state changes."
+            "status": "done",
+            "testStrategy": "Test Input renders with label and displays error. Test Textarea character counter. Test Select options rendering. Test Toggle switch state changes.",
+            "parentId": "undefined",
+            "updatedAt": "2026-02-14T16:22:03.529Z"
           },
           {
             "id": 2,
@@ -237,8 +254,10 @@
               3
             ],
             "details": "Use zod for schema definition. Create separate schemas for nested objects (contribution, fees, llm_settings). Use z.coerce.date() for date fields. Include custom error messages. Export type inferred from schema.",
-            "status": "pending",
-            "testStrategy": "Test valid data passes. Test strategy min/max length validation. Test date range validation (start >= 2001, end <= today). Test capital >= 1000. Test benchmarks min 1. Test fees 0-10%."
+            "status": "done",
+            "testStrategy": "Test valid data passes. Test strategy min/max length validation. Test date range validation (start >= 2001, end <= today). Test capital >= 1000. Test benchmarks min 1. Test fees 0-10%.",
+            "parentId": "undefined",
+            "updatedAt": "2026-02-14T16:22:05.048Z"
           },
           {
             "id": 3,
@@ -248,8 +267,10 @@
               3
             ],
             "details": "StrategyInput: Use Textarea, show character count (X/10000), limit to 10000 chars. DateRangePicker: Two date inputs (start, end), validate start >= 2001-01-01, end <= today, start <= end. Use native date inputs or simple custom implementation.",
-            "status": "pending",
-            "testStrategy": "Test StrategyInput character counter updates. Test StrategyInput shows error for <10 or >10000 chars. Test DateRangePicker start/end validation. Test cross-field validation (start <= end)."
+            "status": "done",
+            "testStrategy": "Test StrategyInput character counter updates. Test StrategyInput shows error for <10 or >10000 chars. Test DateRangePicker start/end validation. Test cross-field validation (start <= end).",
+            "parentId": "undefined",
+            "updatedAt": "2026-02-14T16:22:06.564Z"
           },
           {
             "id": 4,
@@ -259,8 +280,10 @@
               3
             ],
             "details": "CapitalInput: Input with type=number, min=1000, show formatted value. BenchmarkSelect: Multi-select with checkboxes or tags, min 1 required, show selected count. ContributionSettings: Select for frequency (monthly, quarterly, semiannual, annual), Input for amount (>=0).",
-            "status": "pending",
-            "testStrategy": "Test CapitalInput validates >= 1000. Test BenchmarkSelect requires min 1 selection. Test ContributionSettings frequency/amount validation."
+            "status": "done",
+            "testStrategy": "Test CapitalInput validates >= 1000. Test BenchmarkSelect requires min 1 selection. Test ContributionSettings frequency/amount validation.",
+            "parentId": "undefined",
+            "updatedAt": "2026-02-14T16:22:08.072Z"
           },
           {
             "id": 5,
@@ -273,103 +296,172 @@
               4
             ],
             "details": "Toggles: Two toggle switches for dividend_reinvestment and llm_settings.web_search_enabled. ValidationSummary: List of all validation errors at top of form. ConfigForm: Use useForm hook, integrate all components, handle submit, show loading state. Wire up form to store actions.",
-            "status": "pending",
-            "testStrategy": "Test form validation on submit. Test ValidationSummary shows all errors. Test toggles persist state. Test form submits valid data. Test character counter on strategy field."
+            "status": "done",
+            "testStrategy": "Test form validation on submit. Test ValidationSummary shows all errors. Test toggles persist state. Test form submits valid data. Test character counter on strategy field.",
+            "parentId": "undefined",
+            "updatedAt": "2026-02-14T16:22:09.572Z"
           }
-        ]
+        ],
+        "updatedAt": "2026-02-14T16:22:09.572Z"
       },
       {
-        "id": 5,
+        "id": "5",
         "title": "Implement generate code flow with code editor",
         "description": "Implement Generate Code flow calling POST /api/v1/backtest/generate. Integrate Monaco Editor with Python syntax highlighting. Show model info, strategy summary, generation duration, detected tickers. Handle loading state and timeout (30s).",
         "details": "Create src/components/backtest/CodeEditorPanel.tsx with Monaco Editor (Python language, read-only by default, editable on user modification). Create src/hooks/useGenerateCode.ts with useMutation for POST /api/v1/backtest/generate, handle loading/success/error states, timeout after 30s. Display model info badge, strategy summary, generation time, tickers found. Disable Execute button if no generated code exists.",
         "testStrategy": "Test generate with valid/invalid strategy. Test timeout handling. Test error display. Verify code editor populates correctly.",
         "priority": "high",
         "dependencies": [
-          2,
-          3,
-          4
+          "2",
+          "3",
+          "4"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add generation metadata to Zustand store",
+            "description": "Add GenerationMetadata type to the store state interface to track model_info, strategy_summary, tickers_found, and generation_time_seconds alongside generated code. Update useBacktestStore with new state fields and setter actions.",
+            "dependencies": [],
+            "details": "The current Zustand store only tracks generatedCode, jobId, jobStatus, results, and uiToggles. We need to extend it to also store the metadata returned from the generate API: model_info (provider, model_id), strategy_summary, tickers_found array, and generation_time_seconds. Add setGenerationMetadata action to update these fields.",
+            "status": "pending",
+            "testStrategy": "Verify store correctly updates all new metadata fields. Test that setGenerationMetadata properly replaces previous values. Verify reset() clears all new fields.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create useGenerateCode hook with mutation and timeout",
+            "description": "Create src/hooks/useGenerateCode.ts with React Query's useMutation hook calling generateCode from the API client. Implement 30-second timeout handling using AbortController. Handle loading state via isPending, success state updating the store with code and metadata, and error state. Import and use setGeneratedCode and setGenerationMetadata from the store to update state on success.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create the useGenerateCode hook that wraps generateCode API call with useMutation. Add AbortController for 30-second timeout. Handle isPending for loading, isError for errors, and onSuccess to update Zustand store with generated code and metadata. Store needs setGeneratedCode and setGenerationMetadata actions.",
+            "status": "pending",
+            "testStrategy": "Test mutation with valid BacktestRequest succeeds and updates store. Test timeout after 30s triggers timeout error. Test network error displays correctly. Verify isLoading, isError, isSuccess states work as expected.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Create CodeEditorPanel component with Monaco Editor",
+            "description": "Create src/components/backtest/CodeEditorPanel.tsx using @monaco-editor/react. Configure with language: 'python', readOnly by default. Add internal state for editMode toggle - when user clicks edit button, set readOnly to false. Accept code prop and onChange callback. Include loading state with LoadingSpinner when code is being generated. Style with dark theme matching project aesthetics.",
+            "dependencies": [
+              2
+            ],
+            "details": "Use @monaco-editor/react to create CodeEditorPanel component. Configure Monaco with language: 'python', readOnly: true by default, and dark theme. Add editMode state that toggles readOnly when user clicks edit button. Accept code string prop and onChange callback for code modifications. Show LoadingSpinner from UI components when isLoading is true.",
+            "status": "pending",
+            "testStrategy": "Test Monaco Editor renders with Python syntax highlighting. Test readOnly mode prevents editing. Test edit mode allows code modification. Test onChange callback fires when code is edited. Test loading spinner displays during generation.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Create GenerationInfo display component",
+            "description": "Create src/components/backtest/GenerationInfo.tsx to display metadata returned from generation: ModelInfo badge showing provider/model_id, strategy_summary text, generation_time_seconds with formatting, and tickers_found as pills/tags. Accept generation metadata as props and handle empty/null states gracefully.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create GenerationInfo component that displays ModelInfo (provider + model_id as badge), strategy_summary (text paragraph), generation_time_seconds (formatted duration), and tickers_found (array rendered as styled pill/tag components). Handle null/undefined metadata gracefully with empty state. Use existing UI components like Alert or custom styling for the badges and pills.",
+            "status": "pending",
+            "testStrategy": "Test ModelInfo badge displays provider and model_id correctly. Test strategy_summary renders text properly. Test generation_time displays in human-readable format. Test tickers render as styled pills. Test empty/null states show appropriate placeholders.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Integrate all components into BacktestWorkspace",
+            "description": "Update BacktestWorkspace.tsx to integrate the new components: Add Generate Code button that triggers useGenerateCode mutation, pass generatedCode from store to CodeEditorPanel, add GenerationInfo component below code editor, and add Execute button that is disabled when no generated code exists in store. Wire up all callbacks and state connections properly.",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Modify BacktestWorkspace to use useGenerateCode hook. Replace placeholder code section with CodeEditorPanel component passing generatedCode from store. Add GenerationInfo component to show metadata. Update Generate Code button to call mutate with form data. Add Execute button that is disabled={!generatedCode}. Handle loading state on buttons. Show error state from mutation.",
+            "status": "pending",
+            "testStrategy": "Test Generate button triggers code generation. Test CodeEditorPanel displays generated code. Test GenerationInfo shows metadata after successful generation. Test Execute button is disabled when no code exists. Test loading state shows during generation. Test error state displays on failure.",
+            "parentId": "undefined"
+          }
+        ]
       },
       {
-        "id": 6,
+        "id": "6",
         "title": "Implement execute/polling flow with status display",
         "description": "Implement Execute Backtest flow calling POST /api/v1/backtest/execute with async_mode=true. Implement polling mechanism calling GET /api/v1/backtest/status/{job_id} every 2 seconds. Handle pending/running/completed/failed states.",
         "details": "Create src/hooks/useExecuteBacktest.ts with useMutation for POST /api/v1/backtest/execute. Create src/hooks/useJobPolling.ts with useQuery refetchInterval: 2000ms, stop polling on terminal states. UI States: Submitting, Pending (show job_id), Running (show elapsed), Completed, Failed (show error + logs). Create StatusBanner component. Handle network errors with retry, 404 errors, long-running job elapsed counter.",
         "testStrategy": "Test execute flow with mock API. Test polling stops on completion/failure. Test network error handling. Verify job_id displays correctly.",
         "priority": "high",
         "dependencies": [
-          3,
-          5
+          "3",
+          "5"
         ],
         "status": "pending",
         "subtasks": []
       },
       {
-        "id": 7,
+        "id": "7",
         "title": "Implement results visualization components",
         "description": "Implement results visualization: primary metrics (total_return, cagr, max_drawdown with benchmark delta), secondary metrics (sharpe, sortino, calmar), equity curve chart with log scale toggle, drawdown chart, monthly returns heatmap, trade table.",
         "details": "Create src/components/results/MetricsCards.tsx with primary/secondary metrics. Create EquityChart.tsx with Recharts LineChart (strategy + benchmark lines, log scale toggle). Create DrawdownChart.tsx with AreaChart. Create MonthlyHeatmap.tsx with custom grid. Create TradeTable.tsx with collapsible panel, sortable columns, action/profit formatting. All handle loading/empty states.",
         "testStrategy": "Test metrics display with mock data. Test equity chart with/without benchmark. Test log scale toggle. Test heatmap color coding. Test trade table sorting.",
         "priority": "high",
         "dependencies": [
-          2,
-          3,
-          6
+          "2",
+          "3",
+          "6"
         ],
         "status": "pending",
         "subtasks": []
       },
       {
-        "id": 8,
+        "id": "8",
         "title": "Implement CSV export functionality",
         "description": "Implement CSV export for equity curve, drawdown, monthly returns, metrics, trades. Buttons disabled until results available.",
         "details": "Create src/lib/export/csv.ts with generators: generateEquityCSV, generateDrawdownCSV, generateMonthlyCSV, generateMetricsCSV, generateTradesCSV. Create src/components/results/ExportButtons.tsx with 5 download buttons, disabled until results available. Filename format: backtest_{type}_{job_id}_{date}.csv. Handle special characters, add BOM for Excel.",
         "testStrategy": "Test CSV generation with mock data. Test file download in browser. Verify CSV opens in Excel. Test disabled state.",
         "priority": "medium",
         "dependencies": [
-          7
+          "7"
         ],
         "status": "pending",
         "subtasks": []
       },
       {
-        "id": 9,
+        "id": "9",
         "title": "Configure CORS and production routing",
         "description": "Configure CORS for production Next.js domain in FastAPI. Update root path redirect to new frontend. Set up production deployment topology.",
         "details": "Backend (backend/main.py): Update CORS middleware with ALLOWED_ORIGINS env var, allow specific frontend origin in production. Update root redirect from /dashboard/ to new frontend URL with feature flag. Keep /dashboard for rollback. Nginx: proxy /api/* to FastAPI, serve Next.js. Frontend: update NEXT_PUBLIC_API_BASE_URL, configure standalone output in next.config.js. docker-compose.prod.yml: Next.js + FastAPI + Nginx.",
         "testStrategy": "Test CORS with specific origin. Test root redirect. Verify /dashboard works for rollback. Test production build.",
         "priority": "high",
         "dependencies": [
-          1
+          "1"
         ],
         "status": "pending",
         "subtasks": []
       },
       {
-        "id": 10,
+        "id": "10",
         "title": "Setup tests, CI, and deployment configuration",
         "description": "Implement unit tests, integration tests with mocked API, E2E tests for critical path. Add CI pipeline with linting, type checking, test execution.",
         "details": "Create tests/unit/: validation.test.ts, api-mappers.test.ts, csv-export.test.ts. Create tests/integration/: generate-flow.test.tsx, execute-flow.test.tsx, results-display.test.tsx. Create tests/e2e/: critical-path.test.ts with full flow (input->generate->execute->result->export). CI Pipeline: eslint, tsc --noEmit, vitest, next build. Add regression checks: compare metrics with Dash output, snapshot tests for charts.",
         "testStrategy": "Run npm run test. Verify E2E passes in CI. Check test coverage. Verify no TypeScript errors.",
         "priority": "medium",
         "dependencies": [
-          4,
-          5,
-          6,
-          7,
-          8
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
         ],
         "status": "pending",
         "subtasks": []
       }
     ],
     "metadata": {
-      "created": "2026-02-14T15:24:24.067Z",
-      "updated": "2026-02-14T15:24:24.067Z",
-      "description": "Tasks for master context"
+      "version": "1.0.0",
+      "lastModified": "2026-02-14T16:22:09.573Z",
+      "taskCount": 10,
+      "completedCount": 1,
+      "tags": [
+        "master"
+      ]
     }
   }
 }

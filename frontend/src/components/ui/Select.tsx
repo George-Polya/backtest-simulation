@@ -5,18 +5,20 @@ export interface SelectOption {
   label: string;
 }
 
-interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
+  helperText?: string;
   options: SelectOption[];
   placeholder?: string;
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
-  { label, error, className = '', id, options, placeholder, ...props },
+  { label, error, helperText, className = '', id, options, placeholder, ...props },
   ref
 ) {
   const selectId = id ?? props.name;
+  const descriptionId = selectId ? `${selectId}-description` : undefined;
 
   return (
     <div className="w-full">
@@ -28,6 +30,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
       <select
         ref={ref}
         id={selectId}
+        aria-invalid={Boolean(error)}
+        aria-describedby={descriptionId}
         className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 ${
           error
             ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
@@ -46,7 +50,15 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
           </option>
         ))}
       </select>
-      {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
+      {error ? (
+        <p className="mt-1 text-xs text-red-600" id={descriptionId}>
+          {error}
+        </p>
+      ) : helperText ? (
+        <p className="mt-1 text-xs text-slate-500" id={descriptionId}>
+          {helperText}
+        </p>
+      ) : null}
     </div>
   );
 });

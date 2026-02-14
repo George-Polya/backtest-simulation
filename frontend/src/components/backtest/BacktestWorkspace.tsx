@@ -3,10 +3,20 @@
 import { useBacktestActions } from '@/hooks';
 import { useBacktestStore } from '@/stores';
 import { Alert, Button, Card } from '@/components/ui';
+import { ConfigForm } from './ConfigForm';
 
 export function BacktestWorkspace() {
-  const { generatedCode, jobId, jobStatus, results, uiToggles, setUiToggle, setSelectedTab } = useBacktestStore();
-  const { resetState } = useBacktestActions();
+  const {
+    generatedCode,
+    jobId,
+    jobStatus,
+    requestConfig,
+    results,
+    uiToggles,
+    setUiToggle,
+    setSelectedTab
+  } = useBacktestStore();
+  const { resetState, saveConfig } = useBacktestActions();
 
   const handleToggleCodePanel = () => {
     const next = !uiToggles.isCodeEditorOpen;
@@ -36,10 +46,13 @@ export function BacktestWorkspace() {
     <div className="grid gap-4 md:grid-cols-2" id="workspace">
       <Card className="h-fit" title="Configuration & Actions">
         <div className="mb-4 flex flex-wrap gap-2">
-          <Button type="button" variant="secondary" onClick={() => setUiToggle('isConfigExpanded', !uiToggles.isConfigExpanded)}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setUiToggle('isConfigExpanded', !uiToggles.isConfigExpanded)}
+          >
             {uiToggles.isConfigExpanded ? 'Collapse Config' : 'Expand Config'}
           </Button>
-          <Button type="button">Generate Code</Button>
           <Button type="button" variant="secondary" onClick={resetState}>
             Reset
           </Button>
@@ -47,12 +60,12 @@ export function BacktestWorkspace() {
 
         {uiToggles.isConfigExpanded ? (
           <div className="space-y-3">
-            <Alert title="Config Form Placeholder" variant="info">
-              Strategy form and validation are scheduled in Task 4.
-            </Alert>
-            <div className="rounded-lg border border-dashed border-[var(--border)] bg-slate-50 p-4 text-sm text-slate-600">
-              Left pane is reserved for strategy input, dates, capital, benchmark selection, contribution plans, fee settings, and toggles.
-            </div>
+            <ConfigForm onSubmitConfig={saveConfig} />
+            {requestConfig ? (
+              <Alert title="Ready for code generation" variant="info">
+                Configuration is saved with {requestConfig.params.benchmarks.length} benchmark(s).
+              </Alert>
+            ) : null}
           </div>
         ) : (
           <p className="text-sm text-slate-600">Configuration panel is collapsed.</p>

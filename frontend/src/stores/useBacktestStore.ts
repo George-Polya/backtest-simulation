@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { BacktestResultResponse, JobStatus } from '@/types';
+import { BacktestRequest, BacktestResultResponse, JobStatus } from '@/types';
 
 export type WorkspaceTab = 'code' | 'results';
 
@@ -19,10 +19,12 @@ interface BacktestState {
   jobId: string | null;
   jobStatus: JobStatus | null;
   results: BacktestResultResponse | null;
+  requestConfig: BacktestRequest | null;
   uiToggles: UiToggles;
   setGeneratedCode: (code: string) => void;
   setJobState: (jobId: string, status: JobStatus) => void;
   setResults: (results: BacktestResultResponse | null) => void;
+  setRequestConfig: (requestConfig: BacktestRequest | null) => void;
   setUiToggle: (key: UiToggleBooleanKey, value: boolean) => void;
   setSelectedTab: (tab: WorkspaceTab) => void;
   reset: () => void;
@@ -40,10 +42,12 @@ export const useBacktestStore = create<BacktestState>((set) => ({
   jobId: null,
   jobStatus: null,
   results: null,
+  requestConfig: null,
   uiToggles: { ...defaultUiToggles },
   setGeneratedCode: (generatedCode) => set({ generatedCode }),
   setJobState: (jobId, jobStatus) => set({ jobId, jobStatus }),
   setResults: (results) => set({ results }),
+  setRequestConfig: (requestConfig) => set({ requestConfig }),
   setUiToggle: (key, value) =>
     set((state) => ({
       uiToggles: {
@@ -64,6 +68,7 @@ export const useBacktestStore = create<BacktestState>((set) => ({
       jobId: null,
       jobStatus: null,
       results: null,
+      requestConfig: null,
       uiToggles: { ...defaultUiToggles }
     })
 }));
