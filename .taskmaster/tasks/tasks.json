@@ -9,7 +9,7 @@
         "testStrategy": "Verify project builds successfully with `npm run build`. Check TypeScript strict mode passes without errors. Verify all routes are accessible.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "completed",
         "subtasks": [
           {
             "id": 1,
@@ -17,7 +17,7 @@
             "description": "Run npx create-next-app@latest to scaffold a new Next.js project with TypeScript, Tailwind CSS, ESLint, and App Router in the 'frontend' directory. Configure initial setup including removing demo pages and creating .env.local.example.",
             "dependencies": [],
             "details": "Execute: npx create-next-app@latest frontend --typescript --tailwind --eslint --app --src-dir --no-import-alias. Verify the project structure includes src/app, src/components, src/hooks, src/lib, src/types, src/stores folders. Check that next.config.js has strict mode enabled. Create .env.local.example with NEXT_PUBLIC_API_BASE_URL variable. Remove any default Next.js demo pages and styles.",
-            "status": "pending",
+            "status": "completed",
             "testStrategy": "Run 'npm run build' to verify project compiles without TypeScript errors. Verify strict mode is enabled by checking tsconfig.json. Test that 'npm run dev' starts successfully."
           },
           {
@@ -28,7 +28,7 @@
               1
             ],
             "details": "Run: npm install @tanstack/react-query zustand recharts @monaco-editor/react react-hook-form @hookform/resolvers zod date-fns axios. Create src/lib/api/client.ts with axios instance configured with base URL from NEXT_PUBLIC_API_BASE_URL env var, interceptors for request/response, and error handling. Create src/types/api.ts with TypeScript interfaces mirroring backend Pydantic models: BacktestRequest, BacktestParams, ContributionFrequency (enum), ContributionPlan, FeeSettings, LLMSettings, GeneratedCode, ModelInfo, JobStatus (enum), ExecuteBacktestRequest/Response, BacktestResultResponse, EquityChartResponse, DrawdownChartResponse, MonthlyReturnsResponse.",
-            "status": "pending",
+            "status": "completed",
             "testStrategy": "Verify all packages install without errors. Run TypeScript compilation to ensure types are correct. Test API client initialization with mock base URL."
           },
           {
@@ -39,7 +39,7 @@
               1
             ],
             "details": "Edit next.config.js to add output: 'standalone' and experimental features. Create or update tsconfig.json paths for @/lib, @/components, @/hooks, @/types, @/stores aliases pointing to src directory. Configure next.config.js with proper headers for API calls, image optimization settings, and react strict mode. Set up proper environment variable schema validation using zod for required env vars.",
-            "status": "pending",
+            "status": "completed",
             "testStrategy": "Run 'npm run build' to verify standalone output is generated correctly. Check that the output/.next/standalone directory contains the necessary files. Verify path aliases work in imports."
           },
           {
@@ -50,7 +50,7 @@
               1
             ],
             "details": "Create directory structure: src/app, src/components/ui, src/components/backtest, src/hooks, src/lib/api, src/lib/utils, src/types, src/stores. Add index.ts barrel files for each directory. Create src/app/page.tsx as main landing page. Set up src/app/layout.tsx with proper metadata and basic structure. Create sample components to verify folder structure works correctly.",
-            "status": "pending",
+            "status": "completed",
             "testStrategy": "Verify all directories exist and contain index files. Test that imports using @/ alias work correctly. Run TypeScript compilation to verify no path resolution errors."
           },
           {
@@ -61,7 +61,7 @@
               1
             ],
             "details": "Update package.json with scripts: 'dev' (next dev), 'build' (next build), 'start' (next start), 'lint' (next lint), 'type-check' (tsc --noEmit). Verify .gitignore has proper patterns for Next.js projects. Create .env.local with NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1 for local development. Test that all npm scripts run without errors.",
-            "status": "pending",
+            "status": "completed",
             "testStrategy": "Run each npm script to verify they work: npm run dev, npm run build, npm run lint. Verify .gitignore patterns are correct by checking git status. Confirm environment files are properly excluded."
           }
         ]
@@ -76,8 +76,61 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "completed",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up test environment with vitest",
+            "description": "Set up test environment with vitest, @testing-library/react, jest-environment-jsdom, and msw. Configure vitest.config.ts with jsdom environment, path aliases, and test scripts in package.json.",
+            "dependencies": [],
+            "details": "Run npm install --save-dev vitest @testing-library/react @testing-library/jest-dom jest-environment-jsdom msw @types/msw. Create frontend/vitest.config.ts with test environment: 'jsdom', aliases for @/* paths, globals: true. Add test scripts to package.json: test, test:run, test:coverage. Create tests/setup.ts for test environment.",
+            "status": "completed",
+            "testStrategy": "Run npm run test to verify vitest works. Check test discovery works."
+          },
+          {
+            "id": 2,
+            "title": "Align frontend DTOs with backend Pydantic models",
+            "description": "Review and align frontend TypeScript interfaces with backend Pydantic models. Fix field name mismatches and add missing fields to ensure consistency.",
+            "dependencies": [],
+            "details": "Update src/types/api.ts: 1) Rename ModelInfo.model_name to model_id. 2) Rename GeneratedCode.detected_tickers to tickers. 3) Add missing LLMSettings fields: provider, model, seed. 4) Add CANCELLED and TIMEOUT to JobStatus enum. 5) Ensure all types are exported from src/types/index.ts. Run type-check.",
+            "status": "completed",
+            "testStrategy": "Run npm run type-check to verify TypeScript compiles."
+          },
+          {
+            "id": 3,
+            "title": "Create unit tests for API types",
+            "description": "Create unit tests for API types in tests/unit/api-types.test.ts. Test enum values, interface shapes, and type structures for all DTOs.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create tests/unit/api-types.test.ts: 1) Test ContributionFrequency enum values. 2) Test JobStatus enum values. 3) Test BacktestRequest has strategy and params. 4) Test BacktestParams structure. 5) Test GeneratedCode shape. 6) Test BacktestResultResponse fields.",
+            "status": "completed",
+            "testStrategy": "Run npm run test to execute tests."
+          },
+          {
+            "id": 4,
+            "title": "Create unit tests for API client with msw",
+            "description": "Create unit tests for API client functions in tests/unit/api-client.test.ts using msw to mock HTTP requests and responses.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create tests/unit/api-client.test.ts: 1) Set up msw http server. 2) Create handlers for all API endpoints. 3) Test generateCode(), executeBacktest(), getJobStatus(), getJobResult(), getFormattedResult() with mock responses.",
+            "status": "completed",
+            "testStrategy": "Run npm run test to execute API client tests."
+          },
+          {
+            "id": 5,
+            "title": "Create error handling tests for HTTP status codes",
+            "description": "Create error handling tests for HTTP status codes 400, 401, 403, 404, 500 and network errors in tests/unit/api-errors.test.ts.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "Create tests/unit/api-errors.test.ts: 1) Test 400 Bad Request error handling. 2) Test 401/403 authentication errors. 3) Test 404 Not Found error. 4) Test 500 Internal Server Error. 5) Test network error handling. 6) Test timeout error. Use msw to mock error responses.",
+            "status": "completed",
+            "testStrategy": "Run npm run test to execute error handling tests."
+          }
+        ]
       },
       {
         "id": 3,
@@ -89,8 +142,68 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "completed",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create missing UI components",
+            "description": "Create missing UI components in src/components/ui/ directory: Input.tsx (with label, error, disabled props), Textarea.tsx (with rows, placeholder, disabled), Select.tsx (with options array, label, error), Alert.tsx (with variant for info/success/error/warning), LoadingSpinner.tsx (with size prop, centered option). All components should follow existing design patterns from Button.tsx and Card.tsx using Tailwind CSS.",
+            "dependencies": [],
+            "details": "Create Input.tsx with label, error message, and disabled state support using Tailwind for styling. Create Textarea.tsx with configurable rows and full-width. Create Select.tsx with options array containing value/label pairs. Create Alert.tsx with variant types (info, success, error, warning) and icon support. Create LoadingSpinner.tsx with size variants (sm, md, lg) and optional centering wrapper.",
+            "status": "completed",
+            "testStrategy": "Test each component renders correctly with different props. Verify Input shows error state, Textarea resizes, Select shows options, Alert displays correct colors per variant, Spinner shows different sizes."
+          },
+          {
+            "id": 2,
+            "title": "Enhance Zustand store with uiToggles",
+            "description": "Enhance useBacktestStore.ts with uiToggles state for managing UI panel visibility and expanded states. Add toggle functions for code editor visibility, results panel, config panel collapse state, and other UI state that needs persistence across components.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add uiToggles interface with isCodeEditorOpen, isResultsOpen, isConfigExpanded, selectedTab (code/results). Add setUiToggle functions to update individual toggles. Update reset function to also clear uiToggles. Ensure store follows Zustand best practices with proper typing.",
+            "status": "completed",
+            "testStrategy": "Verify uiToggles state updates correctly. Test reset clears all UI state. Verify type safety for all toggle functions."
+          },
+          {
+            "id": 3,
+            "title": "Create Navigation/Header component",
+            "description": "Create Navigation/Header component in src/components/layout/Header.tsx with app branding, navigation links, and responsive mobile menu. Include logo, app name 'Backtest Simulation', and optional user actions area.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create Header.tsx with Space Grotesk font logo, app title, and responsive design. Include hamburger menu for mobile. Add basic navigation structure. Export from src/components/layout/index.ts. Use existing CSS variables for theming.",
+            "status": "completed",
+            "testStrategy": "Verify Header renders with logo and title. Test responsive mobile menu toggle. Verify it integrates with layout.tsx properly."
+          },
+          {
+            "id": 4,
+            "title": "Improve two-pane responsive layout",
+            "description": "Enhance BacktestWorkspace.tsx with proper two-pane responsive layout: Left pane for Configuration Form + Actions (config panel), Right pane for Code Editor + Results. Use grid layout with responsive breakpoints (stack on mobile, side-by-side on md+).",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Refactor BacktestWorkspace to use CSS Grid with md:grid-cols-2 for responsive two-pane. Create left pane with Card containing config form placeholder and action buttons. Create right pane with tabbed interface for code editor and results. Add proper spacing and gap utilities. Use uiToggles from store to control pane visibility.",
+            "status": "completed",
+            "testStrategy": "Verify layout renders side-by-side on desktop (md breakpoint). Verify stacks vertically on mobile. Test tab switching in right pane. Verify action buttons render in left pane."
+          },
+          {
+            "id": 5,
+            "title": "Export all UI components and verify integration",
+            "description": "Update src/components/ui/index.ts to export all UI components including newly created Input, Textarea, Select, Alert, LoadingSpinner. Verify all exports work correctly and components can be imported from @/components/ui.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Add export statements for Input, Textarea, Select, Alert, LoadingSpinner in index.ts. Verify all imports work in other components. Test that components can be imported individually or as named exports from @/components/ui.",
+            "status": "completed",
+            "testStrategy": "Verify all UI components can be imported from @/components/ui. Test no import errors in BacktestWorkspace. Verify no circular dependency issues."
+          }
+        ]
       },
       {
         "id": 4,
@@ -104,7 +217,66 @@
           3
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create form UI primitive components",
+            "description": "Create reusable form UI primitives in src/components/ui/: Input.tsx (with label, error, helper text), Textarea.tsx (with character counter), Select.tsx (with options prop), and Toggle.tsx (switch component). Export all from ui/index.ts.",
+            "dependencies": [
+              3
+            ],
+            "details": "Input component needs type prop, label, placeholder, error message, helper text. Textarea needs rows, maxLength, showCount option. Select needs options array with label/value, placeholder. Toggle needs label and description. All should follow existing Button/Card styling patterns using Tailwind.",
+            "status": "pending",
+            "testStrategy": "Test Input renders with label and displays error. Test Textarea character counter. Test Select options rendering. Test Toggle switch state changes."
+          },
+          {
+            "id": 2,
+            "title": "Create Zod validation schema",
+            "description": "Create Zod validation schema in src/lib/validations/backtest.ts defining all form field validations matching FR-2 requirements: strategy (10-10000 chars), start_date (>=2001-01-01), end_date (<=today), initial_capital (>=1000), benchmarks (min 1), contribution.frequency/amount, fees (0-10%), dividend_reinvestment, llm_settings.web_search_enabled.",
+            "dependencies": [
+              3
+            ],
+            "details": "Use zod for schema definition. Create separate schemas for nested objects (contribution, fees, llm_settings). Use z.coerce.date() for date fields. Include custom error messages. Export type inferred from schema.",
+            "status": "pending",
+            "testStrategy": "Test valid data passes. Test strategy min/max length validation. Test date range validation (start >= 2001, end <= today). Test capital >= 1000. Test benchmarks min 1. Test fees 0-10%."
+          },
+          {
+            "id": 3,
+            "title": "Create StrategyInput and DateRangePicker components",
+            "description": "Create StrategyInput and DateRangePicker components in src/components/backtest/: StrategyInput.tsx using Textarea with character counter, DateRangePicker.tsx with two date inputs and cross-field validation.",
+            "dependencies": [
+              3
+            ],
+            "details": "StrategyInput: Use Textarea, show character count (X/10000), limit to 10000 chars. DateRangePicker: Two date inputs (start, end), validate start >= 2001-01-01, end <= today, start <= end. Use native date inputs or simple custom implementation.",
+            "status": "pending",
+            "testStrategy": "Test StrategyInput character counter updates. Test StrategyInput shows error for <10 or >10000 chars. Test DateRangePicker start/end validation. Test cross-field validation (start <= end)."
+          },
+          {
+            "id": 4,
+            "title": "Create CapitalInput, BenchmarkSelect, ContributionSettings components",
+            "description": "Create CapitalInput, BenchmarkSelect, and ContributionSettings components in src/components/backtest/. CapitalInput: number input with currency formatting. BenchmarkSelect: multi-select for benchmarks (KOSPI, KOSDAQ, etc). ContributionSettings: frequency dropdown + amount input.",
+            "dependencies": [
+              3
+            ],
+            "details": "CapitalInput: Input with type=number, min=1000, show formatted value. BenchmarkSelect: Multi-select with checkboxes or tags, min 1 required, show selected count. ContributionSettings: Select for frequency (monthly, quarterly, semiannual, annual), Input for amount (>=0).",
+            "status": "pending",
+            "testStrategy": "Test CapitalInput validates >= 1000. Test BenchmarkSelect requires min 1 selection. Test ContributionSettings frequency/amount validation."
+          },
+          {
+            "id": 5,
+            "title": "Create Toggles, ValidationSummary and integrate ConfigForm",
+            "description": "Create Toggles component (dividend_reinvestment, web_search), ValidationSummary component, and integrate all fields into ConfigForm.tsx using React Hook Form + zod-resolver.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Toggles: Two toggle switches for dividend_reinvestment and llm_settings.web_search_enabled. ValidationSummary: List of all validation errors at top of form. ConfigForm: Use useForm hook, integrate all components, handle submit, show loading state. Wire up form to store actions.",
+            "status": "pending",
+            "testStrategy": "Test form validation on submit. Test ValidationSummary shows all errors. Test toggles persist state. Test form submits valid data. Test character counter on strategy field."
+          }
+        ]
       },
       {
         "id": 5,

@@ -195,3 +195,9 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/ 
+
+# Next.js frontend
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/tsconfig.tsbuildinfo

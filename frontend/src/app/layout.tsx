@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk } from 'next/font/google';
+import { Header } from '@/components/layout';
 import { Providers } from './providers';
 import './globals.css';
 
@@ -17,7 +18,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className={`${spaceGrotesk.variable} font-sans antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <Header />
+          {children}
+        </Providers>
       </body>
     </html>
   );
