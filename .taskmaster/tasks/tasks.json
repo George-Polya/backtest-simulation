@@ -1,0 +1,203 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Scaffold Next.js project with TypeScript and App Router",
+        "description": "Scaffold new Next.js project with TypeScript, strict mode, and App Router. Set up project structure with domain-based folders. Install required dependencies: React Query, Zustand, chart library (Recharts), code editor (Monaco), date handling, form validation (React Hook Form + Zod). Configure Tailwind CSS for styling.",
+        "details": "Run `npx create-next-app@latest frontend --typescript --tailwind --eslint --app --src-dir` or similar. Set up environment files (.env.local.example with NEXT_PUBLIC_API_BASE_URL). Create folder structure: src/app (App Router pages), src/components (UI components), src/hooks (custom hooks), src/lib (utilities, api client), src/types (TypeScript types), src/stores (Zustand stores). Key dependencies: @tanstack/react-query, zustand, recharts, @monaco-editor/react, react-hook-form + @hookform/resolvers + zod, date-fns, axios. Configure next.config.js for standalone output mode.",
+        "testStrategy": "Verify project builds successfully with `npm run build`. Check TypeScript strict mode passes without errors. Verify all routes are accessible.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Scaffold Next.js project with create-next-app",
+            "description": "Run npx create-next-app@latest to scaffold a new Next.js project with TypeScript, Tailwind CSS, ESLint, and App Router in the 'frontend' directory. Configure initial setup including removing demo pages and creating .env.local.example.",
+            "dependencies": [],
+            "details": "Execute: npx create-next-app@latest frontend --typescript --tailwind --eslint --app --src-dir --no-import-alias. Verify the project structure includes src/app, src/components, src/hooks, src/lib, src/types, src/stores folders. Check that next.config.js has strict mode enabled. Create .env.local.example with NEXT_PUBLIC_API_BASE_URL variable. Remove any default Next.js demo pages and styles.",
+            "status": "pending",
+            "testStrategy": "Run 'npm run build' to verify project compiles without TypeScript errors. Verify strict mode is enabled by checking tsconfig.json. Test that 'npm run dev' starts successfully."
+          },
+          {
+            "id": 2,
+            "title": "Install dependencies and create API client with TypeScript types",
+            "description": "Install all required frontend dependencies including React Query, Zustand, Recharts, Monaco Editor, React Hook Form with Zod, date-fns, and axios. Create API client and TypeScript type definitions mirroring backend Pydantic models.",
+            "dependencies": [
+              1
+            ],
+            "details": "Run: npm install @tanstack/react-query zustand recharts @monaco-editor/react react-hook-form @hookform/resolvers zod date-fns axios. Create src/lib/api/client.ts with axios instance configured with base URL from NEXT_PUBLIC_API_BASE_URL env var, interceptors for request/response, and error handling. Create src/types/api.ts with TypeScript interfaces mirroring backend Pydantic models: BacktestRequest, BacktestParams, ContributionFrequency (enum), ContributionPlan, FeeSettings, LLMSettings, GeneratedCode, ModelInfo, JobStatus (enum), ExecuteBacktestRequest/Response, BacktestResultResponse, EquityChartResponse, DrawdownChartResponse, MonthlyReturnsResponse.",
+            "status": "pending",
+            "testStrategy": "Verify all packages install without errors. Run TypeScript compilation to ensure types are correct. Test API client initialization with mock base URL."
+          },
+          {
+            "id": 3,
+            "title": "Configure Next.js for production deployment",
+            "description": "Configure Next.js for production deployment with standalone output mode, TypeScript path aliases, and environment variable validation for Docker compatibility.",
+            "dependencies": [
+              1
+            ],
+            "details": "Edit next.config.js to add output: 'standalone' and experimental features. Create or update tsconfig.json paths for @/lib, @/components, @/hooks, @/types, @/stores aliases pointing to src directory. Configure next.config.js with proper headers for API calls, image optimization settings, and react strict mode. Set up proper environment variable schema validation using zod for required env vars.",
+            "status": "pending",
+            "testStrategy": "Run 'npm run build' to verify standalone output is generated correctly. Check that the output/.next/standalone directory contains the necessary files. Verify path aliases work in imports."
+          },
+          {
+            "id": 4,
+            "title": "Create folder structure for domain-based architecture",
+            "description": "Create folder structure following domain-based architecture with proper barrel exports for clean imports across the application.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create directory structure: src/app, src/components/ui, src/components/backtest, src/hooks, src/lib/api, src/lib/utils, src/types, src/stores. Add index.ts barrel files for each directory. Create src/app/page.tsx as main landing page. Set up src/app/layout.tsx with proper metadata and basic structure. Create sample components to verify folder structure works correctly.",
+            "status": "pending",
+            "testStrategy": "Verify all directories exist and contain index files. Test that imports using @/ alias work correctly. Run TypeScript compilation to verify no path resolution errors."
+          },
+          {
+            "id": 5,
+            "title": "Configure npm scripts and environment files",
+            "description": "Set up development and production scripts in package.json, verify .gitignore patterns, and create local environment configuration files.",
+            "dependencies": [
+              1
+            ],
+            "details": "Update package.json with scripts: 'dev' (next dev), 'build' (next build), 'start' (next start), 'lint' (next lint), 'type-check' (tsc --noEmit). Verify .gitignore has proper patterns for Next.js projects. Create .env.local with NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1 for local development. Test that all npm scripts run without errors.",
+            "status": "pending",
+            "testStrategy": "Run each npm script to verify they work: npm run dev, npm run build, npm run lint. Verify .gitignore patterns are correct by checking git status. Confirm environment files are properly excluded."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Build typed API client layer and DTOs",
+        "description": "Create typed API client layer that mirrors backend Pydantic models. Generate TypeScript interfaces for all API request/response types aligned with backend models. Implement API client with axios wrapper with proper error handling.",
+        "details": "Create src/types/api.ts with interfaces matching backend models: BacktestRequest, BacktestParams, ContributionFrequency (enum), ContributionPlan, FeeSettings, LLMSettings, GeneratedCode, ModelInfo, JobStatus (enum), ExecuteBacktestRequest/Response, BacktestResultResponse, EquityChartResponse, DrawdownChartResponse, MonthlyReturnsResponse. Create src/lib/api/client.ts with base URL from env var, axios instance with interceptors, and functions: generateCode(), executeBacktest(), getJobStatus(), getJobResult(), getFormattedResult().",
+        "testStrategy": "Write unit tests for API client request/response mapping. Test error handling for 400/404/500 responses. Mock API responses for validation.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Implement base layout and shared UI components",
+        "description": "Implement base layout with responsive two-pane design, navigation, and shared UI components. Set up React Query provider and Zustand store for global state management.",
+        "details": "Create src/app/layout.tsx with React Query Provider wrapper, global styles and Tailwind imports. Create src/components/ui/ with Button, Input, Textarea, Select, Card, Alert, LoadingSpinner components. Create src/stores/useBacktestStore.ts with Zustand for generatedCode, jobId, jobStatus, results, uiToggles. Create main page with two-pane layout: Left (config form + actions), Right (code editor + results).",
+        "testStrategy": "Verify layout renders correctly on desktop and mobile breakpoints. Test React Query cache invalidation. Test Zustand store state updates.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement config form with validation",
+        "description": "Build strategy and parameter input form with all fields specified in FR-2: strategy text, date range, initial capital, benchmarks, contribution settings, fees, dividend reinvestment toggle, web search toggle. Add client-side validation.",
+        "details": "Create src/components/backtest/ConfigForm.tsx using React Hook Form + Zod. Schema: strategy (10-10000 chars), start_date (>=2001-01-01), end_date (<=today), initial_capital (>=1000), benchmarks (min 1), contribution.frequency/amount, fees (0-10%), dividend_reinvestment, llm_settings.web_search_enabled. Components: StrategyInput, DateRangePicker, CapitalInput, BenchmarkSelect, ContributionSettings, FeeSettings, Toggles, ValidationSummary.",
+        "testStrategy": "Test form validation for all fields. Test character counter. Verify date range validation. Test submission with valid/invalid data.",
+        "priority": "high",
+        "dependencies": [
+          2,
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Implement generate code flow with code editor",
+        "description": "Implement Generate Code flow calling POST /api/v1/backtest/generate. Integrate Monaco Editor with Python syntax highlighting. Show model info, strategy summary, generation duration, detected tickers. Handle loading state and timeout (30s).",
+        "details": "Create src/components/backtest/CodeEditorPanel.tsx with Monaco Editor (Python language, read-only by default, editable on user modification). Create src/hooks/useGenerateCode.ts with useMutation for POST /api/v1/backtest/generate, handle loading/success/error states, timeout after 30s. Display model info badge, strategy summary, generation time, tickers found. Disable Execute button if no generated code exists.",
+        "testStrategy": "Test generate with valid/invalid strategy. Test timeout handling. Test error display. Verify code editor populates correctly.",
+        "priority": "high",
+        "dependencies": [
+          2,
+          3,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement execute/polling flow with status display",
+        "description": "Implement Execute Backtest flow calling POST /api/v1/backtest/execute with async_mode=true. Implement polling mechanism calling GET /api/v1/backtest/status/{job_id} every 2 seconds. Handle pending/running/completed/failed states.",
+        "details": "Create src/hooks/useExecuteBacktest.ts with useMutation for POST /api/v1/backtest/execute. Create src/hooks/useJobPolling.ts with useQuery refetchInterval: 2000ms, stop polling on terminal states. UI States: Submitting, Pending (show job_id), Running (show elapsed), Completed, Failed (show error + logs). Create StatusBanner component. Handle network errors with retry, 404 errors, long-running job elapsed counter.",
+        "testStrategy": "Test execute flow with mock API. Test polling stops on completion/failure. Test network error handling. Verify job_id displays correctly.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Implement results visualization components",
+        "description": "Implement results visualization: primary metrics (total_return, cagr, max_drawdown with benchmark delta), secondary metrics (sharpe, sortino, calmar), equity curve chart with log scale toggle, drawdown chart, monthly returns heatmap, trade table.",
+        "details": "Create src/components/results/MetricsCards.tsx with primary/secondary metrics. Create EquityChart.tsx with Recharts LineChart (strategy + benchmark lines, log scale toggle). Create DrawdownChart.tsx with AreaChart. Create MonthlyHeatmap.tsx with custom grid. Create TradeTable.tsx with collapsible panel, sortable columns, action/profit formatting. All handle loading/empty states.",
+        "testStrategy": "Test metrics display with mock data. Test equity chart with/without benchmark. Test log scale toggle. Test heatmap color coding. Test trade table sorting.",
+        "priority": "high",
+        "dependencies": [
+          2,
+          3,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Implement CSV export functionality",
+        "description": "Implement CSV export for equity curve, drawdown, monthly returns, metrics, trades. Buttons disabled until results available.",
+        "details": "Create src/lib/export/csv.ts with generators: generateEquityCSV, generateDrawdownCSV, generateMonthlyCSV, generateMetricsCSV, generateTradesCSV. Create src/components/results/ExportButtons.tsx with 5 download buttons, disabled until results available. Filename format: backtest_{type}_{job_id}_{date}.csv. Handle special characters, add BOM for Excel.",
+        "testStrategy": "Test CSV generation with mock data. Test file download in browser. Verify CSV opens in Excel. Test disabled state.",
+        "priority": "medium",
+        "dependencies": [
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Configure CORS and production routing",
+        "description": "Configure CORS for production Next.js domain in FastAPI. Update root path redirect to new frontend. Set up production deployment topology.",
+        "details": "Backend (backend/main.py): Update CORS middleware with ALLOWED_ORIGINS env var, allow specific frontend origin in production. Update root redirect from /dashboard/ to new frontend URL with feature flag. Keep /dashboard for rollback. Nginx: proxy /api/* to FastAPI, serve Next.js. Frontend: update NEXT_PUBLIC_API_BASE_URL, configure standalone output in next.config.js. docker-compose.prod.yml: Next.js + FastAPI + Nginx.",
+        "testStrategy": "Test CORS with specific origin. Test root redirect. Verify /dashboard works for rollback. Test production build.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Setup tests, CI, and deployment configuration",
+        "description": "Implement unit tests, integration tests with mocked API, E2E tests for critical path. Add CI pipeline with linting, type checking, test execution.",
+        "details": "Create tests/unit/: validation.test.ts, api-mappers.test.ts, csv-export.test.ts. Create tests/integration/: generate-flow.test.tsx, execute-flow.test.tsx, results-display.test.tsx. Create tests/e2e/: critical-path.test.ts with full flow (input->generate->execute->result->export). CI Pipeline: eslint, tsc --noEmit, vitest, next build. Add regression checks: compare metrics with Dash output, snapshot tests for charts.",
+        "testStrategy": "Run npm run test. Verify E2E passes in CI. Check test coverage. Verify no TypeScript errors.",
+        "priority": "medium",
+        "dependencies": [
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2026-02-14T15:24:24.067Z",
+      "updated": "2026-02-14T15:24:24.067Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
