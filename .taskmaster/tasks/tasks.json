@@ -231,7 +231,7 @@
           "2",
           "3"
         ],
-        "status": "done",
+        "status": "pending",
         "subtasks": [
           {
             "id": 1,
@@ -241,7 +241,7 @@
               3
             ],
             "details": "Input component needs type prop, label, placeholder, error message, helper text. Textarea needs rows, maxLength, showCount option. Select needs options array with label/value, placeholder. Toggle needs label and description. All should follow existing Button/Card styling patterns using Tailwind.",
-            "status": "done",
+            "status": "pending",
             "testStrategy": "Test Input renders with label and displays error. Test Textarea character counter. Test Select options rendering. Test Toggle switch state changes.",
             "parentId": "undefined",
             "updatedAt": "2026-02-14T16:22:03.529Z"
@@ -254,7 +254,7 @@
               3
             ],
             "details": "Use zod for schema definition. Create separate schemas for nested objects (contribution, fees, llm_settings). Use z.coerce.date() for date fields. Include custom error messages. Export type inferred from schema.",
-            "status": "done",
+            "status": "pending",
             "testStrategy": "Test valid data passes. Test strategy min/max length validation. Test date range validation (start >= 2001, end <= today). Test capital >= 1000. Test benchmarks min 1. Test fees 0-10%.",
             "parentId": "undefined",
             "updatedAt": "2026-02-14T16:22:05.048Z"
@@ -267,7 +267,7 @@
               3
             ],
             "details": "StrategyInput: Use Textarea, show character count (X/10000), limit to 10000 chars. DateRangePicker: Two date inputs (start, end), validate start >= 2001-01-01, end <= today, start <= end. Use native date inputs or simple custom implementation.",
-            "status": "done",
+            "status": "pending",
             "testStrategy": "Test StrategyInput character counter updates. Test StrategyInput shows error for <10 or >10000 chars. Test DateRangePicker start/end validation. Test cross-field validation (start <= end).",
             "parentId": "undefined",
             "updatedAt": "2026-02-14T16:22:06.564Z"
@@ -280,7 +280,7 @@
               3
             ],
             "details": "CapitalInput: Input with type=number, min=1000, show formatted value. BenchmarkSelect: Multi-select with checkboxes or tags, min 1 required, show selected count. ContributionSettings: Select for frequency (monthly, quarterly, semiannual, annual), Input for amount (>=0).",
-            "status": "done",
+            "status": "pending",
             "testStrategy": "Test CapitalInput validates >= 1000. Test BenchmarkSelect requires min 1 selection. Test ContributionSettings frequency/amount validation.",
             "parentId": "undefined",
             "updatedAt": "2026-02-14T16:22:08.072Z"
@@ -296,7 +296,7 @@
               4
             ],
             "details": "Toggles: Two toggle switches for dividend_reinvestment and llm_settings.web_search_enabled. ValidationSummary: List of all validation errors at top of form. ConfigForm: Use useForm hook, integrate all components, handle submit, show loading state. Wire up form to store actions.",
-            "status": "done",
+            "status": "pending",
             "testStrategy": "Test form validation on submit. Test ValidationSummary shows all errors. Test toggles persist state. Test form submits valid data. Test character counter on strategy field.",
             "parentId": "undefined",
             "updatedAt": "2026-02-14T16:22:09.572Z"
@@ -465,7 +465,7 @@
           "3",
           "6"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -473,7 +473,7 @@
             "description": "Create src/components/results/MetricsCards.tsx to display primary metrics (total_return, cagr, max_drawdown with benchmark delta) and secondary metrics (sharpe, sortino, calmar). Use Card component for layout, format percentages/currency values, show loading spinner when metrics are not available, display empty state with appropriate message when results are null.",
             "dependencies": [],
             "details": "Create MetricsCards component that accepts PerformanceMetrics and benchmark data as props. Display primary metrics in a prominent grid showing total return, CAGR, and max drawdown with benchmark comparison (delta). Show secondary metrics (Sharpe ratio, Sortino ratio, Calmar ratio) in a separate section. Handle loading state with LoadingSpinner, and empty state with Alert when metrics are unavailable. Use formatPercentage and formatNumber utility functions for value display.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with mock PerformanceMetrics data. Verify primary/secondary metric display. Test loading state rendering. Test empty state handling. Verify benchmark delta calculation and display."
           },
           {
@@ -482,7 +482,7 @@
             "description": "Create src/components/results/EquityChart.tsx with Recharts LineChart displaying strategy and benchmark equity curves, include log scale toggle using Toggle component, handle loading and empty states appropriately.",
             "dependencies": [],
             "details": "Create EquityChart component using Recharts LineChart that accepts equity_curve data from BacktestResultResponse. Display strategy line in primary color (brand-500) and benchmark line in secondary color (slate-400). Implement log scale toggle that switches between linear and logarithmic y-axis using Recharts YAxis type='logDomain'. Handle loading state with LoadingSpinner, and empty state with Alert when equity_curve data is null or empty. Add proper tooltips showing date and value. Use existing Toggle component for log scale switch.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with mock EquityCurveData including both strategy and benchmark. Test log scale toggle functionality. Verify chart renders with single line (no benchmark). Test loading and empty states. Verify tooltip displays correct values."
           },
           {
@@ -491,7 +491,7 @@
             "description": "Create src/components/results/DrawdownChart.tsx with Recharts AreaChart to visualize drawdown data over time, handle loading and empty states.",
             "dependencies": [],
             "details": "Create DrawdownChart component using Recharts AreaChart that accepts drawdown data from BacktestResultResponse. Display drawdown as negative percentage values with gradient fill. Configure XAxis for dates and YAxis for percentage values. Add tooltip showing date and drawdown percentage. Handle loading state with LoadingSpinner, and empty state with Alert when drawdown data is unavailable. Use area gradient from brand-500 to transparent for visual effect.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with mock DrawdownData. Verify area chart renders correctly with gradient. Test loading state rendering. Test empty state handling. Verify tooltip shows correct negative percentage values."
           },
           {
@@ -500,7 +500,7 @@
             "description": "Create src/components/results/MonthlyHeatmap.tsx with custom grid layout to display monthly returns heatmap, implement color coding for positive/negative returns, handle loading and empty states.",
             "dependencies": [],
             "details": "Create MonthlyHeatmap component that accepts monthly_heatmap data from BacktestResultResponse. Render custom grid with years as rows and months as columns. Implement color coding: green shades for positive returns, red shades for negative returns, gray for null values. Display percentage values in each cell with proper formatting. Handle loading state with LoadingSpinner, and empty state with Alert when monthly_heatmap data is unavailable. Use CSS grid or flexbox for layout.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with mock MonthlyHeatmapData including multiple years. Verify color coding matches return values. Test handling of null values. Test loading state rendering. Test empty state handling. Verify grid layout is responsive."
           },
           {
@@ -509,7 +509,7 @@
             "description": "Create src/components/results/TradeTable.tsx with collapsible panel, sortable columns, and action/profit formatting, display trade details including entry/exit dates, ticker, action (buy/sell), profit/loss, handle loading and empty states.",
             "dependencies": [],
             "details": "Create TradeTable component that accepts trades array from BacktestResultResponse. Implement collapsible panel using existing UI patterns - show header with trade count and expand/collapse toggle. Implement sortable columns for date, ticker, action, profit. Format action as 'Buy'/'Sell' badges with color coding (green for buy, red for sell). Format profit/loss with color coding (green for profit, red for loss) and percentage values. Handle loading state with LoadingSpinner, and empty state with Alert when trades array is empty or null. Use standard HTML table with proper semantic markup.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with mock trades array. Verify sort functionality on each column. Test collapsible panel expand/collapse. Test action badge coloring. Test profit/loss formatting and coloring. Test loading state rendering. Test empty state handling."
           }
         ]
@@ -525,7 +525,61 @@
           "7"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create CSV export utility library structure",
+            "description": "Create src/lib/export/ directory and csv.ts file with utility functions for CSV generation including BOM handling, filename generation, and special character escaping",
+            "dependencies": [],
+            "details": "Create src/lib/export/csv.ts with: 1) CSV_BOM constant for Excel compatibility, 2) escapeCSVValue() function to handle special characters (commas, quotes, newlines), 3) generateFilename() function with format backtest_{type}_{job_id}_{date}.csv, 4) downloadCSV() function using Blob and URL.createObjectURL for browser download",
+            "status": "pending",
+            "testStrategy": "Test BOM is correctly prepended. Test special character escaping with commas, quotes, newlines. Test filename format with various job IDs and dates."
+          },
+          {
+            "id": 2,
+            "title": "Implement CSV generator functions for all data types",
+            "description": "Implement generateEquityCSV, generateDrawdownCSV, generateMonthlyCSV, generateMetricsCSV, and generateTradesCSV functions that transform BacktestResultResponse data into CSV strings",
+            "dependencies": [
+              1
+            ],
+            "details": "Create 5 generator functions: 1) generateEquityCSV(equityCurve) - date, strategy_value columns (plus benchmark if available), 2) generateDrawdownCSV(drawdown) - date, drawdown_percent columns, 3) generateMonthlyCSV(monthlyHeatmap) - year, month, return columns, 4) generateMetricsCSV(metrics) - metric_name, value columns for all PerformanceMetrics fields, 5) generateTradesCSV(trades) - columns from trade records with dynamic field extraction. All functions accept jobId and format date as YYYYMMDD.",
+            "status": "pending",
+            "testStrategy": "Test each generator with mock BacktestResultResponse data. Verify CSV headers are correct. Test with null benchmark in equity data. Test with empty trades array."
+          },
+          {
+            "id": 3,
+            "title": "Create ExportButtons component",
+            "description": "Create src/components/results/ExportButtons.tsx with 5 download buttons for equity, drawdown, monthly returns, metrics, and trades",
+            "dependencies": [
+              2
+            ],
+            "details": "Create ExportButtons.tsx with: 1) Props for results (BacktestResultResponse | null) and jobId (string | null), 2) 5 Button components using Button variant='secondary', 3) Disabled state when results is null or jobId is null, 4) Each button calls corresponding generator + downloadCSV on click, 5) Button labels: Export Equity, Export Drawdown, Export Monthly, Export Metrics, Export Trades",
+            "status": "pending",
+            "testStrategy": "Test buttons are disabled when results is null. Test buttons are disabled when jobId is null. Test each button triggers correct CSV download. Verify button click handlers are properly attached."
+          },
+          {
+            "id": 4,
+            "title": "Integrate ExportButtons into BacktestWorkspace results panel",
+            "description": "Add ExportButtons component to the results section in BacktestWorkspace.tsx, importing from components/results and passing results and jobId from store",
+            "dependencies": [
+              3
+            ],
+            "details": "Update BacktestWorkspace.tsx: 1) Import ExportButtons from @/components/results, 2) Add ExportButtons component inside the results panel section (uiToggles.selectedTab === 'results'), 3) Pass results={results} and jobId={jobId} props, 4) Place above the placeholder Alert component",
+            "status": "pending",
+            "testStrategy": "Test ExportButtons renders when results panel is open. Test ExportButtons is hidden when results panel is closed. Verify results and jobId are correctly passed."
+          },
+          {
+            "id": 5,
+            "title": "Add unit tests for CSV generation and download",
+            "description": "Create test files for CSV utility functions and ExportButtons component following existing test patterns in the project",
+            "dependencies": [
+              4
+            ],
+            "details": "Create tests: 1) src/lib/export/csv.test.ts for utility functions - test escapeCSVValue, generateFilename, downloadCSV (mocked), 2) src/components/results/ExportButtons.test.tsx - test disabled states, button click handlers with mocked download. Follow existing test patterns from frontend/tests/unit/",
+            "status": "pending",
+            "testStrategy": "Run all tests to verify CSV generation works correctly. Verify ExportButtons component renders with correct disabled states. Mock window.URL.createObjectURL for download tests."
+          }
+        ]
       },
       {
         "id": 9,
@@ -538,7 +592,58 @@
           "1"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add ALLOWED_ORIGINS environment variable to backend config",
+            "description": "Add ALLOWED_ORIGINS env var to Settings class in backend/core/config.py for production CORS configuration. Update main.py CORS middleware to use this setting.",
+            "dependencies": [],
+            "details": "Add allowed_origins: list[str] field to Settings class with default empty list. Update CORS middleware in main.py to use settings.allowed_origins in production mode instead of empty list. Allow specific frontend domain like 'https://yoyak.org'.",
+            "status": "pending",
+            "testStrategy": "Test CORS with specific origin via curl or browser devtools. Verify OPTIONS requests work for the configured origin."
+          },
+          {
+            "id": 2,
+            "title": "Implement feature flag for root redirect with rollback support",
+            "description": "Update root redirect in backend/main.py with USE_NEW_FRONTEND feature flag. Add FRONTEND_URL env var and keep /dashboard for rollback.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add USE_NEW_FRONTEND (bool) and FRONTEND_URL (str) to Settings. Update root endpoint '/' to conditionally redirect to new frontend URL or /dashboard/ based on feature flag. Keep /dashboard mount for legacy dashboard rollback.",
+            "status": "pending",
+            "testStrategy": "Test root redirect with flag enabled/disabled. Verify /dashboard still accessible when flag is enabled."
+          },
+          {
+            "id": 3,
+            "title": "Update nginx configuration to proxy API and serve Next.js",
+            "description": "Update nginx/custom.conf to add routing rules: proxy /api/* to FastAPI, serve Next.js static files, handle production domains.",
+            "dependencies": [],
+            "details": "Add location /api/ proxy_pass to FastAPI (backtest-api:8000). Add location / for Next.js with proper static file handling. Configure upstream backtest-api service. Add proper headers forwarding (Host, X-Real-IP, X-Forwarded-For).",
+            "status": "pending",
+            "testStrategy": "Test nginx config syntax with nginx -t. Verify /api/* routes to backend and / routes to Next.js."
+          },
+          {
+            "id": 4,
+            "title": "Configure frontend for production deployment",
+            "description": "Update frontend environment configuration and next.config.js for production deployment. Add production NEXT_PUBLIC_API_BASE_URL.",
+            "dependencies": [],
+            "details": "Create .env.production with NEXT_PUBLIC_API_BASE_URL=/api/v1 (relative for proxy). Verify next.config.js standalone output is configured. Ensure proper asset prefix configuration for production domain.",
+            "status": "pending",
+            "testStrategy": "Run production build (npm run build). Verify standalone output created. Test API calls work through proxy."
+          },
+          {
+            "id": 5,
+            "title": "Update docker-compose.prod.yml with Next.js service",
+            "description": "Add Next.js frontend service to docker-compose.prod.yml alongside FastAPI and Nginx. Configure proper networking and environment variables.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Add nextjs-frontend service with Next.js standalone image or build context. Configure VIRTUAL_HOST, VIRTUAL_PORT for nginx-proxy. Add to backtest-network. Set NEXT_PUBLIC_API_BASE_URL environment variable. Configure volume for static assets if needed.",
+            "status": "pending",
+            "testStrategy": "Test docker-compose config with docker-compose -f docker-compose.prod.yml config. Verify all services can start without errors."
+          }
+        ]
       },
       {
         "id": 10,

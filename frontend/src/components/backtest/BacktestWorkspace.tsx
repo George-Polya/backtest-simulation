@@ -2,6 +2,7 @@
 
 import { useBacktestActions, useExecuteBacktest, useGenerateCode, useJobPolling } from '@/hooks';
 import { useBacktestStore } from '@/stores';
+import { DrawdownChart, EquityChart, MetricsCards, MonthlyHeatmap, TradeTable } from '@/components/results';
 import { Alert, Button, Card } from '@/components/ui';
 import { JobStatus } from '@/types';
 import { CodeEditorPanel } from './CodeEditorPanel';
@@ -39,6 +40,7 @@ export function BacktestWorkspace() {
   const { isPolling, error: pollingError } = useJobPolling(jobId);
 
   const isJobInFlight = jobStatus === JobStatus.Pending || jobStatus === JobStatus.Running;
+  const isResultsLoading = isSubmittingExecution || isJobInFlight || (isPolling && !results);
   const executionErrorMessage =
     executeError?.message ?? pollingError?.message ?? executionResult?.error ?? null;
   const executionLogs = executionResult?.logs ?? null;
@@ -218,9 +220,31 @@ export function BacktestWorkspace() {
                 <dd>{results ? 'Available' : 'Not available'}</dd>
               </div>
             </dl>
-            <Alert title="Results Placeholder" variant="info">
-              Charts and detailed metrics will be implemented in later tasks.
-            </Alert>
+
+            {results || isResultsLoading ? (
+              <div className="space-y-3">
+                <MetricsCards
+                  benchmarkCurve={results?.equity_curve.benchmark ?? null}
+                  isLoading={isResultsLoading && !results}
+                  metrics={results?.metrics ?? null}
+                  strategyCurve={results?.equity_curve.strategy ?? null}
+                />
+                <EquityChart
+                  equityCurve={results?.equity_curve ?? null}
+                  isLoading={isResultsLoading && !results}
+                />
+                <DrawdownChart drawdown={results?.drawdown ?? null} isLoading={isResultsLoading && !results} />
+                <MonthlyHeatmap
+                  isLoading={isResultsLoading && !results}
+                  monthlyHeatmap={results?.monthly_heatmap ?? null}
+                />
+                <TradeTable isLoading={isResultsLoading && !results} trades={results?.trades ?? null} />
+              </div>
+            ) : (
+              <Alert title="Results unavailable" variant="info">
+                Execute a backtest to see metrics, charts, and trades.
+              </Alert>
+            )}
           </section>
         ) : null}
       </Card>
