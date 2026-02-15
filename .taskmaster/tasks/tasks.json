@@ -659,15 +659,83 @@
           "7",
           "8"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "completed",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create CSV export module and unit tests",
+            "description": "Implement CSV export functionality and create unit tests. Create src/lib/export/csv.ts with generators: generateEquityCSV, generateDrawdownCSV, generateMonthlyCSV, generateMetricsCSV, generateTradesCSV. Create tests/unit/csv-export.test.ts with test cases for all CSV generators, special character handling, and BOM addition for Excel compatibility.",
+            "dependencies": [
+              8
+            ],
+            "details": "First implement Task 8 (CSV export) since it's a dependency. Create CSV generation functions that handle equity curve, drawdown, monthly returns, metrics, and trades data. Implement filename format: backtest_{type}_{job_id}_{date}.csv. Write comprehensive unit tests covering: valid data generation, special characters escaping, BOM handling for Excel, edge cases (empty data, missing fields).",
+            "status": "completed",
+            "testStrategy": "Test CSV generation with mock data. Verify file download in browser. Test disabled button state until results available."
+          },
+          {
+            "id": 2,
+            "title": "Create API mappers module and unit tests",
+            "description": "Create data transformation utilities and test them. Implement src/lib/api/mappers.ts for transforming API responses to component-friendly formats. Create tests/unit/api-mappers.test.ts with test cases for mapping raw API data to UI state, handling null/undefined values, formatting dates and numbers.",
+            "dependencies": [
+              4,
+              5,
+              6
+            ],
+            "details": "Create mapper functions that transform: BacktestResultResponse to MetricsCards props, ExecutionResult to chart data formats, JobStatusResponse to UI status strings. Handle null safety, date formatting (ISO to locale), number formatting (percentages, currency). Write tests for edge cases: missing benchmark data, empty equity curves, partial trade data.",
+            "status": "completed",
+            "testStrategy": "Test mapper functions with mock API responses. Verify output matches expected component props. Test error handling for malformed data."
+          },
+          {
+            "id": 3,
+            "title": "Create integration tests for generate/execute flows and results display",
+            "description": "Create integration tests for critical user flows using mocked MSW handlers. Create tests/integration/generate-flow.test.tsx, execute-flow.test.tsx, results-display.test.tsx with full flow testing from form submission to result display.",
+            "dependencies": [
+              4,
+              5,
+              6,
+              7
+            ],
+            "details": "Create tests/integration/ directory. For generate-flow: test full generate flow from ConfigForm submission through code generation, validate code editor population, verify validation errors. For execute-flow: test execute mutation, job polling behavior, status banner transitions (pending->running->completed/failed). For results-display: test MetricsCards, EquityChart, DrawdownChart, MonthlyHeatmap, TradeTable integration with mock result data. Use existing MSW handlers from tests/mocks/server.ts.",
+            "status": "completed",
+            "testStrategy": "Run npm run test. Verify all integration tests pass. Check that mocked API calls are made correctly."
+          },
+          {
+            "id": 4,
+            "title": "Setup E2E tests for critical path with Playwright",
+            "description": "Install Playwright and create E2E tests for full user journey. Create tests/e2e/critical-path.test.ts that tests complete flow: input->generate->execute->result->export.",
+            "dependencies": [
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "details": "Install @playwright/test. Create playwright.config.ts with webServer config for dev server. Create tests/e2e/critical-path.test.ts covering: 1) Form input and validation, 2) Generate code button and code editor, 3) Execute backtest and status polling, 4) Results display and chart interactions, 5) CSV export buttons (after Task 8). Configure CI to run Playwright tests with headed/headless browsers. Handle slow API responses with increased timeouts.",
+            "status": "completed",
+            "testStrategy": "Run playwright test. Verify E2E passes in CI. Test across multiple browsers (chromium, firefox)."
+          },
+          {
+            "id": 5,
+            "title": "Enhance CI pipeline with frontend tests and add regression checks",
+            "description": "Update .github/workflows/ci.yml to include frontend testing steps. Add regression checks with chart snapshots and metric comparisons.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Update CI workflow to add frontend job: 1) Setup Node.js, 2) Install frontend dependencies with cache, 3) Run eslint on src/, 4) Run tsc --noEmit, 5) Run vitest with coverage, 6) Run next build. Add regression checks: 1) Add vitest-snapshot for chart component snapshots, 2) Create baseline metrics JSON for regression testing, 3) Compare new metrics output against baseline. Configure test coverage thresholds (e.g., 80%). Add artifact upload for test results and coverage reports.",
+            "status": "completed",
+            "testStrategy": "Verify CI passes all frontend steps. Check test coverage meets threshold. Verify no TypeScript errors. Confirm E2E tests run in CI environment."
+          }
+        ]
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-02-14T16:22:09.573Z",
+      "lastModified": "2026-02-15T02:37:12.064Z",
       "taskCount": 10,
-      "completedCount": 1,
+      "completedCount": 4,
       "tags": [
         "master"
       ],

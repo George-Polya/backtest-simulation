@@ -1,0 +1,23 @@
+{
+  "source": "dash_reference_v1",
+  "metrics": {
+    "total_return": 24.5,
+    "cagr": 11.2,
+    "max_drawdown": 6.4,
+    "sharpe_ratio": 1.2,
+    "sortino_ratio": 1.8,
+    "calmar_ratio": 0.9,
+    "volatility": 13.1,
+    "total_trades": 20,
+    "winning_trades": 11,
+    "losing_trades": 9,
+    "win_rate": 55
+  },
+  "summary": {
+    "totalReturn": "24.50%",
+    "cagr": "11.20%",
+    "maxDrawdown": "-6.40%",
+    "sharpeRatio": "1.20",
+    "winRate": "55.0%"
+  }
+}

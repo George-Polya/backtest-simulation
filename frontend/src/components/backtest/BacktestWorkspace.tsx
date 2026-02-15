@@ -2,7 +2,14 @@
 
 import { useBacktestActions, useExecuteBacktest, useGenerateCode, useJobPolling } from '@/hooks';
 import { useBacktestStore } from '@/stores';
-import { DrawdownChart, EquityChart, MetricsCards, MonthlyHeatmap, TradeTable } from '@/components/results';
+import {
+  DrawdownChart,
+  EquityChart,
+  ExportButtons,
+  MetricsCards,
+  MonthlyHeatmap,
+  TradeTable
+} from '@/components/results';
 import { Alert, Button, Card } from '@/components/ui';
 import { JobStatus } from '@/types';
 import { CodeEditorPanel } from './CodeEditorPanel';
@@ -223,6 +230,7 @@ export function BacktestWorkspace() {
 
             {results || isResultsLoading ? (
               <div className="space-y-3">
+                <ExportButtons jobId={jobId} results={results} />
                 <MetricsCards
                   benchmarkCurve={results?.equity_curve.benchmark ?? null}
                   isLoading={isResultsLoading && !results}
