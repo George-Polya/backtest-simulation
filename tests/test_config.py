@@ -137,6 +137,40 @@ class TestSettings:
         assert settings.debug is True
         assert settings.openrouter_api_key == "test_key_from_env"
 
+    def test_default_cors_origins(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test default CORS origins include common local frontend ports."""
+        monkeypatch.delenv("APP_CORS_ORIGINS", raising=False)
+
+        settings = Settings()
+        assert "http://localhost:3000" in settings.cors_origins
+        assert "http://localhost:5173" in settings.cors_origins
+
+    def test_cors_origins_csv_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test CORS origins can be provided as comma-separated env value."""
+        monkeypatch.setenv(
+            "APP_CORS_ORIGINS",
+            "https://app.example.com, https://admin.example.com",
+        )
+
+        settings = Settings()
+        assert settings.cors_origins == [
+            "https://app.example.com",
+            "https://admin.example.com",
+        ]
+
+    def test_cors_origins_json_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test CORS origins can be provided as JSON array env value."""
+        monkeypatch.setenv(
+            "APP_CORS_ORIGINS",
+            '["https://app.example.com", "https://admin.example.com"]',
+        )
+
+        settings = Settings()
+        assert settings.cors_origins == [
+            "https://app.example.com",
+            "https://admin.example.com",
+        ]
+
 
 class TestGetSettings:
     """Tests for get_settings function."""

@@ -391,6 +391,10 @@ class TestDockerBackendWorkspace:
         # Check run_backtest handling
         assert "run_backtest" in wrapper
 
+        # Check OHLCV normalization for compatibility with generated strategies
+        assert "_normalize_ohlcv_columns" in wrapper
+        assert "Missing required OHLCV columns" in wrapper
+
 
 class TestDockerBackendStatus:
     """Tests for status tracking."""

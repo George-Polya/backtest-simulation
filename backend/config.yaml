@@ -1,11 +1,11 @@
 # LLM Provider Configuration
 llm:
-  provider: "openrouter"  # openrouter | anthropic | openai
-  model: "openai/gpt-5.2-codex"
+  provider: "openrouter" 
+  model: "minimax/minimax-m2.5"
   temperature: 0.0 # Lower = more deterministic (0.0 = most deterministic)
   seed: 42  # Random seed for reproducible outputs
-  max_tokens: 128000  # Max output tokens (gpt-5.2: 128K)
-  max_context_tokens: 400000  # Context window (input+output, gpt-5.2: 400K)
+  max_tokens: 131000  # Max output tokens (gpt-5.2: 128K)
+  max_context_tokens: 205000  # Context window (input+output, gpt-5.2: 400K)
   reasoning_enabled: true  # Enable reasoning for thinking models
   reasoning_max_tokens: 64000  # Tokens allocated for reasoning (optional)
   # Web search for real-time documentation lookup (OpenRouter only)

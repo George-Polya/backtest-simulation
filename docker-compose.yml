@@ -22,7 +22,7 @@ services:
       # Persist price cache data
       - ./data:/app/data
       # Mount config for easy updates (optional, remove in production)
-      - ./config.yaml:/app/config.yaml:ro
+      - ./backend/config.yaml:/app/backend/config.yaml:ro
       # Docker socket for DooD (Docker out of Docker)
       # Allows spawning sibling containers for isolated code execution
       - /var/run/docker.sock:/var/run/docker.sock

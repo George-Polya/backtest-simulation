@@ -676,14 +676,16 @@ class JobManager:
         """
         records = []
         for p in price_data:
+            adj_close = float(p.adjusted_close) if p.adjusted_close is not None else float(p.close)
             records.append({
                 "date": p.date.isoformat(),
-                "open": float(p.open),
-                "high": float(p.high),
-                "low": float(p.low),
-                "close": float(p.close),
-                "volume": p.volume,
-                "adjusted_close": float(p.adjusted_close) if p.adjusted_close else None,
+                # Use backtesting.py canonical OHLCV column names.
+                "Open": float(p.open),
+                "High": float(p.high),
+                "Low": float(p.low),
+                "Close": float(p.close),
+                "Volume": p.volume,
+                "Adj Close": adj_close,
             })
 
         df = pd.DataFrame(records)

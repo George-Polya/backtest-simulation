@@ -55,13 +55,21 @@ function createWrapper() {
 }
 
 describe('useGenerateCode', () => {
+  const originalGenerationTimeout = process.env.NEXT_PUBLIC_CODE_GENERATION_TIMEOUT_MS;
+
   beforeEach(() => {
     mockedGenerateCode.mockReset();
+    delete process.env.NEXT_PUBLIC_CODE_GENERATION_TIMEOUT_MS;
     useBacktestStore.getState().reset();
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    if (originalGenerationTimeout) {
+      process.env.NEXT_PUBLIC_CODE_GENERATION_TIMEOUT_MS = originalGenerationTimeout;
+    } else {
+      delete process.env.NEXT_PUBLIC_CODE_GENERATION_TIMEOUT_MS;
+    }
     useBacktestStore.getState().reset();
   });
 
@@ -102,7 +110,7 @@ describe('useGenerateCode', () => {
     expect(store.generationMetadata?.tickers_found).toEqual(['SPY']);
   });
 
-  it('returns timeout error after 30 seconds', async () => {
+  it('returns timeout error after 120 seconds by default', async () => {
     const setTimeoutSpy = vi
       .spyOn(global, 'setTimeout')
       .mockImplementation(((handler: TimerHandler) => {
@@ -124,11 +132,11 @@ describe('useGenerateCode', () => {
 
     await act(async () => {
       await expect(result.current.mutateAsync(createRequest())).rejects.toThrow(
-        'timed out after 30 seconds'
+        'timed out after 120 seconds'
       );
     });
 
-    expect(result.current.error?.message).toContain('timed out after 30 seconds');
+    expect(result.current.error?.message).toContain('timed out after 120 seconds');
     expect(setTimeoutSpy).toHaveBeenCalled();
 
     setTimeoutSpy.mockRestore();

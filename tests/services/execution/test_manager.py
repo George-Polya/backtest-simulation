@@ -6,6 +6,8 @@ job submission, status tracking, and result retrieval.
 """
 
 import asyncio
+from datetime import date
+from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
 import tempfile
 
@@ -13,6 +15,7 @@ import pytest
 
 from backend.core.config import ExecutionProvider, Settings, ExecutionConfig
 from backend.models.execution import ExecutionJob, ExecutionResult, JobStatus
+from backend.providers.data.base import PriceData
 from backend.services.execution.backend import LocalBackend
 from backend.services.execution.docker_backend import DockerBackend
 from backend.services.execution.storage import InMemoryJobStorage
@@ -159,6 +162,29 @@ class TestJobManager:
 
         assert result.success is True
         assert result.status == JobStatus.COMPLETED
+
+    def test_price_data_to_dataframe_uses_canonical_ohlcv_columns(
+        self,
+        job_manager: JobManager,
+    ):
+        """Price data conversion should use backtesting.py OHLCV column names."""
+        price_data = [
+            PriceData(
+                date=date(2024, 1, 2),
+                open=Decimal("100.0"),
+                high=Decimal("105.0"),
+                low=Decimal("99.0"),
+                close=Decimal("102.5"),
+                volume=123456,
+                adjusted_close=Decimal("102.3"),
+            )
+        ]
+
+        df = job_manager._price_data_to_dataframe(price_data)
+
+        assert list(df.columns) == ["Open", "High", "Low", "Close", "Volume", "Adj Close"]
+        assert float(df.iloc[0]["Close"]) == 102.5
+        assert float(df.iloc[0]["Adj Close"]) == 102.3
 
     @pytest.mark.asyncio
     async def test_run_backtest_stores_job(

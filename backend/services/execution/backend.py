@@ -429,6 +429,43 @@ def load_data(tickers: list[str], start_date: str, end_date: str) -> dict[str, p
     start_dt = pd.to_datetime(start_date)
     end_dt = pd.to_datetime(end_date)
 
+    required_columns = ["Open", "High", "Low", "Close", "Volume"]
+
+    def _normalize_ohlcv_columns(df: pd.DataFrame) -> pd.DataFrame:
+        """Normalize source column names to backtesting.py OHLCV schema."""
+        alias_map = {{
+            "open": "Open",
+            "high": "High",
+            "low": "Low",
+            "close": "Close",
+            "volume": "Volume",
+            "adj close": "Adj Close",
+            "adj_close": "Adj Close",
+            "adjusted close": "Adj Close",
+            "adjusted_close": "Adj Close",
+        }}
+
+        rename_map = {{}}
+        for col in df.columns:
+            normalized = str(col).strip().replace("_", " ").lower()
+            canonical = alias_map.get(normalized)
+            if canonical:
+                rename_map[col] = canonical
+
+        if rename_map:
+            df = df.rename(columns=rename_map)
+
+        # Fill Adj Close from Close when provider does not supply adjusted close.
+        if "Adj Close" not in df.columns and "Close" in df.columns:
+            df["Adj Close"] = df["Close"]
+
+        missing = [col for col in required_columns if col not in df.columns]
+        if missing:
+            raise ValueError(f"Missing required OHLCV columns: {{missing}}")
+
+        # Keep deterministic column order for generated code assumptions.
+        return df[["Open", "High", "Low", "Close", "Volume", "Adj Close"]]
+
     for ticker in tickers:
         csv_path = data_dir / f"{{ticker}}.csv"
         if not csv_path.exists():
@@ -439,6 +476,7 @@ def load_data(tickers: list[str], start_date: str, end_date: str) -> dict[str, p
             # Handle timezone-aware vs timezone-naive comparison
             if df.index.tz is not None:
                 df.index = df.index.tz_localize(None)
+            df = _normalize_ohlcv_columns(df)
             df = df[(df.index >= start_dt) & (df.index <= end_dt)]
             result[ticker] = df
             print(f"Loaded {{len(df)}} records for {{ticker}}")

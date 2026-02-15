@@ -75,7 +75,7 @@ services:
       # Persist price cache data
       - ./data:/app/data
       # Mount config for easy updates
-      - ./config.yaml:/app/config.yaml:ro
+      - ./backend/config.yaml:/app/backend/config.yaml:ro
       # Docker socket for DooD (Docker out of Docker)
       - /var/run/docker.sock:/var/run/docker.sock
       # Workspace for code execution

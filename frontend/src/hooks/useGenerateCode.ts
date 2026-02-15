@@ -5,8 +5,26 @@ import { generateCode } from '@/lib/api';
 import { useBacktestStore } from '@/stores';
 import { BacktestRequest, GenerateBacktestResponse, GenerationMetadata } from '@/types';
 
-const GENERATION_TIMEOUT_MS = 30_000;
-const GENERATION_TIMEOUT_MESSAGE = 'Code generation timed out after 30 seconds.';
+const DEFAULT_GENERATION_TIMEOUT_MS = 120_000;
+
+function getGenerationTimeoutMs(): number {
+  const raw = process.env.NEXT_PUBLIC_CODE_GENERATION_TIMEOUT_MS;
+  if (!raw) {
+    return DEFAULT_GENERATION_TIMEOUT_MS;
+  }
+
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return DEFAULT_GENERATION_TIMEOUT_MS;
+  }
+
+  return parsed;
+}
+
+function buildGenerationTimeoutMessage(timeoutMs: number): string {
+  const timeoutSeconds = Math.max(1, Math.ceil(timeoutMs / 1000));
+  return `Code generation timed out after ${timeoutSeconds} seconds.`;
+}
 
 function toGenerationMetadata(response: GenerateBacktestResponse): GenerationMetadata {
   return {
@@ -20,17 +38,22 @@ function toGenerationMetadata(response: GenerateBacktestResponse): GenerationMet
 export function useGenerateCode() {
   const setGeneratedCode = useBacktestStore((state) => state.setGeneratedCode);
   const setGenerationMetadata = useBacktestStore((state) => state.setGenerationMetadata);
+  const generationTimeoutMs = getGenerationTimeoutMs();
+  const generationTimeoutMessage = buildGenerationTimeoutMessage(generationTimeoutMs);
 
   return useMutation<GenerateBacktestResponse, Error, BacktestRequest>({
     mutationFn: async (payload) => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
+      const timeoutId = setTimeout(() => controller.abort(), generationTimeoutMs);
 
       try {
-        return await generateCode(payload, { signal: controller.signal });
+        return await generateCode(payload, {
+          signal: controller.signal,
+          timeoutMs: generationTimeoutMs
+        });
       } catch (error) {
         if (controller.signal.aborted) {
-          throw new Error(GENERATION_TIMEOUT_MESSAGE);
+          throw new Error(generationTimeoutMessage);
         }
 
         if (error instanceof Error) {
@@ -48,4 +71,3 @@ export function useGenerateCode() {
     }
   });
 }
-

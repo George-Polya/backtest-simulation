@@ -59,7 +59,6 @@ WORKDIR /app
 
 # Copy application code
 COPY --chown=appuser:appuser backend/ ./backend/
-COPY --chown=appuser:appuser config.yaml ./
 
 # Create data directories
 RUN mkdir -p data/prices && chown -R appuser:appuser data/

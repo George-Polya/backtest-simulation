@@ -5,14 +5,18 @@ Loads configuration from config.yaml and environment variables using pydantic-se
 Supports llm/data/execution sections as described in PRD.
 """
 
+import json
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
+from typing import Annotated, Optional
 
 import yaml
 from pydantic import BaseModel, Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+PROJECT_ROOT_DIR = BACKEND_DIR.parent
 
 
 class LLMProvider(str, Enum):
@@ -252,7 +256,7 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(str(BACKEND_DIR / ".env"), ".env"),
         env_file_encoding="utf-8",
         env_prefix="",
         env_nested_delimiter="__",
@@ -274,6 +278,16 @@ class Settings(BaseSettings):
         description="Debug mode",
         alias="APP_DEBUG",
     )
+    cors_origins: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+        ],
+        description="Allowed CORS origins for browser clients",
+        alias="APP_CORS_ORIGINS",
+    )
 
     @field_validator("debug", mode="before")
     @classmethod
@@ -283,6 +297,34 @@ class Settings(BaseSettings):
             return False
         if isinstance(v, str):
             return v.lower() in ("true", "1", "yes", "on")
+        return v
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(
+        cls, v: str | list[str] | None
+    ) -> list[str] | str | None:
+        """Support JSON array or comma-separated APP_CORS_ORIGINS values."""
+        if v is None:
+            return None
+        if isinstance(v, list):
+            return [origin.strip() for origin in v if origin and origin.strip()]
+        if isinstance(v, str):
+            raw = v.strip()
+            if not raw:
+                return []
+            if raw.startswith("["):
+                try:
+                    parsed = json.loads(raw)
+                    if isinstance(parsed, list):
+                        return [
+                            origin.strip()
+                            for origin in parsed
+                            if isinstance(origin, str) and origin.strip()
+                        ]
+                except json.JSONDecodeError:
+                    pass
+            return [origin.strip() for origin in raw.split(",") if origin.strip()]
         return v
 
     # LLM API Keys (from .env)
@@ -365,8 +407,10 @@ class Settings(BaseSettings):
         if config_path is None:
             # Look for config.yaml in common locations
             search_paths = [
+                BACKEND_DIR / "config.yaml",
                 Path.cwd() / "config.yaml",
-                Path(__file__).parent.parent.parent / "config.yaml",
+                Path.cwd() / "backend" / "config.yaml",
+                PROJECT_ROOT_DIR / "config.yaml",
             ]
             for path in search_paths:
                 if path.exists():

@@ -29,10 +29,10 @@ pip install -e ".[dev]"
 
 ### Configuration
 
-1. **민감 정보는 `.env` 파일에서 관리** (`.env.example` 참고):
+1. **민감 정보는 `backend/.env` 파일에서 관리** (`backend/.env.example` 참고):
    ```bash
-   cp .env.example .env
-   # .env 파일 편집
+   cp backend/.env.example backend/.env
+   # backend/.env 파일 편집
    ```
 
    ```bash
@@ -46,7 +46,7 @@ pip install -e ".[dev]"
    KIS_ACCOUNT_STOCK=12345678
    ```
 
-2. **비민감 설정은 `config.yaml`에서 관리**:
+2. **비민감 설정은 `backend/config.yaml`에서 관리**:
    ```yaml
    llm:
      provider: "openrouter"
@@ -110,9 +110,9 @@ execution:
 
 | 파일 | 역할 | Git 커밋 |
 |------|------|----------|
-| `.env` | 민감 정보 (API keys, KIS credentials) | ❌ 절대 안됨 |
-| `.env.example` | 환경 변수 템플릿 | ✅ |
-| `config.yaml` | 비민감 설정 (LLM/Execution) | ✅ |
+| `backend/.env` | 민감 정보 (API keys, KIS credentials) | ❌ 절대 안됨 |
+| `backend/.env.example` | 환경 변수 템플릿 | ✅ |
+| `backend/config.yaml` | 비민감 설정 (LLM/Execution) | ✅ |
 
 ### Environment Variables (.env)
 

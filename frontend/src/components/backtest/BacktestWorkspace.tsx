@@ -52,30 +52,6 @@ export function BacktestWorkspace() {
     executeError?.message ?? pollingError?.message ?? executionResult?.error ?? null;
   const executionLogs = executionResult?.logs ?? null;
 
-  const handleToggleCodePanel = () => {
-    const next = !uiToggles.isCodeEditorOpen;
-    setUiToggle('isCodeEditorOpen', next);
-
-    if (!next && uiToggles.selectedTab === 'code' && uiToggles.isResultsOpen) {
-      setSelectedTab('results');
-    }
-    if (next && !uiToggles.isResultsOpen) {
-      setSelectedTab('code');
-    }
-  };
-
-  const handleToggleResultsPanel = () => {
-    const next = !uiToggles.isResultsOpen;
-    setUiToggle('isResultsOpen', next);
-
-    if (!next && uiToggles.selectedTab === 'results' && uiToggles.isCodeEditorOpen) {
-      setSelectedTab('code');
-    }
-    if (next && !uiToggles.isCodeEditorOpen) {
-      setSelectedTab('results');
-    }
-  };
-
   const handleGenerateCode = () => {
     if (!requestConfig) {
       return;
@@ -98,7 +74,7 @@ export function BacktestWorkspace() {
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-2" id="workspace">
+    <div className="grid gap-4 lg:grid-cols-[minmax(320px,1fr)_minmax(0,2fr)]" id="workspace">
       <Card className="h-fit" title="Configuration & Actions">
         <div className="mb-4 flex flex-wrap gap-2">
           <Button
@@ -129,12 +105,6 @@ export function BacktestWorkspace() {
 
       <Card title="Code & Results">
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <Button type="button" variant="secondary" onClick={handleToggleCodePanel}>
-            {uiToggles.isCodeEditorOpen ? 'Hide Code' : 'Show Code'}
-          </Button>
-          <Button type="button" variant="secondary" onClick={handleToggleResultsPanel}>
-            {uiToggles.isResultsOpen ? 'Hide Results' : 'Show Results'}
-          </Button>
           <Button
             type="button"
             disabled={!requestConfig || isGenerating || isSubmittingExecution}

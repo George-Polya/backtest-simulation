@@ -44,11 +44,14 @@ fi
 # ===========================================
 log_info "Setting up environment..."
 
-# Check for .env file
-if [ ! -f "$PROJECT_DIR/.env" ]; then
+# Check for backend .env file
+BACKEND_ENV_FILE="$PROJECT_DIR/backend/.env"
+BACKEND_ENV_EXAMPLE="$PROJECT_DIR/backend/.env.example"
+
+if [ ! -f "$BACKEND_ENV_FILE" ]; then
     log_warn ".env file not found. Creating from .env.example..."
-    if [ -f "$PROJECT_DIR/.env.example" ]; then
-        cp "$PROJECT_DIR/.env.example" "$PROJECT_DIR/.env"
+    if [ -f "$BACKEND_ENV_EXAMPLE" ]; then
+        cp "$BACKEND_ENV_EXAMPLE" "$BACKEND_ENV_FILE"
         log_warn "Please edit .env file with your actual values!"
     else
         log_error ".env.example not found. Please create .env manually."
@@ -57,7 +60,7 @@ if [ ! -f "$PROJECT_DIR/.env" ]; then
 fi
 
 # Source .env file
-source "$PROJECT_DIR/.env"
+source "$BACKEND_ENV_FILE"
 
 # Get Docker group ID
 DOCKER_GID=$(getent group docker | cut -d: -f3 2>/dev/null || echo "999")
@@ -121,13 +124,13 @@ if ! docker compose version &> /dev/null; then
     COMPOSE_CMD="docker-compose"
 fi
 
-$COMPOSE_CMD -f docker-compose.prod.yml pull
+$COMPOSE_CMD --env-file backend/.env -f docker-compose.prod.yml pull
 
 log_info "Stopping existing containers..."
-$COMPOSE_CMD -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
+$COMPOSE_CMD --env-file backend/.env -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
 
 log_info "Starting services..."
-$COMPOSE_CMD -f docker-compose.prod.yml up -d
+$COMPOSE_CMD --env-file backend/.env -f docker-compose.prod.yml up -d
 
 # ===========================================
 # Health check
@@ -136,7 +139,7 @@ log_info "Waiting for services to start..."
 sleep 15
 
 log_info "Checking container status..."
-$COMPOSE_CMD -f docker-compose.prod.yml ps
+$COMPOSE_CMD --env-file backend/.env -f docker-compose.prod.yml ps
 
 log_info "Checking internal health..."
 if curl -sf http://localhost:8000/health &>/dev/null; then

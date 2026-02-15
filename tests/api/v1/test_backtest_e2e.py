@@ -525,10 +525,11 @@ class TestCORSConfiguration:
             },
         )
 
-        # CORS should be configured (check for CORS headers)
-        # The exact status code depends on CORS middleware configuration
-        # 400, 405, or 200 are all acceptable depending on implementation
-        assert response.status_code in [200, 400, 405]
+        assert response.status_code == 200
+        assert (
+            response.headers.get("access-control-allow-origin")
+            == "http://localhost:3000"
+        )
 
 
 class TestErrorHandling:

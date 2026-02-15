@@ -9,6 +9,7 @@ import asyncio
 import tempfile
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 from backend.models.execution import ExecutionJob, JobStatus
@@ -160,6 +161,59 @@ def run_backtest(params):
 
             assert result.success is True
             assert result.data.get("workspace_test") is True
+
+    @pytest.mark.asyncio
+    async def test_load_data_normalizes_ohlcv_columns(self, local_backend: LocalBackend):
+        """load_data should normalize lowercase CSV columns to canonical OHLCV names."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir)
+            data_dir = workspace / "data"
+            data_dir.mkdir(parents=True, exist_ok=True)
+
+            df = pd.DataFrame(
+                [
+                    {
+                        "open": 100.0,
+                        "high": 105.0,
+                        "low": 99.0,
+                        "close": 102.5,
+                        "volume": 123456,
+                    }
+                ],
+                index=pd.to_datetime(["2024-01-02"]),
+            )
+            df.to_csv(data_dir / "TEST.csv")
+
+            code = '''
+def run_backtest(params):
+    data = load_data(["TEST"], params["start_date"], params["end_date"])
+    df = data["TEST"]
+    return {
+        "close": float(df["Close"].iloc[-1]),
+        "adj_close": float(df["Adj Close"].iloc[-1]),
+        "columns": list(df.columns),
+    }
+'''
+            job = ExecutionJob(
+                job_id="ohlcv-normalize-test",
+                code=code,
+                params={"start_date": "2024-01-01", "end_date": "2024-01-31"},
+            )
+
+            result = await local_backend.execute(job, workspace_path=workspace)
+
+            assert result.success is True
+            assert result.data is not None
+            assert result.data.get("close") == 102.5
+            assert result.data.get("adj_close") == 102.5
+            assert result.data.get("columns") == [
+                "Open",
+                "High",
+                "Low",
+                "Close",
+                "Volume",
+                "Adj Close",
+            ]
 
     @pytest.mark.asyncio
     async def test_get_status_unknown_job(self, local_backend: LocalBackend):
