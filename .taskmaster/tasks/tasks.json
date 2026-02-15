@@ -2,7 +2,7 @@
   "master": {
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "title": "Scaffold Next.js project with TypeScript and App Router",
         "description": "Scaffold new Next.js project with TypeScript, strict mode, and App Router. Set up project structure with domain-based folders. Install required dependencies: React Query, Zustand, chart library (Recharts), code editor (Monaco), date handling, form validation (React Hook Form + Zod). Configure Tailwind CSS for styling.",
         "details": "Run `npx create-next-app@latest frontend --typescript --tailwind --eslint --app --src-dir` or similar. Set up environment files (.env.local.example with NEXT_PUBLIC_API_BASE_URL). Create folder structure: src/app (App Router pages), src/components (UI components), src/hooks (custom hooks), src/lib (utilities, api client), src/types (TypeScript types), src/stores (Zustand stores). Key dependencies: @tanstack/react-query, zustand, recharts, @monaco-editor/react, react-hook-form + @hookform/resolvers + zod, date-fns, axios. Configure next.config.js for standalone output mode.",
@@ -72,7 +72,7 @@
         ]
       },
       {
-        "id": "2",
+        "id": 2,
         "title": "Build typed API client layer and DTOs",
         "description": "Create typed API client layer that mirrors backend Pydantic models. Generate TypeScript interfaces for all API request/response types aligned with backend models. Implement API client with axios wrapper with proper error handling.",
         "details": "Create src/types/api.ts with interfaces matching backend models: BacktestRequest, BacktestParams, ContributionFrequency (enum), ContributionPlan, FeeSettings, LLMSettings, GeneratedCode, ModelInfo, JobStatus (enum), ExecuteBacktestRequest/Response, BacktestResultResponse, EquityChartResponse, DrawdownChartResponse, MonthlyReturnsResponse. Create src/lib/api/client.ts with base URL from env var, axios instance with interceptors, and functions: generateCode(), executeBacktest(), getJobStatus(), getJobResult(), getFormattedResult().",
@@ -143,7 +143,7 @@
         ]
       },
       {
-        "id": "3",
+        "id": 3,
         "title": "Implement base layout and shared UI components",
         "description": "Implement base layout with responsive two-pane design, navigation, and shared UI components. Set up React Query provider and Zustand store for global state management.",
         "details": "Create src/app/layout.tsx with React Query Provider wrapper, global styles and Tailwind imports. Create src/components/ui/ with Button, Input, Textarea, Select, Card, Alert, LoadingSpinner components. Create src/stores/useBacktestStore.ts with Zustand for generatedCode, jobId, jobStatus, results, uiToggles. Create main page with two-pane layout: Left (config form + actions), Right (code editor + results).",
@@ -221,7 +221,7 @@
         ]
       },
       {
-        "id": "4",
+        "id": 4,
         "title": "Implement config form with validation",
         "description": "Build strategy and parameter input form with all fields specified in FR-2: strategy text, date range, initial capital, benchmarks, contribution settings, fees, dividend reinvestment toggle, web search toggle. Add client-side validation.",
         "details": "Create src/components/backtest/ConfigForm.tsx using React Hook Form + Zod. Schema: strategy (10-10000 chars), start_date (>=2001-01-01), end_date (<=today), initial_capital (>=1000), benchmarks (min 1), contribution.frequency/amount, fees (0-10%), dividend_reinvestment, llm_settings.web_search_enabled. Components: StrategyInput, DateRangePicker, CapitalInput, BenchmarkSelect, ContributionSettings, FeeSettings, Toggles, ValidationSummary.",
@@ -305,7 +305,7 @@
         "updatedAt": "2026-02-14T16:22:09.572Z"
       },
       {
-        "id": "5",
+        "id": 5,
         "title": "Implement generate code flow with code editor",
         "description": "Implement Generate Code flow calling POST /api/v1/backtest/generate. Integrate Monaco Editor with Python syntax highlighting. Show model info, strategy summary, generation duration, detected tickers. Handle loading state and timeout (30s).",
         "details": "Create src/components/backtest/CodeEditorPanel.tsx with Monaco Editor (Python language, read-only by default, editable on user modification). Create src/hooks/useGenerateCode.ts with useMutation for POST /api/v1/backtest/generate, handle loading/success/error states, timeout after 30s. Display model info badge, strategy summary, generation time, tickers found. Disable Execute button if no generated code exists.",
@@ -382,7 +382,7 @@
         ]
       },
       {
-        "id": "6",
+        "id": 6,
         "title": "Implement execute/polling flow with status display",
         "description": "Implement Execute Backtest flow calling POST /api/v1/backtest/execute with async_mode=true. Implement polling mechanism calling GET /api/v1/backtest/status/{job_id} every 2 seconds. Handle pending/running/completed/failed states.",
         "details": "Create src/hooks/useExecuteBacktest.ts with useMutation for POST /api/v1/backtest/execute. Create src/hooks/useJobPolling.ts with useQuery refetchInterval: 2000ms, stop polling on terminal states. UI States: Submitting, Pending (show job_id), Running (show elapsed), Completed, Failed (show error + logs). Create StatusBanner component. Handle network errors with retry, 404 errors, long-running job elapsed counter.",
@@ -393,10 +393,68 @@
           "5"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create useExecuteBacktest hook with useMutation",
+            "description": "Create src/hooks/useExecuteBacktest.ts with useMutation for POST /api/v1/backtest/execute. Use executeBacktest API from lib/api/client.ts. Pass async_mode=true in request. Update Zustand store with jobId and jobStatus on success. Handle loading state (isPending), error state, and success callback.",
+            "dependencies": [],
+            "details": "Create useExecuteBacktest hook that calls executeBacktest(payload: ExecuteBacktestRequest) from API client. Set async_mode: true in the request payload. On success, call setJobState(jobId, status) from useBacktestStore. Export mutate function, isPending, isError, error states. Use try/catch for error handling.",
+            "status": "pending",
+            "testStrategy": "Test execute mutation with mock API response. Verify isPending state during submission. Test error handling with mock API failure. Verify jobId and jobStatus are set in store on success."
+          },
+          {
+            "id": 2,
+            "title": "Create useJobPolling hook with useQuery",
+            "description": "Create src/hooks/useJobPolling.ts with useQuery for polling GET /api/v1/backtest/status/{job_id} every 2 seconds. Stop polling on terminal states (completed, failed, cancelled, timeout). Use getJobStatus from lib/api/client.ts.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create useJobPolling hook that accepts jobId. Use useQuery with refetchInterval: 2000ms. Define queryKey: ['jobStatus', jobId]. Implement queryFn: getJobStatus(jobId). Use enabled: !!jobId. Implement getJobResult for terminal states to fetch results. Return status, data, isLoading, error. Handle network errors with retry (3 attempts).",
+            "status": "pending",
+            "testStrategy": "Test polling stops when job reaches terminal state. Verify polling interval is 2 seconds. Test 404 error handling. Verify retry logic works correctly. Test with mock job status progression."
+          },
+          {
+            "id": 3,
+            "title": "Create StatusBanner component for job status display",
+            "description": "Create src/components/backtest/StatusBanner.tsx component to display job status. Support states: Submitting, Pending (show job_id), Running (show elapsed time), Completed, Failed (show error + logs). Use Alert and Card components from UI library.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create StatusBanner component with props: status (JobStatus), jobId, error?, logs?, startTime?. Use LoadingSpinner for non-terminal states. Display job_id in Pending state. Calculate and display elapsed time in Running state (use setInterval). Show error message and logs in Failed state. Use color coding: blue=pending, yellow=running, green=completed, red=failed.",
+            "status": "pending",
+            "testStrategy": "Test each status display. Verify elapsed time counter works. Test error and logs display. Verify loading spinner shows correctly."
+          },
+          {
+            "id": 4,
+            "title": "Integrate hooks into BacktestWorkspace",
+            "description": "Update BacktestWorkspace.tsx to wire up Execute button. Import useExecuteBacktest and useJobPolling hooks. Connect StatusBanner to display job status. Handle button disabled state (disable if no generated code).",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "In BacktestWorkspace, import useExecuteBacktest and useJobPolling. Add Execute button onClick handler that calls executeMutation with generated code. Use jobId from store for useJobPolling. Display StatusBanner when jobId exists. Show results when status is completed.",
+            "status": "pending",
+            "testStrategy": "Test Execute button disabled state. Verify StatusBanner displays correctly. Test full execute flow with mock API. Verify polling starts after job submission."
+          },
+          {
+            "id": 5,
+            "title": "Add error handling and elapsed time counter",
+            "description": "Add network error handling with retry, 404 error handling, and elapsed time counter. Implement retry logic (3 attempts with exponential backoff) for network errors. Handle 404 by showing job not found message.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "In useJobPolling, configure retry: 3 with retryDelay: exponential backoff. Handle 404 specifically with isJobNotFound state. Add elapsed time tracking using startTime timestamp in store. Display elapsed time in HH:MM:SS format in StatusBanner.",
+            "status": "pending",
+            "testStrategy": "Test retry behavior with mock network failures. Test 404 handling. Verify elapsed time displays correctly for long-running jobs."
+          }
+        ]
       },
       {
-        "id": "7",
+        "id": 7,
         "title": "Implement results visualization components",
         "description": "Implement results visualization: primary metrics (total_return, cagr, max_drawdown with benchmark delta), secondary metrics (sharpe, sortino, calmar), equity curve chart with log scale toggle, drawdown chart, monthly returns heatmap, trade table.",
         "details": "Create src/components/results/MetricsCards.tsx with primary/secondary metrics. Create EquityChart.tsx with Recharts LineChart (strategy + benchmark lines, log scale toggle). Create DrawdownChart.tsx with AreaChart. Create MonthlyHeatmap.tsx with custom grid. Create TradeTable.tsx with collapsible panel, sortable columns, action/profit formatting. All handle loading/empty states.",
@@ -408,10 +466,56 @@
           "6"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create MetricsCards component for primary/secondary metrics display",
+            "description": "Create src/components/results/MetricsCards.tsx to display primary metrics (total_return, cagr, max_drawdown with benchmark delta) and secondary metrics (sharpe, sortino, calmar). Use Card component for layout, format percentages/currency values, show loading spinner when metrics are not available, display empty state with appropriate message when results are null.",
+            "dependencies": [],
+            "details": "Create MetricsCards component that accepts PerformanceMetrics and benchmark data as props. Display primary metrics in a prominent grid showing total return, CAGR, and max drawdown with benchmark comparison (delta). Show secondary metrics (Sharpe ratio, Sortino ratio, Calmar ratio) in a separate section. Handle loading state with LoadingSpinner, and empty state with Alert when metrics are unavailable. Use formatPercentage and formatNumber utility functions for value display.",
+            "status": "pending",
+            "testStrategy": "Test with mock PerformanceMetrics data. Verify primary/secondary metric display. Test loading state rendering. Test empty state handling. Verify benchmark delta calculation and display."
+          },
+          {
+            "id": 2,
+            "title": "Create EquityChart component with Recharts LineChart and log scale toggle",
+            "description": "Create src/components/results/EquityChart.tsx with Recharts LineChart displaying strategy and benchmark equity curves, include log scale toggle using Toggle component, handle loading and empty states appropriately.",
+            "dependencies": [],
+            "details": "Create EquityChart component using Recharts LineChart that accepts equity_curve data from BacktestResultResponse. Display strategy line in primary color (brand-500) and benchmark line in secondary color (slate-400). Implement log scale toggle that switches between linear and logarithmic y-axis using Recharts YAxis type='logDomain'. Handle loading state with LoadingSpinner, and empty state with Alert when equity_curve data is null or empty. Add proper tooltips showing date and value. Use existing Toggle component for log scale switch.",
+            "status": "pending",
+            "testStrategy": "Test with mock EquityCurveData including both strategy and benchmark. Test log scale toggle functionality. Verify chart renders with single line (no benchmark). Test loading and empty states. Verify tooltip displays correct values."
+          },
+          {
+            "id": 3,
+            "title": "Create DrawdownChart component with Recharts AreaChart",
+            "description": "Create src/components/results/DrawdownChart.tsx with Recharts AreaChart to visualize drawdown data over time, handle loading and empty states.",
+            "dependencies": [],
+            "details": "Create DrawdownChart component using Recharts AreaChart that accepts drawdown data from BacktestResultResponse. Display drawdown as negative percentage values with gradient fill. Configure XAxis for dates and YAxis for percentage values. Add tooltip showing date and drawdown percentage. Handle loading state with LoadingSpinner, and empty state with Alert when drawdown data is unavailable. Use area gradient from brand-500 to transparent for visual effect.",
+            "status": "pending",
+            "testStrategy": "Test with mock DrawdownData. Verify area chart renders correctly with gradient. Test loading state rendering. Test empty state handling. Verify tooltip shows correct negative percentage values."
+          },
+          {
+            "id": 4,
+            "title": "Create MonthlyHeatmap component with custom grid for monthly returns",
+            "description": "Create src/components/results/MonthlyHeatmap.tsx with custom grid layout to display monthly returns heatmap, implement color coding for positive/negative returns, handle loading and empty states.",
+            "dependencies": [],
+            "details": "Create MonthlyHeatmap component that accepts monthly_heatmap data from BacktestResultResponse. Render custom grid with years as rows and months as columns. Implement color coding: green shades for positive returns, red shades for negative returns, gray for null values. Display percentage values in each cell with proper formatting. Handle loading state with LoadingSpinner, and empty state with Alert when monthly_heatmap data is unavailable. Use CSS grid or flexbox for layout.",
+            "status": "pending",
+            "testStrategy": "Test with mock MonthlyHeatmapData including multiple years. Verify color coding matches return values. Test handling of null values. Test loading state rendering. Test empty state handling. Verify grid layout is responsive."
+          },
+          {
+            "id": 5,
+            "title": "Create TradeTable component with sortable columns and collapsible panel",
+            "description": "Create src/components/results/TradeTable.tsx with collapsible panel, sortable columns, and action/profit formatting, display trade details including entry/exit dates, ticker, action (buy/sell), profit/loss, handle loading and empty states.",
+            "dependencies": [],
+            "details": "Create TradeTable component that accepts trades array from BacktestResultResponse. Implement collapsible panel using existing UI patterns - show header with trade count and expand/collapse toggle. Implement sortable columns for date, ticker, action, profit. Format action as 'Buy'/'Sell' badges with color coding (green for buy, red for sell). Format profit/loss with color coding (green for profit, red for loss) and percentage values. Handle loading state with LoadingSpinner, and empty state with Alert when trades array is empty or null. Use standard HTML table with proper semantic markup.",
+            "status": "pending",
+            "testStrategy": "Test with mock trades array. Verify sort functionality on each column. Test collapsible panel expand/collapse. Test action badge coloring. Test profit/loss formatting and coloring. Test loading state rendering. Test empty state handling."
+          }
+        ]
       },
       {
-        "id": "8",
+        "id": 8,
         "title": "Implement CSV export functionality",
         "description": "Implement CSV export for equity curve, drawdown, monthly returns, metrics, trades. Buttons disabled until results available.",
         "details": "Create src/lib/export/csv.ts with generators: generateEquityCSV, generateDrawdownCSV, generateMonthlyCSV, generateMetricsCSV, generateTradesCSV. Create src/components/results/ExportButtons.tsx with 5 download buttons, disabled until results available. Filename format: backtest_{type}_{job_id}_{date}.csv. Handle special characters, add BOM for Excel.",
@@ -424,7 +528,7 @@
         "subtasks": []
       },
       {
-        "id": "9",
+        "id": 9,
         "title": "Configure CORS and production routing",
         "description": "Configure CORS for production Next.js domain in FastAPI. Update root path redirect to new frontend. Set up production deployment topology.",
         "details": "Backend (backend/main.py): Update CORS middleware with ALLOWED_ORIGINS env var, allow specific frontend origin in production. Update root redirect from /dashboard/ to new frontend URL with feature flag. Keep /dashboard for rollback. Nginx: proxy /api/* to FastAPI, serve Next.js. Frontend: update NEXT_PUBLIC_API_BASE_URL, configure standalone output in next.config.js. docker-compose.prod.yml: Next.js + FastAPI + Nginx.",
@@ -437,7 +541,7 @@
         "subtasks": []
       },
       {
-        "id": "10",
+        "id": 10,
         "title": "Setup tests, CI, and deployment configuration",
         "description": "Implement unit tests, integration tests with mocked API, E2E tests for critical path. Add CI pipeline with linting, type checking, test execution.",
         "details": "Create tests/unit/: validation.test.ts, api-mappers.test.ts, csv-export.test.ts. Create tests/integration/: generate-flow.test.tsx, execute-flow.test.tsx, results-display.test.tsx. Create tests/e2e/: critical-path.test.ts with full flow (input->generate->execute->result->export). CI Pipeline: eslint, tsc --noEmit, vitest, next build. Add regression checks: compare metrics with Dash output, snapshot tests for charts.",
@@ -461,7 +565,9 @@
       "completedCount": 1,
       "tags": [
         "master"
-      ]
+      ],
+      "created": "2026-02-15T01:37:05.909Z",
+      "description": "Tasks for master context"
     }
   }
 }

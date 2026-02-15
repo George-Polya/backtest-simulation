@@ -7,6 +7,7 @@ export * from './ContributionSettings';
 export * from './DateRangePicker';
 export * from './FeeSettings';
 export * from './GenerationInfo';
+export * from './StatusBanner';
 export * from './StrategyInput';
 export * from './Toggles';
 export * from './ValidationSummary';

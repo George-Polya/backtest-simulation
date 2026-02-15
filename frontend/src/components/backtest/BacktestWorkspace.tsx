@@ -1,11 +1,13 @@
 'use client';
 
-import { useBacktestActions, useGenerateCode } from '@/hooks';
+import { useBacktestActions, useExecuteBacktest, useGenerateCode, useJobPolling } from '@/hooks';
 import { useBacktestStore } from '@/stores';
 import { Alert, Button, Card } from '@/components/ui';
+import { JobStatus } from '@/types';
 import { CodeEditorPanel } from './CodeEditorPanel';
 import { ConfigForm } from './ConfigForm';
 import { GenerationInfo } from './GenerationInfo';
+import { StatusBanner } from './StatusBanner';
 
 export function BacktestWorkspace() {
   const {
@@ -13,6 +15,9 @@ export function BacktestWorkspace() {
     generationMetadata,
     jobId,
     jobStatus,
+    jobStartedAt,
+    executionResult,
+    isJobNotFound,
     requestConfig,
     results,
     uiToggles,
@@ -26,6 +31,17 @@ export function BacktestWorkspace() {
     isPending: isGenerating,
     error: generationError
   } = useGenerateCode();
+  const {
+    mutate: executeBacktestMutation,
+    isPending: isSubmittingExecution,
+    error: executeError
+  } = useExecuteBacktest();
+  const { isPolling, error: pollingError } = useJobPolling(jobId);
+
+  const isJobInFlight = jobStatus === JobStatus.Pending || jobStatus === JobStatus.Running;
+  const executionErrorMessage =
+    executeError?.message ?? pollingError?.message ?? executionResult?.error ?? null;
+  const executionLogs = executionResult?.logs ?? null;
 
   const handleToggleCodePanel = () => {
     const next = !uiToggles.isCodeEditorOpen;
@@ -57,6 +73,19 @@ export function BacktestWorkspace() {
     }
 
     generateCodeMutation(requestConfig);
+  };
+
+  const handleExecuteBacktest = () => {
+    if (!requestConfig || generatedCode.trim().length === 0) {
+      return;
+    }
+
+    setSelectedTab('results');
+    executeBacktestMutation({
+      code: generatedCode,
+      params: requestConfig.params,
+      async_mode: true
+    });
   };
 
   return (
@@ -99,12 +128,23 @@ export function BacktestWorkspace() {
           </Button>
           <Button
             type="button"
-            disabled={!requestConfig || isGenerating}
+            disabled={!requestConfig || isGenerating || isSubmittingExecution}
             onClick={handleGenerateCode}
           >
             {isGenerating ? 'Generating...' : 'Generate Code'}
           </Button>
-          <Button type="button" variant="secondary" disabled={!generatedCode || isGenerating}>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={
+              !requestConfig ||
+              generatedCode.trim().length === 0 ||
+              isGenerating ||
+              isSubmittingExecution ||
+              isJobInFlight
+            }
+            onClick={handleExecuteBacktest}
+          >
             Execute Backtest
           </Button>
         </div>
@@ -114,6 +154,17 @@ export function BacktestWorkspace() {
             {generationError.message}
           </Alert>
         ) : null}
+
+        <StatusBanner
+          status={jobStatus}
+          jobId={jobId}
+          isSubmitting={isSubmittingExecution}
+          isPolling={isPolling}
+          startTime={jobStartedAt}
+          isJobNotFound={isJobNotFound}
+          error={executionErrorMessage}
+          logs={executionLogs}
+        />
 
         <div className="mb-4 flex items-center gap-2">
           <Button
