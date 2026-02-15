@@ -91,6 +91,22 @@ class TestModelInfo:
         assert info.cost_per_1k_input == Decimal("0.003")
         assert info.cost_per_1k_output == Decimal("0.015")
 
+    def test_get_model_info_uses_model_defaults_when_limits_omitted(self) -> None:
+        """Test model-specific limits are used when config omits token limits."""
+        config = LLMConfig(
+            provider=LLMProviderEnum.LANGCHAIN,
+            model="minimax/minimax-m2.5",
+            temperature=0.2,
+        )
+        adapter = LangChainAdapter(
+            api_key="sk-or-v1-test-key",
+            llm_config=config,
+        )
+        info = adapter.get_model_info()
+
+        assert info.max_context_tokens == 204800
+        assert info.max_output_tokens == 131072
+
 
 class TestMessageBuilding:
     """Tests for message building."""

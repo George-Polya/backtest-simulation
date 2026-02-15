@@ -108,6 +108,22 @@ class TestModelInfo:
         assert info.cost_per_1k_input == Decimal("0.005")
         assert info.cost_per_1k_output == Decimal("0.015")
 
+    def test_get_model_info_uses_model_defaults_when_limits_omitted(self) -> None:
+        """Test model-specific limits are used when config omits token limits."""
+        config = LLMConfig(
+            provider=LLMProviderEnum.OPENAI,
+            model="gpt-5.2-codex",
+            temperature=0.2,
+        )
+        adapter = OpenAIAdapter(
+            api_key="sk-test-key",
+            llm_config=config,
+        )
+        info = adapter.get_model_info()
+
+        assert info.max_context_tokens == 400000
+        assert info.max_output_tokens == 128000
+
     def test_get_model_info_gpt4o_mini(self, llm_config: LLMConfig) -> None:
         """Test getting model info for GPT-4o-mini."""
         llm_config.model = "gpt-4o-mini"

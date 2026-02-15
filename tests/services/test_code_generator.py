@@ -803,6 +803,61 @@ class BadStrategy(Strategy):
             await code_generator.generate(sample_backtest_request)
 
     @pytest.mark.asyncio
+    async def test_generate_retries_on_validation_failure(
+        self,
+        code_generator: BacktestCodeGenerator,
+        mock_llm_provider: MagicMock,
+        mock_data_provider: MagicMock,
+        sample_backtest_request: BacktestRequest,
+    ) -> None:
+        """Validation failure should trigger retry and eventually succeed."""
+        mock_validator = MagicMock()
+        mock_validator.validate.side_effect = [
+            ValidationResult(is_valid=False, errors=["banned function"], warnings=[]),
+            ValidationResult(is_valid=True, errors=[], warnings=[]),
+        ]
+        code_generator.validator = mock_validator
+
+        llm_response = """### SUMMARY
+Retry test
+
+### CODE
+```python
+from backtesting import Strategy
+
+class RetryStrategy(Strategy):
+    def next(self):
+        pass
+
+result = {"equity_series": [], "trades": []}
+```
+"""
+        mock_llm_provider.generate = AsyncMock(
+            side_effect=[
+                GenerationResult(
+                    content=llm_response,
+                    model_info=mock_llm_provider.get_model_info(),
+                ),
+                GenerationResult(
+                    content=llm_response,
+                    model_info=mock_llm_provider.get_model_info(),
+                ),
+            ]
+        )
+        mock_data_provider.get_available_date_range = AsyncMock(
+            return_value=DateRange(
+                start_date=date(2015, 1, 1),
+                end_date=date(2024, 1, 1),
+                ticker="AAPL",
+            )
+        )
+
+        result = await code_generator.generate(sample_backtest_request)
+        assert isinstance(result, GeneratedCode)
+        assert mock_llm_provider.generate.call_count == 2
+        assert mock_validator.validate.call_count == 2
+
+    @pytest.mark.asyncio
     async def test_generate_no_tickers_error(
         self,
         code_generator: BacktestCodeGenerator,

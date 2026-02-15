@@ -673,6 +673,155 @@ class ASTCodeValidator:
 
         return keys
 
+    def validate_backtest_data_integrity(self, tree: ast.AST) -> list[ValidationError]:
+        """
+        Detect common data-preprocessing patterns that frequently break backtests.
+
+        This check is advisory (warnings only) and focuses on:
+        - Deprecated monthly alias use: resample("M")
+        - Unsafe global NaN drops: dropna() without subset=
+        - Missing explicit empty-data guard before Backtest(...)
+        - Missing explicit OHLCV required-column check before Backtest(...)
+        """
+        errors: list[ValidationError] = []
+
+        backtest_input_names: list[tuple[str, int, int]] = []
+        has_backtest_call = False
+        emptiness_checked_names: set[str] = set()
+        string_literals: set[str] = set()
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                string_literals.add(node.value)
+            elif isinstance(node, ast.Str):  # Python < 3.8 compatibility
+                string_literals.add(node.s)
+
+            if isinstance(node, ast.Call):
+                call_name = self._get_call_name(node)
+                base_name = call_name.split(".")[-1] if call_name else ""
+
+                if base_name == "Backtest":
+                    has_backtest_call = True
+                    if node.args:
+                        first_arg = node.args[0]
+                        if isinstance(first_arg, ast.Name):
+                            backtest_input_names.append(
+                                (first_arg.id, node.lineno, node.col_offset)
+                            )
+                        else:
+                            errors.append(
+                                ValidationError(
+                                    message=(
+                                        "Backtest input data is not a named variable; "
+                                        "ensure you validate non-empty OHLC data before Backtest(...)"
+                                    ),
+                                    line=node.lineno,
+                                    column=node.col_offset,
+                                    level=SecurityLevel.WARNING,
+                                    rule="backtest_input_not_named",
+                                )
+                            )
+
+                # Warn on deprecated monthly alias.
+                if isinstance(node.func, ast.Attribute) and node.func.attr == "resample":
+                    if self._uses_deprecated_month_alias(node):
+                        errors.append(
+                            ValidationError(
+                                message="Deprecated resample alias 'M' detected; use 'ME' for month-end resampling",
+                                line=node.lineno,
+                                column=node.col_offset,
+                                level=SecurityLevel.WARNING,
+                                rule="deprecated_month_alias",
+                            )
+                        )
+
+                # Warn when dropping rows globally; this often empties combined frames.
+                if isinstance(node.func, ast.Attribute) and node.func.attr == "dropna":
+                    has_subset_keyword = any(
+                        kw.arg == "subset" for kw in node.keywords if kw.arg is not None
+                    )
+                    if not has_subset_keyword:
+                        errors.append(
+                            ValidationError(
+                                message=(
+                                    "dropna() without subset= detected; use dropna(subset=[...]) "
+                                    "to avoid removing rows due to optional indicators"
+                                ),
+                                line=node.lineno,
+                                column=node.col_offset,
+                                level=SecurityLevel.WARNING,
+                                rule="unsafe_dropna",
+                            )
+                        )
+
+                # Consider len(df) checks as valid empty-data guards.
+                if (
+                    isinstance(node.func, ast.Name)
+                    and node.func.id == "len"
+                    and node.args
+                    and isinstance(node.args[0], ast.Name)
+                ):
+                    emptiness_checked_names.add(node.args[0].id)
+
+            elif isinstance(node, ast.Attribute):
+                # Track patterns like df.empty, combined.empty, etc.
+                if node.attr == "empty" and isinstance(node.value, ast.Name):
+                    emptiness_checked_names.add(node.value.id)
+
+        if has_backtest_call:
+            required_ohlcv = {"Open", "High", "Low", "Close", "Volume"}
+            if not required_ohlcv.issubset(string_literals):
+                errors.append(
+                    ValidationError(
+                        message=(
+                            "No explicit OHLCV required-column validation detected; "
+                            "verify Open/High/Low/Close/Volume before Backtest(...)"
+                        ),
+                        level=SecurityLevel.WARNING,
+                        rule="missing_ohlcv_validation",
+                    )
+                )
+
+            for input_name, lineno, col in backtest_input_names:
+                if input_name not in emptiness_checked_names:
+                    errors.append(
+                        ValidationError(
+                            message=(
+                                f"Backtest input '{input_name}' is not checked for empty data "
+                                f"before Backtest(...); add guard like `if {input_name}.empty: raise ValueError(...)`"
+                            ),
+                            line=lineno,
+                            column=col,
+                            level=SecurityLevel.WARNING,
+                            rule="missing_empty_dataframe_check",
+                        )
+                    )
+
+        return errors
+
+    def _uses_deprecated_month_alias(self, node: ast.Call) -> bool:
+        """Return True when resample() uses deprecated 'M' alias."""
+        if node.args:
+            first_arg = self._extract_string_literal(node.args[0])
+            if first_arg == "M":
+                return True
+
+        for kw in node.keywords:
+            if kw.arg in {"rule", "freq"}:
+                value = self._extract_string_literal(kw.value)
+                if value == "M":
+                    return True
+
+        return False
+
+    def _extract_string_literal(self, node: ast.AST) -> str | None:
+        """Extract string literal value from AST node if available."""
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            return node.value
+        if isinstance(node, ast.Str):  # Python < 3.8 compatibility
+            return node.s
+        return None
+
     # =========================================================================
     # Task 8.5: Integrate Formatting and Finalize Validator Service
     # =========================================================================
@@ -734,7 +883,8 @@ class ASTCodeValidator:
         1. Syntax validation (ast.parse + compile)
         2. Security validation (banned imports/functions)
         3. Structure validation (required variables/patterns)
-        4. Optional code formatting
+        4. Data-integrity advisory checks (backtest safety warnings)
+        5. Optional code formatting
 
         Args:
             code: Python code string to validate
@@ -767,7 +917,11 @@ class ASTCodeValidator:
         structure_errors = self.validate_structure(tree)
         all_errors.extend(structure_errors)
 
-        # Step 4: Format code (if no critical errors)
+        # Step 4: Data-integrity advisory checks
+        data_integrity_errors = self.validate_backtest_data_integrity(tree)
+        all_errors.extend(data_integrity_errors)
+
+        # Step 5: Format code (if no critical errors)
         formatted_code = code
         critical_errors = [e for e in all_errors if e.level == SecurityLevel.ERROR]
         if not critical_errors and self.enable_formatting:

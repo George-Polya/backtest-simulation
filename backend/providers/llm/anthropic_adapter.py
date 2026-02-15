@@ -30,6 +30,7 @@ from backend.providers.llm.base import (
     ModelNotFoundError,
     RateLimitError,
 )
+from backend.providers.llm.model_limits import resolve_anthropic_limits
 
 # Default model costs (per 1k tokens, in USD)
 DEFAULT_MODEL_COSTS: dict[str, tuple[Decimal, Decimal]] = {
@@ -85,6 +86,14 @@ class AnthropicAdapter(LLMProvider):
 
         self._api_key = api_key
         self._llm_config = llm_config
+        (
+            self._resolved_max_context_tokens,
+            self._resolved_max_output_tokens,
+        ) = resolve_anthropic_limits(
+            model_id=llm_config.model,
+            configured_max_tokens=llm_config.max_tokens,
+            configured_max_context_tokens=llm_config.max_context_tokens,
+        )
         self._model_info = self._build_model_info()
 
         # Initialize AsyncAnthropic client
@@ -106,8 +115,8 @@ class AnthropicAdapter(LLMProvider):
             model_id=model_id,
             provider="anthropic",
             display_name=model_id,
-            max_context_tokens=200000,  # Claude 3.5 context window
-            max_output_tokens=self._llm_config.max_tokens,
+            max_context_tokens=self._resolved_max_context_tokens,
+            max_output_tokens=self._resolved_max_output_tokens,
             cost_per_1k_input=costs[0],
             cost_per_1k_output=costs[1],
             supports_system_prompt=True,
@@ -151,7 +160,7 @@ class AnthropicAdapter(LLMProvider):
         if config is None:
             config = GenerationConfig(
                 temperature=self._llm_config.temperature,
-                max_tokens=self._llm_config.max_tokens,
+                max_tokens=self._resolved_max_output_tokens,
             )
 
         model_id = self._get_model_id()

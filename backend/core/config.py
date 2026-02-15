@@ -79,15 +79,15 @@ class LLMConfig(BaseModel):
         ge=0,
         description="Random seed for reproducible LLM outputs (deterministic by default)",
     )
-    max_tokens: int = Field(
-        default=8000,
+    max_tokens: Optional[int] = Field(
+        default=None,
         gt=0,
-        description="Maximum tokens to generate",
+        description="Maximum tokens to generate. If omitted, use model-specific default.",
     )
-    max_context_tokens: int = Field(
-        default=128000,
+    max_context_tokens: Optional[int] = Field(
+        default=None,
         gt=0,
-        description="Maximum context tokens the model supports",
+        description="Maximum context tokens the model supports. If omitted, use model-specific default.",
     )
     # Reasoning/Thinking model support
     reasoning_enabled: bool = Field(

@@ -237,6 +237,7 @@ class BacktestCodeGenerator:
     )
 
     DEFAULT_PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "backtest_system.txt"
+    MAX_VALIDATION_RETRIES = 2
 
     def __init__(
         self,
@@ -1022,6 +1023,110 @@ class BacktestCodeGenerator:
         except Exception as e:
             raise PromptBuildError(f"Failed to format prompt: {e}")
 
+    def _build_retry_prompt(
+        self,
+        base_prompt: str,
+        validation_errors: list[str],
+        attempt: int,
+    ) -> str:
+        """
+        Build a corrective prompt for regeneration after validation failure.
+
+        Args:
+            base_prompt: Original generation prompt
+            validation_errors: Validation error messages from previous attempt
+            attempt: Current retry attempt (1-based)
+
+        Returns:
+            Prompt with targeted correction instructions
+        """
+        trimmed_errors = validation_errors[:10]
+        formatted_errors = "\n".join(f"- {err}" for err in trimmed_errors)
+
+        return (
+            f"{base_prompt}\n\n"
+            "## Regeneration Required (Validation Failed)\n"
+            f"Previous attempt {attempt} failed validation with these errors:\n"
+            f"{formatted_errors}\n\n"
+            "Regenerate the FULL response as valid JSON only. "
+            "Do not explain. Return complete corrected code.\n"
+            "CRITICAL: Do NOT use banned functions such as getattr(), hasattr(), "
+            "setattr(), delattr(), eval(), exec(), compile(), open(), input().\n"
+            "Use try/except AttributeError or dictionary key checks instead."
+        )
+
+    async def _generate_with_retries(
+        self,
+        prompt: str,
+        config: GenerationConfig,
+    ) -> tuple[GenerationResult, str, str]:
+        """
+        Generate code with retry-on-validation-failure behavior.
+
+        Returns:
+            Tuple of (generation result, extracted code, extracted summary)
+
+        Raises:
+            ValidationError: If all attempts fail validation
+            CodeGenerationError: If LLM call or extraction fails on final attempt
+        """
+        retry_errors: list[str] = []
+        max_attempts = self.MAX_VALIDATION_RETRIES + 1
+
+        for attempt in range(1, max_attempts + 1):
+            attempt_prompt = (
+                prompt
+                if attempt == 1
+                else self._build_retry_prompt(prompt, retry_errors, attempt - 1)
+            )
+
+            try:
+                generation_result: GenerationResult = await self.llm_provider.generate(
+                    prompt=attempt_prompt,
+                    config=config,
+                )
+            except Exception as e:
+                raise CodeGenerationError(
+                    f"LLM generation failed: {e}",
+                    {"error_type": type(e).__name__, "attempt": attempt},
+                )
+
+            raw_response = generation_result.content
+            logger.info(
+                f"LLM response received (attempt {attempt}/{max_attempts}, length: {len(raw_response)})"
+            )
+            logger.debug(f"LLM response content:\n{raw_response[:2000]}...")
+
+            try:
+                code = self._extract_code(raw_response)
+                summary = self._extract_summary(raw_response)
+            except CodeGenerationError as e:
+                retry_errors = [str(e)]
+                if attempt < max_attempts:
+                    logger.warning(
+                        f"Code extraction failed on attempt {attempt}/{max_attempts}; retrying"
+                    )
+                    continue
+                raise
+
+            validation_result = self.validator.validate(code)
+            if validation_result.is_valid:
+                return generation_result, code, summary
+
+            retry_errors = validation_result.errors
+            logger.warning(
+                f"Generated code failed validation on attempt {attempt}/{max_attempts}: {retry_errors}"
+            )
+
+            if attempt == max_attempts:
+                raise ValidationError(
+                    f"Generated code failed validation after {max_attempts} attempts",
+                    retry_errors,
+                )
+
+        # Defensive fallback (loop always returns or raises)
+        raise ValidationError("Generated code failed validation", retry_errors)
+
     # =========================================================================
     # Main Generate Method (Task 7.4)
     # =========================================================================
@@ -1110,30 +1215,15 @@ class BacktestCodeGenerator:
             extra=extra_config,
         )
 
-        try:
-            result: GenerationResult = await self.llm_provider.generate(
-                prompt=prompt,
-                config=generation_config,
-            )
-        except Exception as e:
-            raise CodeGenerationError(
-                f"LLM generation failed: {e}",
-                {"error_type": type(e).__name__},
-            )
-
-        # Step 5: Extract code, summary, and tickers from response
-        raw_response = result.content
-
-        # Log LLM response for debugging
-        logger.info(f"LLM response received (length: {len(raw_response)})")
-        logger.debug(f"LLM response content:\n{raw_response[:2000]}...")
-
-        code = self._extract_code(raw_response)
-        summary = self._extract_summary(raw_response)
+        # Step 5: Generate + extract + validate (with retry on validation failure)
+        result, code, summary = await self._generate_with_retries(
+            prompt=prompt,
+            config=generation_config,
+        )
 
         # Step 5a: DUAL-PHASE TICKER VALIDATION
         # Phase 1: Extract tickers declared by LLM in JSON (if available)
-        llm_declared_tickers = self._extract_llm_tickers(raw_response)
+        llm_declared_tickers = self._extract_llm_tickers(result.content)
 
         # Phase 2: Extract tickers from generated code
         code_extracted_tickers = extract_tickers_from_code(code)
@@ -1152,16 +1242,7 @@ class BacktestCodeGenerator:
         # Use merged ticker list as final result
         final_tickers = ticker_merge_result["final"]
 
-        # Step 6: Validate the generated code (Task 7.5)
-        validation_result = self.validator.validate(code)
-
-        if not validation_result.is_valid:
-            raise ValidationError(
-                "Generated code failed validation",
-                validation_result.errors,
-            )
-
-        # Step 7: Build and return the result
+        # Step 6: Build and return the result
         # Reuse model_info from Step 4
         backtest_model_info = self._convert_model_info(model_info)
 

@@ -27,7 +27,8 @@ class TestLLMConfig:
         assert config.provider == LLMProvider.OPENROUTER
         assert config.model == "anthropic/claude-3.5-sonnet"
         assert config.temperature == 0.2
-        assert config.max_tokens == 8000
+        assert config.max_tokens is None
+        assert config.max_context_tokens is None
 
     def test_custom_values(self) -> None:
         """Test custom LLM configuration values."""

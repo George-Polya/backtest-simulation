@@ -25,6 +25,7 @@ from backend.providers.llm.base import (
     ModelNotFoundError,
     RateLimitError,
 )
+from backend.providers.llm.model_limits import resolve_openrouter_limits
 
 # OpenRouter API base URL
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
@@ -84,6 +85,14 @@ class LangChainAdapter(LLMProvider):
 
         self._api_key = api_key
         self._llm_config = llm_config
+        (
+            self._resolved_max_context_tokens,
+            self._resolved_max_output_tokens,
+        ) = resolve_openrouter_limits(
+            model_id=llm_config.model,
+            configured_max_tokens=llm_config.max_tokens,
+            configured_max_context_tokens=llm_config.max_context_tokens,
+        )
         self._model_info = self._build_model_info()
 
         # Build default headers for OpenRouter
@@ -99,7 +108,7 @@ class LangChainAdapter(LLMProvider):
             base_url=OPENROUTER_BASE_URL,
             model=llm_config.model,
             temperature=llm_config.temperature,
-            max_tokens=llm_config.max_tokens,
+            max_tokens=self._resolved_max_output_tokens,
             default_headers=default_headers if default_headers else None,
         )
 
@@ -114,8 +123,8 @@ class LangChainAdapter(LLMProvider):
             model_id=model_id,
             provider="langchain",
             display_name=model_id.split("/")[-1] if "/" in model_id else model_id,
-            max_context_tokens=128000,
-            max_output_tokens=self._llm_config.max_tokens,
+            max_context_tokens=self._resolved_max_context_tokens,
+            max_output_tokens=self._resolved_max_output_tokens,
             cost_per_1k_input=costs[0],
             cost_per_1k_output=costs[1],
             supports_system_prompt=True,
@@ -171,7 +180,7 @@ class LangChainAdapter(LLMProvider):
         if config is None:
             config = GenerationConfig(
                 temperature=self._llm_config.temperature,
-                max_tokens=self._llm_config.max_tokens,
+                max_tokens=self._resolved_max_output_tokens,
             )
 
         messages = self._build_messages(prompt, system_prompt)
@@ -181,7 +190,7 @@ class LangChainAdapter(LLMProvider):
             client = self._client
             if (
                 config.temperature != self._llm_config.temperature
-                or config.max_tokens != self._llm_config.max_tokens
+                or config.max_tokens != self._resolved_max_output_tokens
             ):
                 # Create new client with updated parameters
                 client = self._client.bind(
