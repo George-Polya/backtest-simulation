@@ -689,12 +689,19 @@ class ASTCodeValidator:
         has_backtest_call = False
         emptiness_checked_names: set[str] = set()
         string_literals: set[str] = set()
+        mapped_index_vars: set[str] = set()
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Constant) and isinstance(node.value, str):
                 string_literals.add(node.value)
             elif isinstance(node, ast.Str):  # Python < 3.8 compatibility
                 string_literals.add(node.s)
+
+            if isinstance(node, ast.Assign):
+                if self._is_index_to_period_map_call(node.value):
+                    for target in node.targets:
+                        if isinstance(target, ast.Name):
+                            mapped_index_vars.add(target.id)
 
             if isinstance(node, ast.Call):
                 call_name = self._get_call_name(node)
@@ -767,6 +774,30 @@ class ASTCodeValidator:
                 # Track patterns like df.empty, combined.empty, etc.
                 if node.attr == "empty" and isinstance(node.value, ast.Name):
                     emptiness_checked_names.add(node.value.id)
+            elif isinstance(node, ast.Subscript):
+                # Example anti-pattern:
+                #   x = df.index.to_period("M").map(s)
+                #   x.loc[dt]  # Index has no .loc
+                if (
+                    isinstance(node.value, ast.Attribute)
+                    and node.value.attr == "loc"
+                    and isinstance(node.value.value, ast.Name)
+                    and node.value.value.id in mapped_index_vars
+                ):
+                    var_name = node.value.value.id
+                    errors.append(
+                        ValidationError(
+                            message=(
+                                f"'{var_name}' looks like an Index produced by "
+                                "index.to_period(...).map(...); '.loc[...]' may fail. "
+                                "Wrap it as a Series with an explicit DatetimeIndex."
+                            ),
+                            line=node.lineno,
+                            column=node.col_offset,
+                            level=SecurityLevel.WARNING,
+                            rule="index_map_loc_mismatch",
+                        )
+                    )
 
         if has_backtest_call:
             required_ohlcv = {"Open", "High", "Low", "Close", "Volume"}
@@ -798,6 +829,27 @@ class ASTCodeValidator:
                     )
 
         return errors
+
+    def _is_index_to_period_map_call(self, node: ast.AST) -> bool:
+        """
+        Return True for patterns like: <expr>.index.to_period(...).map(...)
+        """
+        if not isinstance(node, ast.Call):
+            return False
+        if not (isinstance(node.func, ast.Attribute) and node.func.attr == "map"):
+            return False
+
+        to_period_call = node.func.value
+        if not isinstance(to_period_call, ast.Call):
+            return False
+        if not (
+            isinstance(to_period_call.func, ast.Attribute)
+            and to_period_call.func.attr == "to_period"
+        ):
+            return False
+
+        index_attr = to_period_call.func.value
+        return isinstance(index_attr, ast.Attribute) and index_attr.attr == "index"
 
     def _uses_deprecated_month_alias(self, node: ast.Call) -> bool:
         """Return True when resample() uses deprecated 'M' alias."""

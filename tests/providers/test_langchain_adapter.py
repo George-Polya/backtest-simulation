@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
+from openai import APIConnectionError, APIStatusError, RateLimitError as OpenAIRateLimitError
 
 from backend.core.config import LLMConfig, LLMProvider as LLMProviderEnum
 from backend.providers.llm.base import (
@@ -201,6 +201,110 @@ class TestGenerate:
         mock_bound.ainvoke.assert_called_once()
 
     @pytest.mark.asyncio
+    async def test_generate_passes_openai_params(self, llm_config: LLMConfig) -> None:
+        """Test generation forwards OpenAI-compatible sampling params."""
+        mock_response = AIMessage(
+            content="Response",
+            response_metadata={"finish_reason": "stop"},
+        )
+        mock_client = MagicMock()
+        mock_client.ainvoke = AsyncMock(return_value=mock_response)
+
+        with patch(
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
+            return_value=mock_client,
+        ):
+            adapter = LangChainAdapter(
+                api_key="test-key",
+                llm_config=llm_config,
+            )
+            cfg = GenerationConfig(
+                top_p=0.9,
+                frequency_penalty=0.2,
+                presence_penalty=0.1,
+                seed=123,
+            )
+            await adapter.generate("Test", config=cfg)
+
+        kwargs = mock_client.ainvoke.call_args.kwargs
+        assert kwargs["top_p"] == 0.9
+        assert kwargs["frequency_penalty"] == 0.2
+        assert kwargs["presence_penalty"] == 0.1
+        assert kwargs["seed"] == 123
+
+    @pytest.mark.asyncio
+    async def test_generate_passes_reasoning_and_web_search_extra_body(
+        self,
+    ) -> None:
+        """Test OpenRouter-specific reasoning/web search parameters are sent."""
+        llm_config = LLMConfig(
+            provider=LLMProviderEnum.LANGCHAIN,
+            model="moonshotai/kimi-k2-thinking",
+            temperature=0.2,
+            reasoning_enabled=True,
+            reasoning_max_tokens=2048,
+            web_search_enabled=True,
+            web_search_max_results=3,
+            web_search_prompt="Use reliable sources only",
+        )
+        mock_response = AIMessage(
+            content="Response",
+            response_metadata={"finish_reason": "stop"},
+        )
+        mock_client = MagicMock()
+        mock_client.ainvoke = AsyncMock(return_value=mock_response)
+
+        with patch(
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
+            return_value=mock_client,
+        ):
+            adapter = LangChainAdapter(
+                api_key="test-key",
+                llm_config=llm_config,
+            )
+            await adapter.generate("Test")
+
+        kwargs = mock_client.ainvoke.call_args.kwargs
+        assert "extra_body" in kwargs
+        extra_body = kwargs["extra_body"]
+        assert extra_body["reasoning"] == {"enabled": True, "max_tokens": 2048}
+        assert extra_body["plugins"][0]["id"] == "web"
+        assert extra_body["plugins"][0]["max_results"] == 3
+        assert extra_body["plugins"][0]["search_prompt"] == "Use reliable sources only"
+
+    @pytest.mark.asyncio
+    async def test_generate_content_fallback_from_reasoning(
+        self,
+        llm_config: LLMConfig,
+    ) -> None:
+        """Test empty content is recovered from reasoning metadata."""
+        mock_response = AIMessage(
+            content="",
+            additional_kwargs={
+                "reasoning": {
+                    "summary": [
+                        {"type": "summary_text", "text": "Reasoning output"},
+                    ]
+                }
+            },
+            response_metadata={"finish_reason": "stop"},
+        )
+        mock_client = MagicMock()
+        mock_client.ainvoke = AsyncMock(return_value=mock_response)
+
+        with patch(
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
+            return_value=mock_client,
+        ):
+            adapter = LangChainAdapter(
+                api_key="test-key",
+                llm_config=llm_config,
+            )
+            result = await adapter.generate("Test")
+
+        assert result.content == "Reasoning output"
+
+    @pytest.mark.asyncio
     async def test_generate_with_system_prompt(self, llm_config: LLMConfig) -> None:
         """Test generation with system prompt."""
         mock_response = AIMessage(
@@ -232,7 +336,14 @@ class TestGenerate:
     async def test_generate_rate_limit_error(self, llm_config: LLMConfig) -> None:
         """Test rate limit error handling."""
         mock_client = MagicMock()
-        mock_client.ainvoke = AsyncMock(side_effect=Exception("429 Rate limit exceeded"))
+        mock_response = MagicMock()
+        mock_response.status_code = 429
+        error = OpenAIRateLimitError(
+            message="Rate limited",
+            response=mock_response,
+            body={"error": {"message": "Rate limited"}},
+        )
+        mock_client.ainvoke = AsyncMock(side_effect=error)
 
         with patch(
             "backend.providers.llm.langchain_adapter.ChatOpenAI",
@@ -249,7 +360,14 @@ class TestGenerate:
     async def test_generate_authentication_error(self, llm_config: LLMConfig) -> None:
         """Test authentication error handling."""
         mock_client = MagicMock()
-        mock_client.ainvoke = AsyncMock(side_effect=Exception("401 Unauthorized"))
+        mock_response = MagicMock()
+        mock_response.status_code = 401
+        error = APIStatusError(
+            message="Invalid API key",
+            response=mock_response,
+            body={"error": {"message": "Invalid API key"}},
+        )
+        mock_client.ainvoke = AsyncMock(side_effect=error)
 
         with patch(
             "backend.providers.llm.langchain_adapter.ChatOpenAI",
@@ -266,7 +384,14 @@ class TestGenerate:
     async def test_generate_model_not_found_error(self, llm_config: LLMConfig) -> None:
         """Test model not found error handling."""
         mock_client = MagicMock()
-        mock_client.ainvoke = AsyncMock(side_effect=Exception("404 Model not found"))
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        error = APIStatusError(
+            message="Model not found",
+            response=mock_response,
+            body={"error": {"message": "Model not found"}},
+        )
+        mock_client.ainvoke = AsyncMock(side_effect=error)
 
         with patch(
             "backend.providers.llm.langchain_adapter.ChatOpenAI",
@@ -277,6 +402,24 @@ class TestGenerate:
                 llm_config=llm_config,
             )
             with pytest.raises(ModelNotFoundError):
+                await adapter.generate("Test")
+
+    @pytest.mark.asyncio
+    async def test_generate_connection_error(self, llm_config: LLMConfig) -> None:
+        """Test connection error handling."""
+        mock_client = MagicMock()
+        error = APIConnectionError(request=MagicMock())
+        mock_client.ainvoke = AsyncMock(side_effect=error)
+
+        with patch(
+            "backend.providers.llm.langchain_adapter.ChatOpenAI",
+            return_value=mock_client,
+        ):
+            adapter = LangChainAdapter(
+                api_key="test-key",
+                llm_config=llm_config,
+            )
+            with pytest.raises(LLMProviderError, match="Connection failed"):
                 await adapter.generate("Test")
 
     @pytest.mark.asyncio

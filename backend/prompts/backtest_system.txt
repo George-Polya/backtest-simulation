@@ -433,6 +433,14 @@ monthly_close = daily_df['Close'].resample('ME').last()
 monthly_rsi = calculate_rsi(monthly_close)
 monthly_rsi.index = monthly_rsi.index.to_period('M')
 daily_df['MonthlyRSI'] = daily_df.index.to_period('M').map(monthly_rsi)
+
+# If you need a standalone mapped series and plan to use `.loc[...]`,
+# build a Series (NOT a pandas Index) to avoid: "'Index' object has no attribute 'loc'"
+daily_monthly_rsi = pd.Series(
+    daily_df.index.to_period('M'),
+    index=daily_df.index,
+).map(monthly_rsi)
+m_rsi = daily_monthly_rsi.loc[current_dt]
 ```
 
 ## Reminder: Security Constraints

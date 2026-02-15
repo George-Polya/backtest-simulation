@@ -767,6 +767,47 @@ result = {"equity_series": [], "trades": []}
         assert any("getattr" in e.lower() for e in result.errors)
 
 
+class TestDataIntegrityAdvisories:
+    """Tests for advisory warnings in data integrity validation."""
+
+    def test_warns_on_index_map_loc_mismatch(self, validator: ASTCodeValidator):
+        """Warn when .loc is used on index.to_period(...).map(...) result."""
+        code = '''
+import pandas as pd
+
+idx = pd.date_range("2024-01-01", periods=40, freq="D")
+s = pd.Series(range(40), index=idx)
+monthly = s.resample("ME").last()
+monthly.index = monthly.index.to_period("M")
+daily_monthly = s.index.to_period("M").map(monthly)
+x = daily_monthly.loc[idx[0]]
+
+result = {"equity_series": [], "trades": []}
+'''
+        result = validator.validate(code)
+        assert any(
+            "index.to_period" in w.lower() and ".loc" in w.lower()
+            for w in result.warnings
+        )
+
+    def test_no_warning_for_series_map_with_loc(self, validator: ASTCodeValidator):
+        """Do not warn for safe Series-based monthly mapping."""
+        code = '''
+import pandas as pd
+
+idx = pd.date_range("2024-01-01", periods=40, freq="D")
+s = pd.Series(range(40), index=idx)
+monthly = s.resample("ME").last()
+monthly.index = monthly.index.to_period("M")
+daily_monthly = pd.Series(s.index.to_period("M"), index=s.index).map(monthly)
+x = daily_monthly.loc[idx[0]]
+
+result = {"equity_series": [], "trades": []}
+'''
+        result = validator.validate(code)
+        assert not any("index.to_period" in w.lower() and ".loc" in w.lower() for w in result.warnings)
+
+
 class TestFormattingIntegration:
     """Tests for code formatting integration."""
 

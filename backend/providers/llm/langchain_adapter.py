@@ -13,6 +13,7 @@ from typing import Any
 
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
+from openai import APIConnectionError, APIStatusError, RateLimitError as OpenAIRateLimitError
 
 from backend.core.config import LLMConfig, Settings
 from backend.providers.llm.base import (
@@ -155,6 +156,57 @@ class LangChainAdapter(LLMProvider):
 
         return messages
 
+    def _build_extra_body(self, config: GenerationConfig) -> dict[str, Any] | None:
+        """
+        Build extra_body for OpenRouter-specific parameters.
+
+        Args:
+            config: Generation configuration
+
+        Returns:
+            Extra body dict or None if no extra parameters
+        """
+        extra: dict[str, Any] = {}
+
+        # Add custom provider parameters from config.extra (except local override key)
+        if config.extra:
+            web_search_override = config.extra.pop("web_search_enabled", None)
+            extra.update(config.extra)
+            # Restore original config.extra so caller config is not mutated
+            if web_search_override is not None:
+                config.extra["web_search_enabled"] = web_search_override
+
+        # Thinking models: OpenRouter reasoning token controls
+        if self._llm_config.reasoning_enabled:
+            reasoning_tokens = (
+                self._llm_config.reasoning_max_tokens
+                or (config.max_tokens if config else self._resolved_max_output_tokens)
+            )
+            extra["reasoning"] = {
+                "enabled": True,
+                "max_tokens": reasoning_tokens,
+            }
+
+        # OpenRouter web search plugin (supports per-request override)
+        web_search_enabled = (
+            config.extra.get("web_search_enabled")
+            if config.extra and "web_search_enabled" in config.extra
+            else self._llm_config.web_search_enabled
+        )
+        if web_search_enabled:
+            web_plugin: dict[str, Any] = {
+                "id": "web",
+                "max_results": self._llm_config.web_search_max_results,
+            }
+            if self._llm_config.web_search_prompt:
+                web_plugin["search_prompt"] = self._llm_config.web_search_prompt
+
+            existing_plugins = extra.get("plugins", [])
+            existing_plugins.append(web_plugin)
+            extra["plugins"] = existing_plugins
+
+        return extra if extra else None
+
     async def generate(
         self,
         prompt: str,
@@ -181,9 +233,11 @@ class LangChainAdapter(LLMProvider):
             config = GenerationConfig(
                 temperature=self._llm_config.temperature,
                 max_tokens=self._resolved_max_output_tokens,
+                seed=self._llm_config.seed,
             )
 
         messages = self._build_messages(prompt, system_prompt)
+        extra_body = self._build_extra_body(config)
 
         try:
             # Create a bound client with custom config if different from defaults
@@ -203,11 +257,44 @@ class LangChainAdapter(LLMProvider):
             if config.stop_sequences:
                 invoke_kwargs["stop"] = config.stop_sequences
 
+            if config.top_p != 1.0:
+                invoke_kwargs["top_p"] = config.top_p
+
+            if config.frequency_penalty != 0.0:
+                invoke_kwargs["frequency_penalty"] = config.frequency_penalty
+
+            if config.presence_penalty != 0.0:
+                invoke_kwargs["presence_penalty"] = config.presence_penalty
+
+            if config.seed is not None:
+                invoke_kwargs["seed"] = config.seed
+
+            if extra_body:
+                invoke_kwargs["extra_body"] = extra_body
+
             # Make API call using LangChain
             response = await client.ainvoke(messages, **invoke_kwargs)
 
             # Extract content
             content = str(response.content) if response.content else ""
+
+            # Thinking models may return reasoning metadata while content is empty
+            if not content and hasattr(response, "additional_kwargs"):
+                reasoning = response.additional_kwargs.get("reasoning", {})
+                if isinstance(reasoning, dict):
+                    if isinstance(reasoning.get("summary"), list):
+                        summary_parts: list[str] = []
+                        for part in reasoning["summary"]:
+                            if isinstance(part, dict):
+                                text = part.get("text")
+                                if text:
+                                    summary_parts.append(str(text))
+                        if summary_parts:
+                            content = "\n".join(summary_parts)
+                    if not content:
+                        summary_text = reasoning.get("text") or reasoning.get("summary")
+                        if isinstance(summary_text, str):
+                            content = summary_text
 
             # Extract usage statistics from response metadata
             usage_dict: dict[str, int] = {}
@@ -240,10 +327,36 @@ class LangChainAdapter(LLMProvider):
                 raw_response=raw_response,
             )
 
+        except OpenAIRateLimitError as e:
+            raise RateLimitError(
+                f"Rate limit exceeded: {e}",
+                provider="langchain",
+                retry_after=None,
+            ) from e
+        except APIStatusError as e:
+            if e.status_code == 401 or e.status_code == 403:
+                raise AuthenticationError(
+                    f"Authentication failed: {e.message}",
+                    provider="langchain",
+                ) from e
+            if e.status_code == 404:
+                raise ModelNotFoundError(
+                    f"Model not found: {e.message}",
+                    provider="langchain",
+                ) from e
+            raise LLMProviderError(
+                f"API error ({e.status_code}): {e.message}",
+                provider="langchain",
+            ) from e
+        except APIConnectionError as e:
+            raise LLMProviderError(
+                f"Connection failed: {e}",
+                provider="langchain",
+            ) from e
         except Exception as e:
             error_msg = str(e).lower()
 
-            # Handle rate limit errors
+            # Fallback handling for non-openai wrapped exceptions
             if "rate limit" in error_msg or "429" in str(e):
                 raise RateLimitError(
                     f"Rate limit exceeded: {e}",
@@ -251,21 +364,18 @@ class LangChainAdapter(LLMProvider):
                     retry_after=None,
                 ) from e
 
-            # Handle authentication errors
             if "401" in str(e) or "403" in str(e) or "unauthorized" in error_msg:
                 raise AuthenticationError(
                     f"Authentication failed: {e}",
                     provider="langchain",
                 ) from e
 
-            # Handle model not found errors
             if "404" in str(e) or "model not found" in error_msg:
                 raise ModelNotFoundError(
                     f"Model not found: {e}",
                     provider="langchain",
                 ) from e
 
-            # Generic error
             raise LLMProviderError(
                 f"LangChain generation failed: {e}",
                 provider="langchain",
