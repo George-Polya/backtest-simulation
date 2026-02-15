@@ -10,7 +10,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: 'Backtest Simulation',
+  title: 'AI Geneated Backtest',
   description: 'Next.js frontend for the backtest simulation workflow.'
 };
 

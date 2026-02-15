@@ -218,7 +218,7 @@ export function TradeTable({ trades, isLoading = false }: TradeTableProps) {
       ) : null}
 
       {!isLoading && normalizedTrades.length > 0 && isExpanded ? (
-        <div className="overflow-x-auto">
+        <div className="max-h-[26rem] overflow-auto">
           <table className="min-w-full border-collapse text-left text-sm">
             <thead>
               <tr className="bg-slate-50">
