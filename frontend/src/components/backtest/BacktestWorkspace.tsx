@@ -1,22 +1,31 @@
 'use client';
 
-import { useBacktestActions } from '@/hooks';
+import { useBacktestActions, useGenerateCode } from '@/hooks';
 import { useBacktestStore } from '@/stores';
 import { Alert, Button, Card } from '@/components/ui';
+import { CodeEditorPanel } from './CodeEditorPanel';
 import { ConfigForm } from './ConfigForm';
+import { GenerationInfo } from './GenerationInfo';
 
 export function BacktestWorkspace() {
   const {
     generatedCode,
+    generationMetadata,
     jobId,
     jobStatus,
     requestConfig,
     results,
     uiToggles,
+    setGeneratedCode,
     setUiToggle,
     setSelectedTab
   } = useBacktestStore();
   const { resetState, saveConfig } = useBacktestActions();
+  const {
+    mutate: generateCodeMutation,
+    isPending: isGenerating,
+    error: generationError
+  } = useGenerateCode();
 
   const handleToggleCodePanel = () => {
     const next = !uiToggles.isCodeEditorOpen;
@@ -40,6 +49,14 @@ export function BacktestWorkspace() {
     if (next && !uiToggles.isCodeEditorOpen) {
       setSelectedTab('results');
     }
+  };
+
+  const handleGenerateCode = () => {
+    if (!requestConfig) {
+      return;
+    }
+
+    generateCodeMutation(requestConfig);
   };
 
   return (
@@ -80,7 +97,23 @@ export function BacktestWorkspace() {
           <Button type="button" variant="secondary" onClick={handleToggleResultsPanel}>
             {uiToggles.isResultsOpen ? 'Hide Results' : 'Show Results'}
           </Button>
+          <Button
+            type="button"
+            disabled={!requestConfig || isGenerating}
+            onClick={handleGenerateCode}
+          >
+            {isGenerating ? 'Generating...' : 'Generate Code'}
+          </Button>
+          <Button type="button" variant="secondary" disabled={!generatedCode || isGenerating}>
+            Execute Backtest
+          </Button>
         </div>
+
+        {generationError ? (
+          <Alert className="mb-4" title="Code generation failed" variant="error">
+            {generationError.message}
+          </Alert>
+        ) : null}
 
         <div className="mb-4 flex items-center gap-2">
           <Button
@@ -108,12 +141,14 @@ export function BacktestWorkspace() {
         ) : null}
 
         {uiToggles.selectedTab === 'code' && uiToggles.isCodeEditorOpen ? (
-          <section className="space-y-3" id="code-panel">
-            <p className="text-sm text-slate-600">{generatedCode ? 'Generated code is available.' : 'Code has not been generated yet.'}</p>
-            <pre className="max-h-[360px] overflow-auto rounded-lg border border-[var(--border)] bg-slate-950 p-4 text-xs text-slate-100">
-              <code>{generatedCode || '# Generated strategy code will appear here.'}</code>
-            </pre>
-          </section>
+          <div className="space-y-3">
+            <CodeEditorPanel
+              code={generatedCode}
+              isLoading={isGenerating}
+              onChange={setGeneratedCode}
+            />
+            <GenerationInfo metadata={generationMetadata} />
+          </div>
         ) : null}
 
         {uiToggles.selectedTab === 'results' && uiToggles.isResultsOpen ? (

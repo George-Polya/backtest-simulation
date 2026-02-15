@@ -63,6 +63,13 @@ export interface GenerateBacktestResponse {
   generation_time_seconds: number;
 }
 
+export interface GenerationMetadata {
+  model_info: ModelInfo;
+  strategy_summary: string;
+  tickers_found: string[];
+  generation_time_seconds: number;
+}
+
 export enum JobStatus {
   Pending = 'pending',
   Running = 'running',

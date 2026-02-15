@@ -316,7 +316,7 @@
           "3",
           "4"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -324,7 +324,7 @@
             "description": "Add GenerationMetadata type to the store state interface to track model_info, strategy_summary, tickers_found, and generation_time_seconds alongside generated code. Update useBacktestStore with new state fields and setter actions.",
             "dependencies": [],
             "details": "The current Zustand store only tracks generatedCode, jobId, jobStatus, results, and uiToggles. We need to extend it to also store the metadata returned from the generate API: model_info (provider, model_id), strategy_summary, tickers_found array, and generation_time_seconds. Add setGenerationMetadata action to update these fields.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify store correctly updates all new metadata fields. Test that setGenerationMetadata properly replaces previous values. Verify reset() clears all new fields.",
             "parentId": "undefined"
           },
@@ -336,7 +336,7 @@
               1
             ],
             "details": "Create the useGenerateCode hook that wraps generateCode API call with useMutation. Add AbortController for 30-second timeout. Handle isPending for loading, isError for errors, and onSuccess to update Zustand store with generated code and metadata. Store needs setGeneratedCode and setGenerationMetadata actions.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test mutation with valid BacktestRequest succeeds and updates store. Test timeout after 30s triggers timeout error. Test network error displays correctly. Verify isLoading, isError, isSuccess states work as expected.",
             "parentId": "undefined"
           },
@@ -348,7 +348,7 @@
               2
             ],
             "details": "Use @monaco-editor/react to create CodeEditorPanel component. Configure Monaco with language: 'python', readOnly: true by default, and dark theme. Add editMode state that toggles readOnly when user clicks edit button. Accept code string prop and onChange callback for code modifications. Show LoadingSpinner from UI components when isLoading is true.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test Monaco Editor renders with Python syntax highlighting. Test readOnly mode prevents editing. Test edit mode allows code modification. Test onChange callback fires when code is edited. Test loading spinner displays during generation.",
             "parentId": "undefined"
           },
@@ -361,7 +361,7 @@
               2
             ],
             "details": "Create GenerationInfo component that displays ModelInfo (provider + model_id as badge), strategy_summary (text paragraph), generation_time_seconds (formatted duration), and tickers_found (array rendered as styled pill/tag components). Handle null/undefined metadata gracefully with empty state. Use existing UI components like Alert or custom styling for the badges and pills.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test ModelInfo badge displays provider and model_id correctly. Test strategy_summary renders text properly. Test generation_time displays in human-readable format. Test tickers render as styled pills. Test empty/null states show appropriate placeholders.",
             "parentId": "undefined"
           },
@@ -375,7 +375,7 @@
               4
             ],
             "details": "Modify BacktestWorkspace to use useGenerateCode hook. Replace placeholder code section with CodeEditorPanel component passing generatedCode from store. Add GenerationInfo component to show metadata. Update Generate Code button to call mutate with form data. Add Execute button that is disabled={!generatedCode}. Handle loading state on buttons. Show error state from mutation.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test Generate button triggers code generation. Test CodeEditorPanel displays generated code. Test GenerationInfo shows metadata after successful generation. Test Execute button is disabled when no code exists. Test loading state shows during generation. Test error state displays on failure.",
             "parentId": "undefined"
           }
