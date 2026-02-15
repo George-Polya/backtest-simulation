@@ -350,6 +350,32 @@ class Settings(BaseSettings):
         default="",
         description="Supabase anonymous key",
     )
+    supabase_service_key: str = Field(
+        default="",
+        description="Supabase service role key",
+    )
+
+    # JWT Authentication settings
+    secret_key: str = Field(
+        default="your-secret-key-change-in-production-min-32-chars",
+        description="Secret key for JWT token signing",
+    )
+    access_token_expire_minutes: int = Field(
+        default=15,
+        ge=1,
+        le=60,
+        description="Access token expiration in minutes",
+    )
+    refresh_token_expire_days: int = Field(
+        default=7,
+        ge=1,
+        le=30,
+        description="Refresh token expiration in days",
+    )
+    algorithm: str = Field(
+        default="HS256",
+        description="JWT algorithm",
+    )
 
     # Configuration sections (from config.yaml)
     llm: LLMConfig = Field(

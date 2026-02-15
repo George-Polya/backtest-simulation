@@ -401,7 +401,8 @@
             "dependencies": [],
             "details": "Create useExecuteBacktest hook that calls executeBacktest(payload: ExecuteBacktestRequest) from API client. Set async_mode: true in the request payload. On success, call setJobState(jobId, status) from useBacktestStore. Export mutate function, isPending, isError, error states. Use try/catch for error handling.",
             "status": "pending",
-            "testStrategy": "Test execute mutation with mock API response. Verify isPending state during submission. Test error handling with mock API failure. Verify jobId and jobStatus are set in store on success."
+            "testStrategy": "Test execute mutation with mock API response. Verify isPending state during submission. Test error handling with mock API failure. Verify jobId and jobStatus are set in store on success.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -412,7 +413,8 @@
             ],
             "details": "Create useJobPolling hook that accepts jobId. Use useQuery with refetchInterval: 2000ms. Define queryKey: ['jobStatus', jobId]. Implement queryFn: getJobStatus(jobId). Use enabled: !!jobId. Implement getJobResult for terminal states to fetch results. Return status, data, isLoading, error. Handle network errors with retry (3 attempts).",
             "status": "pending",
-            "testStrategy": "Test polling stops when job reaches terminal state. Verify polling interval is 2 seconds. Test 404 error handling. Verify retry logic works correctly. Test with mock job status progression."
+            "testStrategy": "Test polling stops when job reaches terminal state. Verify polling interval is 2 seconds. Test 404 error handling. Verify retry logic works correctly. Test with mock job status progression.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -424,7 +426,8 @@
             ],
             "details": "Create StatusBanner component with props: status (JobStatus), jobId, error?, logs?, startTime?. Use LoadingSpinner for non-terminal states. Display job_id in Pending state. Calculate and display elapsed time in Running state (use setInterval). Show error message and logs in Failed state. Use color coding: blue=pending, yellow=running, green=completed, red=failed.",
             "status": "pending",
-            "testStrategy": "Test each status display. Verify elapsed time counter works. Test error and logs display. Verify loading spinner shows correctly."
+            "testStrategy": "Test each status display. Verify elapsed time counter works. Test error and logs display. Verify loading spinner shows correctly.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -437,7 +440,8 @@
             ],
             "details": "In BacktestWorkspace, import useExecuteBacktest and useJobPolling. Add Execute button onClick handler that calls executeMutation with generated code. Use jobId from store for useJobPolling. Display StatusBanner when jobId exists. Show results when status is completed.",
             "status": "pending",
-            "testStrategy": "Test Execute button disabled state. Verify StatusBanner displays correctly. Test full execute flow with mock API. Verify polling starts after job submission."
+            "testStrategy": "Test Execute button disabled state. Verify StatusBanner displays correctly. Test full execute flow with mock API. Verify polling starts after job submission.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -449,7 +453,8 @@
             ],
             "details": "In useJobPolling, configure retry: 3 with retryDelay: exponential backoff. Handle 404 specifically with isJobNotFound state. Add elapsed time tracking using startTime timestamp in store. Display elapsed time in HH:MM:SS format in StatusBanner.",
             "status": "pending",
-            "testStrategy": "Test retry behavior with mock network failures. Test 404 handling. Verify elapsed time displays correctly for long-running jobs."
+            "testStrategy": "Test retry behavior with mock network failures. Test 404 handling. Verify elapsed time displays correctly for long-running jobs.",
+            "parentId": "undefined"
           }
         ]
       },
@@ -474,7 +479,8 @@
             "dependencies": [],
             "details": "Create MetricsCards component that accepts PerformanceMetrics and benchmark data as props. Display primary metrics in a prominent grid showing total return, CAGR, and max drawdown with benchmark comparison (delta). Show secondary metrics (Sharpe ratio, Sortino ratio, Calmar ratio) in a separate section. Handle loading state with LoadingSpinner, and empty state with Alert when metrics are unavailable. Use formatPercentage and formatNumber utility functions for value display.",
             "status": "done",
-            "testStrategy": "Test with mock PerformanceMetrics data. Verify primary/secondary metric display. Test loading state rendering. Test empty state handling. Verify benchmark delta calculation and display."
+            "testStrategy": "Test with mock PerformanceMetrics data. Verify primary/secondary metric display. Test loading state rendering. Test empty state handling. Verify benchmark delta calculation and display.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -483,7 +489,8 @@
             "dependencies": [],
             "details": "Create EquityChart component using Recharts LineChart that accepts equity_curve data from BacktestResultResponse. Display strategy line in primary color (brand-500) and benchmark line in secondary color (slate-400). Implement log scale toggle that switches between linear and logarithmic y-axis using Recharts YAxis type='logDomain'. Handle loading state with LoadingSpinner, and empty state with Alert when equity_curve data is null or empty. Add proper tooltips showing date and value. Use existing Toggle component for log scale switch.",
             "status": "done",
-            "testStrategy": "Test with mock EquityCurveData including both strategy and benchmark. Test log scale toggle functionality. Verify chart renders with single line (no benchmark). Test loading and empty states. Verify tooltip displays correct values."
+            "testStrategy": "Test with mock EquityCurveData including both strategy and benchmark. Test log scale toggle functionality. Verify chart renders with single line (no benchmark). Test loading and empty states. Verify tooltip displays correct values.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -492,7 +499,8 @@
             "dependencies": [],
             "details": "Create DrawdownChart component using Recharts AreaChart that accepts drawdown data from BacktestResultResponse. Display drawdown as negative percentage values with gradient fill. Configure XAxis for dates and YAxis for percentage values. Add tooltip showing date and drawdown percentage. Handle loading state with LoadingSpinner, and empty state with Alert when drawdown data is unavailable. Use area gradient from brand-500 to transparent for visual effect.",
             "status": "done",
-            "testStrategy": "Test with mock DrawdownData. Verify area chart renders correctly with gradient. Test loading state rendering. Test empty state handling. Verify tooltip shows correct negative percentage values."
+            "testStrategy": "Test with mock DrawdownData. Verify area chart renders correctly with gradient. Test loading state rendering. Test empty state handling. Verify tooltip shows correct negative percentage values.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -501,7 +509,8 @@
             "dependencies": [],
             "details": "Create MonthlyHeatmap component that accepts monthly_heatmap data from BacktestResultResponse. Render custom grid with years as rows and months as columns. Implement color coding: green shades for positive returns, red shades for negative returns, gray for null values. Display percentage values in each cell with proper formatting. Handle loading state with LoadingSpinner, and empty state with Alert when monthly_heatmap data is unavailable. Use CSS grid or flexbox for layout.",
             "status": "done",
-            "testStrategy": "Test with mock MonthlyHeatmapData including multiple years. Verify color coding matches return values. Test handling of null values. Test loading state rendering. Test empty state handling. Verify grid layout is responsive."
+            "testStrategy": "Test with mock MonthlyHeatmapData including multiple years. Verify color coding matches return values. Test handling of null values. Test loading state rendering. Test empty state handling. Verify grid layout is responsive.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -510,7 +519,8 @@
             "dependencies": [],
             "details": "Create TradeTable component that accepts trades array from BacktestResultResponse. Implement collapsible panel using existing UI patterns - show header with trade count and expand/collapse toggle. Implement sortable columns for date, ticker, action, profit. Format action as 'Buy'/'Sell' badges with color coding (green for buy, red for sell). Format profit/loss with color coding (green for profit, red for loss) and percentage values. Handle loading state with LoadingSpinner, and empty state with Alert when trades array is empty or null. Use standard HTML table with proper semantic markup.",
             "status": "done",
-            "testStrategy": "Test with mock trades array. Verify sort functionality on each column. Test collapsible panel expand/collapse. Test action badge coloring. Test profit/loss formatting and coloring. Test loading state rendering. Test empty state handling."
+            "testStrategy": "Test with mock trades array. Verify sort functionality on each column. Test collapsible panel expand/collapse. Test action badge coloring. Test profit/loss formatting and coloring. Test loading state rendering. Test empty state handling.",
+            "parentId": "undefined"
           }
         ]
       },
@@ -533,7 +543,8 @@
             "dependencies": [],
             "details": "Create src/lib/export/csv.ts with: 1) CSV_BOM constant for Excel compatibility, 2) escapeCSVValue() function to handle special characters (commas, quotes, newlines), 3) generateFilename() function with format backtest_{type}_{job_id}_{date}.csv, 4) downloadCSV() function using Blob and URL.createObjectURL for browser download",
             "status": "pending",
-            "testStrategy": "Test BOM is correctly prepended. Test special character escaping with commas, quotes, newlines. Test filename format with various job IDs and dates."
+            "testStrategy": "Test BOM is correctly prepended. Test special character escaping with commas, quotes, newlines. Test filename format with various job IDs and dates.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -544,7 +555,8 @@
             ],
             "details": "Create 5 generator functions: 1) generateEquityCSV(equityCurve) - date, strategy_value columns (plus benchmark if available), 2) generateDrawdownCSV(drawdown) - date, drawdown_percent columns, 3) generateMonthlyCSV(monthlyHeatmap) - year, month, return columns, 4) generateMetricsCSV(metrics) - metric_name, value columns for all PerformanceMetrics fields, 5) generateTradesCSV(trades) - columns from trade records with dynamic field extraction. All functions accept jobId and format date as YYYYMMDD.",
             "status": "pending",
-            "testStrategy": "Test each generator with mock BacktestResultResponse data. Verify CSV headers are correct. Test with null benchmark in equity data. Test with empty trades array."
+            "testStrategy": "Test each generator with mock BacktestResultResponse data. Verify CSV headers are correct. Test with null benchmark in equity data. Test with empty trades array.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -555,7 +567,8 @@
             ],
             "details": "Create ExportButtons.tsx with: 1) Props for results (BacktestResultResponse | null) and jobId (string | null), 2) 5 Button components using Button variant='secondary', 3) Disabled state when results is null or jobId is null, 4) Each button calls corresponding generator + downloadCSV on click, 5) Button labels: Export Equity, Export Drawdown, Export Monthly, Export Metrics, Export Trades",
             "status": "pending",
-            "testStrategy": "Test buttons are disabled when results is null. Test buttons are disabled when jobId is null. Test each button triggers correct CSV download. Verify button click handlers are properly attached."
+            "testStrategy": "Test buttons are disabled when results is null. Test buttons are disabled when jobId is null. Test each button triggers correct CSV download. Verify button click handlers are properly attached.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -566,7 +579,8 @@
             ],
             "details": "Update BacktestWorkspace.tsx: 1) Import ExportButtons from @/components/results, 2) Add ExportButtons component inside the results panel section (uiToggles.selectedTab === 'results'), 3) Pass results={results} and jobId={jobId} props, 4) Place above the placeholder Alert component",
             "status": "pending",
-            "testStrategy": "Test ExportButtons renders when results panel is open. Test ExportButtons is hidden when results panel is closed. Verify results and jobId are correctly passed."
+            "testStrategy": "Test ExportButtons renders when results panel is open. Test ExportButtons is hidden when results panel is closed. Verify results and jobId are correctly passed.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -577,7 +591,8 @@
             ],
             "details": "Create tests: 1) src/lib/export/csv.test.ts for utility functions - test escapeCSVValue, generateFilename, downloadCSV (mocked), 2) src/components/results/ExportButtons.test.tsx - test disabled states, button click handlers with mocked download. Follow existing test patterns from frontend/tests/unit/",
             "status": "pending",
-            "testStrategy": "Run all tests to verify CSV generation works correctly. Verify ExportButtons component renders with correct disabled states. Mock window.URL.createObjectURL for download tests."
+            "testStrategy": "Run all tests to verify CSV generation works correctly. Verify ExportButtons component renders with correct disabled states. Mock window.URL.createObjectURL for download tests.",
+            "parentId": "undefined"
           }
         ]
       },
@@ -600,7 +615,8 @@
             "dependencies": [],
             "details": "Add allowed_origins: list[str] field to Settings class with default empty list. Update CORS middleware in main.py to use settings.allowed_origins in production mode instead of empty list. Allow specific frontend domain like 'https://yoyak.org'.",
             "status": "pending",
-            "testStrategy": "Test CORS with specific origin via curl or browser devtools. Verify OPTIONS requests work for the configured origin."
+            "testStrategy": "Test CORS with specific origin via curl or browser devtools. Verify OPTIONS requests work for the configured origin.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -611,7 +627,8 @@
             ],
             "details": "Add USE_NEW_FRONTEND (bool) and FRONTEND_URL (str) to Settings. Update root endpoint '/' to conditionally redirect to new frontend URL or /dashboard/ based on feature flag. Keep /dashboard mount for legacy dashboard rollback.",
             "status": "pending",
-            "testStrategy": "Test root redirect with flag enabled/disabled. Verify /dashboard still accessible when flag is enabled."
+            "testStrategy": "Test root redirect with flag enabled/disabled. Verify /dashboard still accessible when flag is enabled.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -620,7 +637,8 @@
             "dependencies": [],
             "details": "Add location /api/ proxy_pass to FastAPI (backtest-api:8000). Add location / for Next.js with proper static file handling. Configure upstream backtest-api service. Add proper headers forwarding (Host, X-Real-IP, X-Forwarded-For).",
             "status": "pending",
-            "testStrategy": "Test nginx config syntax with nginx -t. Verify /api/* routes to backend and / routes to Next.js."
+            "testStrategy": "Test nginx config syntax with nginx -t. Verify /api/* routes to backend and / routes to Next.js.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -629,7 +647,8 @@
             "dependencies": [],
             "details": "Create .env.production with NEXT_PUBLIC_API_BASE_URL=/api/v1 (relative for proxy). Verify next.config.js standalone output is configured. Ensure proper asset prefix configuration for production domain.",
             "status": "pending",
-            "testStrategy": "Run production build (npm run build). Verify standalone output created. Test API calls work through proxy."
+            "testStrategy": "Run production build (npm run build). Verify standalone output created. Test API calls work through proxy.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -641,7 +660,8 @@
             ],
             "details": "Add nextjs-frontend service with Next.js standalone image or build context. Configure VIRTUAL_HOST, VIRTUAL_PORT for nginx-proxy. Add to backtest-network. Set NEXT_PUBLIC_API_BASE_URL environment variable. Configure volume for static assets if needed.",
             "status": "pending",
-            "testStrategy": "Test docker-compose config with docker-compose -f docker-compose.prod.yml config. Verify all services can start without errors."
+            "testStrategy": "Test docker-compose config with docker-compose -f docker-compose.prod.yml config. Verify all services can start without errors.",
+            "parentId": "undefined"
           }
         ]
       },
@@ -670,7 +690,8 @@
             ],
             "details": "First implement Task 8 (CSV export) since it's a dependency. Create CSV generation functions that handle equity curve, drawdown, monthly returns, metrics, and trades data. Implement filename format: backtest_{type}_{job_id}_{date}.csv. Write comprehensive unit tests covering: valid data generation, special characters escaping, BOM handling for Excel, edge cases (empty data, missing fields).",
             "status": "completed",
-            "testStrategy": "Test CSV generation with mock data. Verify file download in browser. Test disabled button state until results available."
+            "testStrategy": "Test CSV generation with mock data. Verify file download in browser. Test disabled button state until results available.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -683,7 +704,8 @@
             ],
             "details": "Create mapper functions that transform: BacktestResultResponse to MetricsCards props, ExecutionResult to chart data formats, JobStatusResponse to UI status strings. Handle null safety, date formatting (ISO to locale), number formatting (percentages, currency). Write tests for edge cases: missing benchmark data, empty equity curves, partial trade data.",
             "status": "completed",
-            "testStrategy": "Test mapper functions with mock API responses. Verify output matches expected component props. Test error handling for malformed data."
+            "testStrategy": "Test mapper functions with mock API responses. Verify output matches expected component props. Test error handling for malformed data.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -697,7 +719,8 @@
             ],
             "details": "Create tests/integration/ directory. For generate-flow: test full generate flow from ConfigForm submission through code generation, validate code editor population, verify validation errors. For execute-flow: test execute mutation, job polling behavior, status banner transitions (pending->running->completed/failed). For results-display: test MetricsCards, EquityChart, DrawdownChart, MonthlyHeatmap, TradeTable integration with mock result data. Use existing MSW handlers from tests/mocks/server.ts.",
             "status": "completed",
-            "testStrategy": "Run npm run test. Verify all integration tests pass. Check that mocked API calls are made correctly."
+            "testStrategy": "Run npm run test. Verify all integration tests pass. Check that mocked API calls are made correctly.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -712,7 +735,8 @@
             ],
             "details": "Install @playwright/test. Create playwright.config.ts with webServer config for dev server. Create tests/e2e/critical-path.test.ts covering: 1) Form input and validation, 2) Generate code button and code editor, 3) Execute backtest and status polling, 4) Results display and chart interactions, 5) CSV export buttons (after Task 8). Configure CI to run Playwright tests with headed/headless browsers. Handle slow API responses with increased timeouts.",
             "status": "completed",
-            "testStrategy": "Run playwright test. Verify E2E passes in CI. Test across multiple browsers (chromium, firefox)."
+            "testStrategy": "Run playwright test. Verify E2E passes in CI. Test across multiple browsers (chromium, firefox).",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -726,21 +750,226 @@
             ],
             "details": "Update CI workflow to add frontend job: 1) Setup Node.js, 2) Install frontend dependencies with cache, 3) Run eslint on src/, 4) Run tsc --noEmit, 5) Run vitest with coverage, 6) Run next build. Add regression checks: 1) Add vitest-snapshot for chart component snapshots, 2) Create baseline metrics JSON for regression testing, 3) Compare new metrics output against baseline. Configure test coverage thresholds (e.g., 80%). Add artifact upload for test results and coverage reports.",
             "status": "completed",
-            "testStrategy": "Verify CI passes all frontend steps. Check test coverage meets threshold. Verify no TypeScript errors. Confirm E2E tests run in CI environment."
+            "testStrategy": "Verify CI passes all frontend steps. Check test coverage meets threshold. Verify no TypeScript errors. Confirm E2E tests run in CI environment.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Implement JWT authentication system for backend and frontend",
+        "description": "Implement JWT authentication with access/refresh tokens, password hashing, protected routes, and secure token storage across backend (FastAPI) and frontend (Next.js/React)",
+        "details": "## Backend Implementation (FastAPI)\n\n### 1. Add Dependencies\nAdd to `requirements-server.txt`:\n- `bcrypt==4.2.1` - Password hashing\n- `python-jose[cryptography]==3.3.0` - JWT handling  \n- `pydantic[email]` - Email validation\n\n### 2. Create User Model\nCreate `backend/models/user.py` with SQLAlchemy model:\n- `User` table with id, email, hashed_password, is_active, created_at, updated_at columns\n- Email should be unique and indexed\n\n### 3. Create Auth Schemas\nCreate `backend/api/v1/schemas/auth.py`:\n- `LoginRequest`: email, password\n- `LoginResponse`: access_token, refresh_token, token_type\n- `RefreshRequest`: refresh_token  \n- `RefreshResponse`: access_token, token_type\n- `UserResponse`: id, email, created_at\n- `TokenPayload`: sub (user_id), exp, type (access/refresh)\n\n### 4. Create Auth Service\nCreate `backend/services/auth_service.py`:\n- `verify_password(plain_password, hashed_password)` - Verify bcrypt password\n- `get_password_hash(password)` - Hash password with bcrypt\n- `create_access_token(data, expires_delta)` - Create JWT access token (15 min)\n- `create_refresh_token(data, expires_delta)` - Create JWT refresh token (7 days)\n- `verify_token(token)` - Verify and decode JWT\n\n### 5. Add Auth Endpoints\nCreate `backend/api/v1/endpoints/auth.py`:\n- `POST /api/v1/auth/login`: Validate credentials, return tokens\n- `POST /api/v1/auth/logout`: Invalidate refresh token (store in blocklist)\n- `POST /api/v1/auth/refresh`: Exchange refresh token for new access token\n- `GET /api/v1/auth/me`: Get current user (protected)\n\n### 6. Implement Token Authentication\nCreate `backend/api/v1/dependencies/auth.py`:\n- `get_current_user(token)` - Dependency to extract and verify access token\n- `get_current_active_user(user)` - Ensure user is active\n\n### 7. Protect Existing Endpoints\nUpdate `backend/api/v1/endpoints/backtest.py`:\n- Add `Depends(get_current_user)` to protected endpoints\n\n### 8. Add Environment Variables\nUpdate `backend/.env.example`:\n```\nSECRET_KEY=your-secret-key-here\nACCESS_TOKEN_EXPIRE_MINUTES=15\nREFRESH_TOKEN_EXPIRE_DAYS=7\n```\n\n## Frontend Implementation (Next.js/React)\n\n### 1. Create Auth Store\nCreate `frontend/src/stores/useAuthStore.ts`:\n```typescript\ninterface AuthState {\n  accessToken: string | null;\n  user: User | null;\n  isAuthenticated: boolean;\n  isLoading: boolean;\n  setAccessToken: (token: string | null) => void;\n  setUser: (user: User | null) => void;\n  login: (email: string, password: string) => Promise<void>;\n  logout: () => Promise<void>;\n  refreshToken: () => Promise<boolean>;\n}\n```\n\n### 2. Create Auth API Client\nCreate `frontend/src/lib/api/auth.ts`:\n- `login(email, password)`: POST /api/v1/auth/login\n- `logout()`: POST /api/v1/auth/logout\n- `refreshAccessToken()`: POST /api/v1/auth/refresh\n- `getCurrentUser()`: GET /api/v1/auth/me\n\n### 3. Update API Client\nUpdate `frontend/src/lib/api/client.ts`:\n- Add request interceptor to include `Authorization: Bearer {accessToken}` header\n- Add response interceptor to handle 401:\n  - Try refresh token\n  - If refresh fails, clear tokens and redirect to login\n\n### 4. Create Login Page\nCreate `frontend/src/app/login/page.tsx`:\n- Email input with validation\n- Password input (show/hide toggle)\n- Submit button with loading state\n- Error message display\n- Redirect to home on success\n\n### 5. Create Protected Route Wrapper\nCreate `frontend/src/components/auth/ProtectedRoute.tsx`:\n- Check authentication state\n- Show loading spinner while checking\n- Redirect to /login if not authenticated\n- Render children if authenticated\n\n### 6. Update Root Layout\nUpdate `frontend/src/app/layout.tsx`:\n- Add auth state listener\n- Show user info/logout in header when authenticated\n\n### 7. Create Logout Button Component\nCreate `frontend/src/components/auth/LogoutButton.tsx`:\n- Call logout on click\n- Clear tokens and redirect to login\n\n## Security Considerations\n\n### Token Storage\n- **Access Token**: Store in React state/memory only (NOT in localStorage - XSS prevention)\n- **Refresh Token**: HttpOnly cookie with `Secure`, `SameSite=Strict`\n\n### Backend Token Validation\n- Verify token signature using SECRET_KEY\n- Check token expiration\n- Validate token type (access vs refresh)\n\n### Token Rotation\n- On refresh: Issue new access token + new refresh token\n- Invalidate old refresh token (add to blocklist or use family ID)\n\n### Password Security\n- Never store plain passwords\n- Use bcrypt with appropriate salt rounds (12)\n- Validate password strength (min 8 chars)\n\n### CORS Configuration\n- Configure `ACCESS_TOKEN_EXPOSE_HEADERS` to allow cookie propagation\n- Ensure credentials: true in CORS config",
+        "testStrategy": "## Backend Tests\n1. Test user registration and password hashing with bcrypt\n2. Test login with valid/invalid credentials\n3. Test access token expiration (15 min)\n4. Test refresh token flow\n5. Test protected endpoint with valid/invalid token\n6. Test logout invalidates refresh token\n\n## Frontend Tests  \n1. Test login form validation\n2. Test successful login flow\n3. Test token storage (access in memory, refresh in cookie)\n4. Test 401 interceptor triggers refresh\n5. Test logout clears state\n6. Test protected route redirects unauthenticated users\n\n## Integration Tests\n1. Test complete login -> access protected endpoint -> logout flow\n2. Test token refresh maintains session\n3. Test expired access token auto-refreshes\n\n## Manual Verification\n1. Login with valid credentials → tokens returned\n2. Access protected endpoint with token → success  \n3. Wait for access token expiry → auto-refresh works\n4. Logout → tokens cleared, cannot access protected endpoints",
+        "status": "done",
+        "dependencies": [],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add backend dependencies and create User model",
+            "description": "Add required Python packages (bcrypt==4.2.1, python-jose[cryptography]==3.3.0, pydantic[email]) to requirements-server.txt, create User SQLAlchemy model in backend/models/user.py with id, email, hashed_password, is_active, created_at, updated_at columns (email unique and indexed), and add auth-related environment variables (SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES=15, REFRESH_TOKEN_EXPIRE_DAYS=7) to backend/core/config.py Settings class",
+            "dependencies": [],
+            "details": "Create User model following existing SQLAlchemy patterns in backend/models/backtest.py. Use bcrypt for password hashing with 12 salt rounds. Add email field with unique constraint and index. Add is_active boolean default=True. Include created_at and updated_at timestamps using datetime.now(timezone.utc). Add database session setup in backend/core/container.py or create separate database.py module.",
+            "status": "done",
+            "testStrategy": "Test User model creation and password hashing. Verify email unique constraint works. Test User.to_dict() method returns correct fields.",
+            "parentId": "undefined",
+            "updatedAt": "2026-02-15T08:14:37.879Z"
+          },
+          {
+            "id": 2,
+            "title": "Create auth schemas and auth service",
+            "description": "Create Pydantic auth schemas in backend/api/v1/schemas/auth.py (LoginRequest, LoginResponse, RefreshRequest, RefreshResponse, UserResponse, TokenPayload) and implement auth service in backend/services/auth_service.py with functions: verify_password, get_password_hash, create_access_token (15 min expiry), create_refresh_token (7 day expiry), verify_token",
+            "dependencies": [
+              1
+            ],
+            "details": "Create schemas following existing patterns in backend/api/v1/endpoints/backtest.py. Use pydantic BaseModel with Field for validation. AuthService should use SECRET_KEY from settings for JWT signing. Token payload should include sub (user_id), exp, type (access/refresh). Use python-jose for JWT encoding/decoding with HS256 algorithm.",
+            "status": "done",
+            "testStrategy": "Test password hashing with bcrypt. Test token creation and verification. Test token expiration handling. Test invalid token rejection.",
+            "parentId": "undefined",
+            "updatedAt": "2026-02-15T08:15:52.006Z"
+          },
+          {
+            "id": 3,
+            "title": "Implement auth endpoints and token authentication",
+            "description": "Create auth endpoints in backend/api/v1/endpoints/auth.py: POST /api/v1/auth/login, POST /api/v1/auth/logout, POST /api/v1/auth/refresh, GET /api/v1/auth/me. Create dependency in backend/api/v1/dependencies/auth.py for get_current_user and get_current_active_user. Update existing backtest.py endpoints to require authentication.",
+            "dependencies": [
+              2
+            ],
+            "details": "Follow router pattern from backend/api/v1/endpoints/backtest.py. Login endpoint verifies credentials and returns access_token + refresh_token. Refresh endpoint exchanges refresh token for new access token. Logout adds refresh token to blocklist (can use in-memory set for MVP). /me endpoint returns current user info. Dependency get_current_user extracts Bearer token from Authorization header, verifies JWT, returns user. Update backtest.py add Depends(get_current_user) to protected endpoints.",
+            "status": "done",
+            "testStrategy": "Test login with valid/invalid credentials. Test access token expires after 15 minutes. Test refresh token flow. Test protected endpoint with valid/invalid token. Test logout invalidates refresh token.",
+            "parentId": "undefined",
+            "updatedAt": "2026-02-15T08:18:13.270Z"
+          },
+          {
+            "id": 4,
+            "title": "Create frontend auth store and update API client",
+            "description": "Create frontend auth Zustand store in frontend/src/stores/useAuthStore.ts with state: accessToken, user, isAuthenticated, isLoading, and methods: setAccessToken, setUser, login, logout, refreshToken. Create auth API client in frontend/src/lib/api/auth.ts with login, logout, refreshAccessToken, getCurrentUser functions.",
+            "dependencies": [],
+            "details": "Follow Zustand pattern from frontend/src/stores/useBacktestStore.ts. Auth store should store accessToken in memory only (NOT localStorage for XSS prevention). User should include id, email, created_at fields. Login method calls /api/v1/auth/login and stores tokens. Refresh method calls /api/v1/auth/refresh. Logout clears state and calls /api/v1/auth/logout. Create auth.ts API client with axios calls to auth endpoints. Update client.ts to add request interceptor for Authorization header and response interceptor for 401 handling (try refresh, then redirect to login).",
+            "status": "done",
+            "testStrategy": "Test auth store state updates on login/logout. Test token refresh on 401 response. Test API client sends correct headers. Test logout clears all auth state.",
+            "parentId": "undefined",
+            "updatedAt": "2026-02-15T08:19:47.168Z"
+          },
+          {
+            "id": 5,
+            "title": "Create login page and protected route components",
+            "description": "Create login page in frontend/src/app/login/page.tsx with email/password inputs, validation, loading state, error display, and redirect on success. Create ProtectedRoute component in frontend/src/components/auth/ProtectedRoute.tsx that checks authentication and redirects to /login. Create LogoutButton component in frontend/src/components/auth/LogoutButton.tsx. Update frontend/src/app/layout.tsx to include auth header with user info and logout button when authenticated.",
+            "dependencies": [
+              4
+            ],
+            "details": "Follow UI component patterns from frontend/src/components/ui/ (Button, Input). Login page should use useAuthStore for login/logout. ProtectedRoute should show loading spinner while checking auth state. Use useEffect to check auth on mount. Redirect to /login if not authenticated, render children if authenticated. LogoutButton calls logout() and redirects to login. Layout update adds Header component modification - show email and logout button when isAuthenticated=true.",
+            "status": "done",
+            "testStrategy": "Test login form validation. Test login success redirects to home. Test login failure shows error. Test ProtectedRoute redirects unauthenticated users. Test logout clears state and redirects. Test header shows user info when logged in.",
+            "parentId": "undefined",
+            "updatedAt": "2026-02-15T08:22:02.883Z"
+          }
+        ],
+        "updatedAt": "2026-02-15T08:22:02.883Z"
+      },
+      {
+        "id": 12,
+        "title": "Configure Supabase Custom SMTP (Resend) and email confirmation for production",
+        "description": "Before production launch, configure Supabase Auth email delivery with a custom SMTP provider (Resend) and enforce email verification flow.",
+        "details": "Set up a verified sending domain in Resend, configure SPF/DKIM (and DMARC if available), then connect Supabase Authentication SMTP settings using provider SMTP credentials. Ensure Supabase Auth URLs (site URL and redirect URLs) match production domain. Enable email confirmation for sign-up, test duplicate registration and unconfirmed-login behaviors, and document operational playbook for resend/recovery.",
+        "testStrategy": "1) Register new account and verify confirmation email is delivered to inbox (not spam). 2) Confirm user via email link and verify login succeeds. 3) Verify unconfirmed user cannot log in when confirmation is required. 4) Verify duplicate email returns conflict response and UI message. 5) Verify password reset and magic-link/confirmation links resolve to production URLs.",
+        "status": "pending",
+        "dependencies": [
+          "11"
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Provision Resend domain and DNS records",
+            "description": "Add production domain in Resend and apply required DNS records (SPF, DKIM, optional DMARC) until verification is green.",
+            "dependencies": [],
+            "details": "Use production sending subdomain (for example, mail.yourdomain.com or yourdomain.com). Add records at DNS provider and wait for propagation. Keep screenshots or exported DNS records for operations documentation.",
+            "status": "pending",
+            "testStrategy": "Confirm domain status is verified in Resend and test send succeeds.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Connect Supabase SMTP settings to Resend",
+            "description": "Configure Supabase Authentication SMTP host, port, username, password, sender name, and sender email with Resend credentials.",
+            "dependencies": [
+              1
+            ],
+            "details": "Update Supabase Authentication > Settings > SMTP. Verify sender identity matches verified domain and store SMTP credentials securely in ops vault.",
+            "status": "pending",
+            "testStrategy": "Trigger confirmation email from Supabase dashboard and confirm delivery.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Enable and validate production email confirmation flow",
+            "description": "Enable Confirm Email in Supabase Auth for production and validate register/confirm/login path end-to-end.",
+            "dependencies": [
+              2
+            ],
+            "details": "Set site URL and redirect URLs to production frontend routes. Verify backend and frontend show clear messages for unconfirmed accounts and successful confirmation.",
+            "status": "pending",
+            "testStrategy": "Run register -> confirm email -> login flow with a real mailbox and verify behavior.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Document runbook and fallback policy",
+            "description": "Document SMTP setup, troubleshooting steps, and temporary fallback policy for incidents.",
+            "dependencies": [
+              3
+            ],
+            "details": "Include common failure cases: DNS misconfiguration, blocked sender, spam placement, and provider outage. Define temporary policy for controlled signup if email delivery degrades.",
+            "status": "pending",
+            "testStrategy": "Review runbook with deployment checklist and verify all required fields are covered.",
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-02-15T12:06:23.000Z"
+      },
+      {
+        "id": 13,
+        "title": "Add OAuth2 login/logout integration",
+        "description": "Extend the existing authentication system to support OAuth2-based login and logout flows across backend and frontend.",
+        "details": "Backend: add OAuth2 provider configuration, callback endpoint, token exchange, and account-linking strategy with existing users. Frontend: add OAuth login button and callback handling, store issued app JWT/session securely, and implement logout that revokes/invalidates session consistently. Infra: add required env vars, redirect URI validation, and CORS/cookie settings for local + production. Testing: add integration tests for success/failure callback, existing-user linking, and logout behavior.",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          11
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add OAuth2 configuration and environment variables",
+            "description": "Add OAuth provider configuration and environment variables for backend and frontend including OAuth redirect URIs, allowed providers, and CORS settings for OAuth callbacks",
+            "dependencies": [],
+            "details": "Backend: Add OAUTH_PROVIDERS_ENABLED (comma-separated list like 'google,github'), OAUTH_REDIRECT_URL_BASE (production redirect base), to backend/core/config.py. Update .env.example with OAuth vars. Frontend: Add NEXT_PUBLIC_OAUTH_PROVIDERS to frontend .env.local.example. Update CORS settings to allow OAuth provider domains.",
+            "status": "pending",
+            "testStrategy": "Verify env var loading in backend config. Test CORS configuration accepts OAuth callback redirects."
+          },
+          {
+            "id": 2,
+            "title": "Implement OAuth callback endpoint in backend",
+            "description": "Create OAuth sign-in initiation and callback endpoints in backend auth service and API to handle OAuth provider redirects and token exchange via Supabase",
+            "dependencies": [
+              1
+            ],
+            "details": "Backend: Add OAuthSignInResponse schema to backend/api/v1/schemas/auth.py with provider, url fields. Add /auth/oauth/signin endpoint in backend/api/v1/endpoints/auth.py that returns Supabase OAuth URL. Add /auth/oauth/callback endpoint that handles code exchange and returns session tokens. Update AuthService in backend/services/auth_service.py to support OAuth sign-in methods. Ensure proper error handling for OAuth failures.",
+            "status": "pending",
+            "testStrategy": "Test /auth/oauth/signin returns valid OAuth URL for each provider. Test /auth/oauth/callback successfully exchanges code for session tokens. Test error handling for invalid codes."
+          },
+          {
+            "id": 3,
+            "title": "Add OAuth login button in frontend login page",
+            "description": "Add OAuth provider login buttons to the frontend login page with proper styling and loading states",
+            "dependencies": [
+              2
+            ],
+            "details": "Frontend: Update frontend/src/app/login/page.tsx to add OAuth provider buttons (Google, GitHub) below the email/password form. Create OAuthButton component in frontend/src/components/auth/OAuthButton.tsx. Add provider icons and consistent styling with existing login form. Handle loading state during OAuth redirect.",
+            "status": "pending",
+            "testStrategy": "Verify OAuth buttons render correctly with provider icons. Test clicking OAuth button initiates OAuth flow (redirects to provider). Verify responsive design works on mobile."
+          },
+          {
+            "id": 4,
+            "title": "Extend frontend auth store to handle OAuth tokens",
+            "description": "Extend the Zustand auth store to handle OAuth session tokens, callback processing, and proper logout that invalidates OAuth sessions",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Frontend: Update frontend/src/stores/useAuthStore.ts to add oauthLogin(provider) method that calls /auth/oauth/signin and redirects to provider. Add handleOAuthCallback() method to process callback URL and exchange code for tokens. Update logout() to properly revoke OAuth session via Supabase. Store OAuth provider info in user state.",
+            "status": "pending",
+            "testStrategy": "Test oauthLogin initiates correct redirect. Test handleOAuthCallback successfully exchanges code for tokens. Test logout invalidates session and clears all tokens."
+          },
+          {
+            "id": 5,
+            "title": "Add integration tests for OAuth flow",
+            "description": "Create integration tests for OAuth authentication flow including success/failure callbacks, account linking with existing users, and logout behavior",
+            "dependencies": [
+              4
+            ],
+            "details": "Backend tests: Add tests/api/v1/test_auth_oauth.py with tests for OAuth signin endpoint, callback success with valid code, callback failure with invalid code. Test account linking when OAuth email matches existing user. Frontend tests: Add tests for OAuthButton component rendering, OAuth flow initiation. Test logout behavior.",
+            "status": "pending",
+            "testStrategy": "Run pytest for backend OAuth tests. Run Playwright or Vitest for frontend OAuth component tests. Verify all tests pass including error handling scenarios."
           }
         ]
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-02-15T02:37:12.064Z",
-      "taskCount": 10,
-      "completedCount": 4,
+      "lastModified": "2026-02-15T12:06:23.000Z",
+      "taskCount": 12,
+      "completedCount": 3,
       "tags": [
         "master"
       ],
-      "created": "2026-02-15T01:37:05.909Z",
-      "description": "Tasks for master context"
+      "created": "2026-02-15T12:10:48.726Z",
+      "description": "Tasks for master context",
+      "updated": "2026-02-15T12:10:48.729Z"
     }
   }
 }

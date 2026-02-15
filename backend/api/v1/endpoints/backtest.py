@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, Field, field_validator
 
+from backend.api.v1.dependencies.auth import get_current_user
+from backend.api.v1.schemas.auth import UserResponse
 from backend.core.container import (
     get_code_generator_dep,
     get_job_manager_dep,
@@ -384,6 +386,7 @@ async def execute_backtest(
     request: ExecuteBacktestRequest,
     response: Response,
     job_manager: "JobManager" = Depends(get_job_manager_dep),
+    current_user: UserResponse = Depends(get_current_user),
 ) -> ExecuteBacktestResponse:
     """
     Execute backtest code.
@@ -1104,6 +1107,7 @@ async def get_data_sources() -> ConfigProvidersResponse:
 async def generate_backtest_code(
     request: BacktestRequest,
     generator: "BacktestCodeGenerator" = Depends(get_code_generator_dep),
+    current_user: UserResponse = Depends(get_current_user),
 ) -> GenerateBacktestResponse:
     """
     Generate backtest code from natural language strategy.

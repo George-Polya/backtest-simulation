@@ -5,6 +5,35 @@ const jobId = 'job-e2e-100';
 test('critical path: input -> generate -> execute -> result -> export', async ({ page }) => {
   let statusCallCount = 0;
 
+  await page.addInitScript(() => {
+    window.localStorage.setItem('accessToken', 'e2e-access-token');
+    window.localStorage.setItem('refreshToken', 'e2e-refresh-token');
+  });
+
+  await page.route('**/api/v1/auth/me', async (route) => {
+    const authorization = route.request().headers()['authorization'] ?? '';
+    if (!authorization.startsWith('Bearer e2e-access-token')) {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({ detail: 'Invalid token' })
+      });
+      return;
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: '00000000-0000-0000-0000-000000000001',
+        email: 'e2e@example.com',
+        is_active: true,
+        is_superuser: false,
+        created_at: '2026-01-01T00:00:00Z'
+      })
+    });
+  });
+
   await page.route('**/api/v1/backtest/generate', async (route) => {
     await route.fulfill({
       status: 200,
@@ -128,7 +157,7 @@ test('critical path: input -> generate -> execute -> result -> export', async ({
     });
   });
 
-  await page.goto('/');
+  await page.goto('/workspace');
 
   await page.getByRole('button', { name: 'Collapse Config' }).click();
   await expect(page.getByRole('button', { name: 'Expand Config' })).toBeVisible();

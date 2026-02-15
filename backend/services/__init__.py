@@ -4,6 +4,10 @@ Application services module.
 Contains business logic services for the backtest application.
 """
 
+from backend.services.auth_service import (
+    AuthService,
+    get_auth_service,
+)
 from backend.services.code_generator import (
     BacktestCodeGenerator,
     CodeGenerationError,
@@ -64,6 +68,9 @@ from backend.services.csv_exporter import (
 )
 
 __all__ = [
+    # Auth Service
+    "AuthService",
+    "get_auth_service",
     # Code Generator
     "BacktestCodeGenerator",
     "CodeGenerationError",

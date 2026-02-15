@@ -1,1 +1,2 @@
-export * from './useBacktestStore';
+export * from "./useBacktestStore";
+export * from "./useAuthStore";
