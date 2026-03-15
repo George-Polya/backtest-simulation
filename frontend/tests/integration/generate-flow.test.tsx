@@ -102,7 +102,7 @@ describe('integration: generate flow', () => {
     });
 
     expect(screen.getByText('Integration summary.')).toBeInTheDocument();
-    expect(screen.getByText('langchain / openai/gpt-5.3-codex')).toBeInTheDocument();
+    expect(screen.getByText('openai/gpt-5.3-codex')).toBeInTheDocument();
     expect(screen.getByText('QQQ')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Execute Backtest' })).not.toBeDisabled();
   });

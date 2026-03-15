@@ -57,6 +57,7 @@ jobs:
           pytest backend/tests/ -v --tb=short --cov=backend --cov-report=term-missing
         env:
           APP_DEBUG: true
+          PYTHONPATH: ${{ github.workspace }}
 
   # ============================================
   # Docker Build & Push (main branch only)
