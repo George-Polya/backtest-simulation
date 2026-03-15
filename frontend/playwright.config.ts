@@ -23,7 +23,12 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: 'npm run start -- --hostname 127.0.0.1 --port 3000',
+    command: 'npm run start',
+    env: {
+      HOSTNAME: '127.0.0.1',
+      PORT: '3000',
+      NEXT_PUBLIC_API_BASE_URL: 'http://localhost:8000/api/v1'
+    },
     url: 'http://127.0.0.1:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000

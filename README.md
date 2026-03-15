@@ -98,7 +98,7 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 
 ```bash
 cd frontend
-cp .env.example .env.local
+cp .env.local.example .env.local
 npm install
 npm run dev
 ```
@@ -310,7 +310,7 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 
 ```bash
 cd frontend
-cp .env.example .env.local
+cp .env.local.example .env.local
 npm install
 npm run dev
 ```
