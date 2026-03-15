@@ -31,4 +31,6 @@ logs/
 plan/
 review/
 research/
-data/
+# Generated data directories only. Keep source/test packages named "data" trackable.
+/data/
+backend/data/
