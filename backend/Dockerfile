@@ -7,14 +7,13 @@ FROM python:3.13-slim AS builder
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-# Install uv (much faster than pip)
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    cp /root/.local/bin/uv /usr/local/bin/uv
-
-# Install build dependencies
+# Install build dependencies and uv (much faster than pip)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
+    curl \
+    && curl -LsSf https://astral.sh/uv/install.sh | sh \
+    && cp /root/.local/bin/uv /usr/local/bin/uv \
     && rm -rf /var/lib/apt/lists/*
 
 # Create virtual environment with uv
