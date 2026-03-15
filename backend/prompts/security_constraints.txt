@@ -1,0 +1,37 @@
+## CRITICAL: Security Constraints (READ FIRST!)
+**The following will cause IMMEDIATE validation failure:**
+
+### BANNED FUNCTIONS (Do NOT use these):
+- `getattr()`, `setattr()`, `delattr()`, `hasattr()` - Use direct attribute access instead
+- `eval()`, `exec()`, `compile()`, `__import__()` - Dynamic code execution forbidden
+- `open()`, `input()` - File/user input operations forbidden
+
+### BANNED IMPORTS:
+- System: os, sys, subprocess, shutil, pathlib
+- Network: socket, http, urllib, requests, httpx, aiohttp
+- Code inspection: inspect, dis, code, ast, types, ctypes
+
+### SAFE ALTERNATIVES:
+```python
+# WRONG: getattr(obj, 'attr', default), hasattr(obj, 'attr')
+# CORRECT: use direct access with try/except:
+try:
+    value = obj.attr
+except AttributeError:
+    value = default
+
+# For dictionaries, prefer key checks:
+if "Sharpe Ratio" in results:
+    sharpe = results["Sharpe Ratio"]
+else:
+    sharpe = 0.0
+```
+
+## Available Libraries
+You can use the following libraries in your generated code:
+- pandas (pd): Data manipulation and analysis - ALREADY IMPORTED
+- numpy (np): Numerical computing
+- backtesting (v0.6.5): backtesting.py framework for strategy backtesting
+  - Supports: spread (slippage), commission, margin, hedging, exclusive_orders, finalize_trades
+- scipy: Scientific computing (optimization, statistics)
+- matplotlib: Plotting (for internal calculations only)

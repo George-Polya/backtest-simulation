@@ -1,0 +1,520 @@
+"""
+Configuration loader for the backtesting service.
+
+Loads configuration from config.yaml and environment variables using pydantic-settings.
+Supports llm/data/execution sections as described in PRD.
+"""
+
+import json
+from enum import Enum
+from functools import lru_cache
+from pathlib import Path
+from typing import Annotated, Optional
+
+import yaml
+from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+PROJECT_ROOT_DIR = BACKEND_DIR.parent
+
+
+class LLMProvider(str, Enum):
+    """Supported LLM providers."""
+
+    LANGCHAIN = "langchain"
+
+
+class ReasoningEffort(str, Enum):
+    """OpenRouter/OpenAI-style reasoning effort levels."""
+
+    NONE = "none"
+    MINIMAL = "minimal"
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    XHIGH = "xhigh"
+
+
+class LLMModelConfig(BaseModel):
+    """Nested LLM model configuration."""
+
+    name: str = Field(
+        ...,
+        description="Model identifier",
+    )
+    max_context_tokens: Optional[int] = Field(
+        default=None,
+        gt=0,
+        description="Maximum context window size for the model.",
+    )
+    max_output_tokens: Optional[int] = Field(
+        default=None,
+        gt=0,
+        description="Maximum output tokens for the model.",
+    )
+    reasoning_effort: Optional[ReasoningEffort] = Field(
+        default=None,
+        description="Reasoning effort level for models that support effort-based control.",
+    )
+    reasoning_max_tokens: Optional[int] = Field(
+        default=None,
+        gt=0,
+        description="Reasoning token budget for models that support token-based control.",
+    )
+
+
+class DataProvider(str, Enum):
+    """Supported data providers."""
+
+    YFINANCE = "yfinance"
+    MOCK = "mock"
+    LOCAL = "local"
+
+
+class ExecutionProvider(str, Enum):
+    """Supported code execution providers."""
+
+    DOCKER = "docker"
+    LOCAL = "local"
+
+
+class LLMConfig(BaseModel):
+    """
+    LLM provider configuration.
+
+    Note: API keys should NOT be stored here.
+    Use environment variables (OPENROUTER_API_KEY).
+    """
+
+    provider: LLMProvider = Field(
+        default=LLMProvider.LANGCHAIN,
+        description="LLM provider to use",
+    )
+    model: LLMModelConfig = Field(
+        default_factory=lambda: LLMModelConfig(name="anthropic/claude-3.5-sonnet"),
+        description="Model configuration",
+    )
+    site_url: Optional[str] = Field(
+        default=None,
+        description="Site URL for OpenRouter HTTP-Referer header",
+    )
+    site_name: Optional[str] = Field(
+        default=None,
+        description="Site name for OpenRouter X-Title header",
+    )
+    temperature: float = Field(
+        default=0.2,
+        ge=0.0,
+        le=2.0,
+        description="Temperature for generation (0.0 = most deterministic)",
+    )
+    seed: int = Field(
+        default=42,
+        ge=0,
+        description="Random seed for reproducible LLM outputs (deterministic by default)",
+    )
+    max_tokens: Optional[int] = Field(
+        default=None,
+        gt=0,
+        description="Maximum tokens to generate. If omitted, use model-specific default.",
+    )
+    max_context_tokens: Optional[int] = Field(
+        default=None,
+        gt=0,
+        description="Maximum context tokens the model supports. If omitted, use model-specific default.",
+    )
+    # Reasoning/Thinking model support
+    reasoning_enabled: bool = Field(
+        default=False,
+        description="Enable reasoning mode for thinking models (o1, deepseek-r1, kimi-k2-thinking, etc.)",
+    )
+    reasoning_max_tokens: Optional[int] = Field(
+        default=None,
+        description="Max tokens for reasoning. If None, uses max_tokens value.",
+    )
+    reasoning_effort: Optional[ReasoningEffort] = Field(
+        default=None,
+        description="Reasoning effort level for models that support effort-based control.",
+    )
+    # Web search support (OpenRouter only)
+    # See: https://openrouter.ai/announcements/introducing-web-search-via-the-api
+    web_search_enabled: bool = Field(
+        default=False,
+        description="Enable web search for real-time information retrieval (OpenRouter only)",
+    )
+    web_search_max_results: int = Field(
+        default=5,
+        ge=1,
+        le=10,
+        description="Maximum number of web search results to fetch (1-10)",
+    )
+    web_search_prompt: Optional[str] = Field(
+        default=None,
+        description="Custom prompt for integrating web search results into the response",
+    )
+    agent_max_iterations: int = Field(
+        default=4,
+        ge=1,
+        le=20,
+        description="Maximum model iterations for the LangChain agent loop.",
+    )
+    agent_timeout_seconds: int = Field(
+        default=120,
+        ge=1,
+        le=1800,
+        description="Timeout in seconds for a single agent generation run.",
+    )
+    agent_debug_logging: bool = Field(
+        default=False,
+        description="Enable verbose agent debugging and iteration logging.",
+    )
+    agent_enable_checkpointer: bool = Field(
+        default=False,
+        description="Enable MemorySaver checkpointer for LangGraph agent execution. "
+                    "Use for debugging only.",
+    )
+
+    @field_validator("model", mode="before")
+    @classmethod
+    def _coerce_model_config(
+        cls,
+        value: str | dict[str, object] | LLMModelConfig,
+    ) -> str | dict[str, object] | LLMModelConfig:
+        """Support legacy string model identifiers and normalize them to objects."""
+        if isinstance(value, str):
+            return {"name": value}
+        return value
+
+    @model_validator(mode="after")
+    def _sync_legacy_model_fields(self) -> "LLMConfig":
+        """Keep legacy top-level token/reasoning fields aligned with model config."""
+        if self.max_tokens is not None and self.model.max_output_tokens is None:
+            self.model.max_output_tokens = self.max_tokens
+        if self.max_context_tokens is not None and self.model.max_context_tokens is None:
+            self.model.max_context_tokens = self.max_context_tokens
+        if self.reasoning_effort is not None and self.model.reasoning_effort is None:
+            self.model.reasoning_effort = self.reasoning_effort
+        if self.reasoning_max_tokens is not None and self.model.reasoning_max_tokens is None:
+            self.model.reasoning_max_tokens = self.reasoning_max_tokens
+
+        if self.max_tokens is None:
+            self.max_tokens = self.model.max_output_tokens
+        if self.max_context_tokens is None:
+            self.max_context_tokens = self.model.max_context_tokens
+        if self.reasoning_effort is None:
+            self.reasoning_effort = self.model.reasoning_effort
+        if self.reasoning_max_tokens is None:
+            self.reasoning_max_tokens = self.model.reasoning_max_tokens
+        if (
+            self.model.reasoning_effort is not None
+            or self.model.reasoning_max_tokens is not None
+        ):
+            self.reasoning_enabled = True
+
+        return self
+
+    @property
+    def model_name(self) -> str:
+        """Return the configured model identifier."""
+        return self.model.name
+
+
+class DataConfig(BaseModel):
+    """
+    Data provider configuration.
+
+    Supports primary provider selection with fallback chain for resilience.
+    When the primary provider fails, the system automatically tries fallback
+    providers in order.
+
+    Example config.yaml:
+        data:
+          provider: yfinance
+          fallback_providers:
+            - mock
+          cache_ttl_seconds: 300
+          enable_caching: true
+          retry_attempts: 3
+          retry_delay_seconds: 1.0
+    """
+
+    provider: DataProvider = Field(
+        default=DataProvider.YFINANCE,
+        description="Primary data provider to use",
+    )
+    fallback_providers: list[DataProvider] = Field(
+        default_factory=list,
+        description="Fallback providers in order of preference",
+    )
+    cache_ttl_seconds: int = Field(
+        default=300,
+        ge=0,
+        description="Cache TTL in seconds for data provider responses",
+    )
+    enable_caching: bool = Field(
+        default=True,
+        description="Enable caching of data provider responses",
+    )
+    retry_attempts: int = Field(
+        default=3,
+        ge=1,
+        le=10,
+        description="Number of retry attempts before falling back",
+    )
+    retry_delay_seconds: float = Field(
+        default=1.0,
+        ge=0.0,
+        le=30.0,
+        description="Delay between retry attempts in seconds",
+    )
+    local_storage_path: str = Field(
+        default="./data/prices",
+        description="Local CSV storage path (used when provider='local')",
+    )
+
+    @field_validator("fallback_providers")
+    @classmethod
+    def validate_fallback_providers(
+        cls, v: list[DataProvider], info
+    ) -> list[DataProvider]:
+        """
+        Validate fallback providers don't include the primary provider.
+        """
+        # Note: We can't access 'provider' field here directly in Pydantic v2
+        # The validation will be done at Settings level
+        # Remove duplicates while preserving order
+        seen = set()
+        unique = []
+        for p in v:
+            if p not in seen:
+                seen.add(p)
+                unique.append(p)
+        return unique
+
+    def get_all_providers(self) -> list[DataProvider]:
+        """
+        Get list of all providers (primary + fallbacks) in order.
+
+        Returns:
+            List of DataProvider enums starting with primary.
+        """
+        providers = [self.provider]
+        for fb in self.fallback_providers:
+            if fb not in providers:
+                providers.append(fb)
+        return providers
+
+
+class ExecutionConfig(BaseModel):
+    """Code execution configuration."""
+
+    provider: ExecutionProvider = Field(
+        default=ExecutionProvider.DOCKER,
+        description="Code execution provider to use",
+    )
+    fallback_to_local: bool = Field(
+        default=True,
+        description="Fallback to local execution if Docker fails",
+    )
+    docker_image: str = Field(
+        default="backtest-runner:latest",
+        description="Docker image for backtest execution (must have pandas, backtesting, etc.)",
+    )
+    timeout: int = Field(
+        default=300,
+        gt=0,
+        le=600,
+        description="Execution timeout in seconds",
+    )
+    memory_limit: str = Field(
+        default="2g",
+        description="Memory limit for execution (Docker format)",
+    )
+    allowed_modules: list[str] = Field(
+        default_factory=lambda: ["pandas", "numpy"],
+        description="Allowed Python modules for execution",
+    )
+
+
+class Settings(BaseSettings):
+    """
+    Application settings loaded from environment variables and config.yaml.
+
+    Priority (highest to lowest):
+    1. Environment variables (from .env file or system)
+    2. config.yaml file
+    3. Default values
+
+    Secrets (loaded from .env only - NEVER commit to git):
+        LLM API Keys:
+        - OPENROUTER_API_KEY: OpenRouter API key
+        - ANTHROPIC_API_KEY: Anthropic Claude API key
+        - OPENAI_API_KEY: OpenAI API key
+    """
+
+    model_config = SettingsConfigDict(
+        env_file=(str(BACKEND_DIR / ".env"), ".env"),
+        env_file_encoding="utf-8",
+        env_prefix="",
+        env_nested_delimiter="__",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    # Application settings
+    app_name: str = Field(
+        default="Natural Language Backtesting Service",
+        description="Application name",
+    )
+    app_version: str = Field(
+        default="0.1.0",
+        description="Application version",
+    )
+    debug: bool = Field(
+        default=False,
+        description="Debug mode",
+        alias="APP_DEBUG",
+    )
+    cors_origins: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+        ],
+        description="Allowed CORS origins for browser clients",
+        alias="APP_CORS_ORIGINS",
+    )
+
+    @field_validator("debug", mode="before")
+    @classmethod
+    def parse_debug_bool(cls, v):
+        """Handle empty string as False for boolean debug field."""
+        if v == "" or v is None:
+            return False
+        if isinstance(v, str):
+            return v.lower() in ("true", "1", "yes", "on")
+        return v
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(
+        cls, v: str | list[str] | None
+    ) -> list[str] | str | None:
+        """Support JSON array or comma-separated APP_CORS_ORIGINS values."""
+        if v is None:
+            return None
+        if isinstance(v, list):
+            return [origin.strip() for origin in v if origin and origin.strip()]
+        if isinstance(v, str):
+            raw = v.strip()
+            if not raw:
+                return []
+            if raw.startswith("["):
+                try:
+                    parsed = json.loads(raw)
+                    if isinstance(parsed, list):
+                        return [
+                            origin.strip()
+                            for origin in parsed
+                            if isinstance(origin, str) and origin.strip()
+                        ]
+                except json.JSONDecodeError:
+                    pass
+            return [origin.strip() for origin in raw.split(",") if origin.strip()]
+        return v
+
+    # LLM API Keys (from .env)
+    openrouter_api_key: str = Field(
+        default="",
+        description="OpenRouter API key",
+    )
+
+    # Docker socket URL (from .env, machine-specific)
+    docker_socket_url: Optional[str] = Field(
+        default=None,
+        description="Docker socket URL (e.g., 'unix:///var/run/docker.sock'). "
+                    "If None, uses aiodocker default.",
+    )
+
+    # Configuration sections (from config.yaml)
+    llm: LLMConfig = Field(
+        default_factory=LLMConfig,
+        description="LLM provider configuration",
+    )
+    data: DataConfig = Field(
+        default_factory=DataConfig,
+        description="Data provider configuration",
+    )
+    execution: ExecutionConfig = Field(
+        default_factory=ExecutionConfig,
+        description="Code execution configuration",
+    )
+
+    def get_llm_api_key(self) -> str:
+        """
+        Get the appropriate API key based on the configured LLM provider.
+
+        Returns:
+            API key for the current LLM provider.
+
+        Raises:
+            ValueError: If no API key is configured for the provider.
+        """
+        api_key = self.openrouter_api_key
+        if not api_key:
+            raise ValueError(
+                "No API key configured. "
+                "Set the OPENROUTER_API_KEY environment variable."
+            )
+        return api_key
+
+    @classmethod
+    def from_yaml(cls, config_path: Path | str | None = None) -> "Settings":
+        """
+        Load settings from a YAML configuration file.
+
+        Args:
+            config_path: Path to config.yaml file. If None, looks for config.yaml
+                        in the current directory and project root.
+
+        Returns:
+            Settings instance with values from YAML merged with env vars.
+        """
+        config_data: dict = {}
+
+        if config_path is None:
+            # Look for config.yaml in common locations
+            search_paths = [
+                BACKEND_DIR / "config.yaml",
+                Path.cwd() / "config.yaml",
+                Path.cwd() / "backend" / "config.yaml",
+                PROJECT_ROOT_DIR / "config.yaml",
+            ]
+            for path in search_paths:
+                if path.exists():
+                    config_path = path
+                    break
+
+        if config_path is not None:
+            config_path = Path(config_path)
+            if config_path.exists():
+                with open(config_path, encoding="utf-8") as f:
+                    config_data = yaml.safe_load(f) or {}
+
+        return cls(**config_data)
+
+
+@lru_cache
+def get_settings() -> Settings:
+    """
+    Get cached settings instance.
+
+    Uses lru_cache to ensure settings are only loaded once.
+    Call get_settings.cache_clear() to reload settings.
+
+    Returns:
+        Cached Settings instance.
+    """
+    return Settings.from_yaml()

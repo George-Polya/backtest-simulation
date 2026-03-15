@@ -1,0 +1,197 @@
+4. **Result Return**: Define a `run_backtest` function that returns results:
+```python
+def run_backtest(params):
+    # Your backtest logic here
+    # ...
+
+    return {
+        # Required for the API/dashboard
+        "equity_series": [{"date": "YYYY-MM-DD", "value": 12345.67}, ...],
+        "trades": [{"date": "YYYY-MM-DD", "action": "BUY/SELL", "symbol": "AAPL", "price": 123.45, "quantity": 1, "profit": 150.00}, ...],
+        # profit: Realized P/L. BUY=0.0, SELL=(sell_price - avg_buy_price) * quantity
+        # IMPORTANT: benchmark_series should simulate the SAME conditions as strategy
+        # (same initial_capital, same contribution schedule) but using buy-and-hold on benchmark ticker
+        # This allows fair comparison between strategy and passive investing
+        "benchmark_series": [{"date": "YYYY-MM-DD", "value": 100000.0}, ...],  # Start with initial_capital
+        # Metadata (optional but recommended)
+        "start_date": "2020-01-01",
+        "end_date": "2024-12-31",
+        # Convenience metrics (optional)
+        "final_value": 12345.67,
+        "return_pct": 12.34,
+        "max_drawdown": -20.12,
+        "sharpe_ratio": 0.85,
+        "num_trades": 10,
+    }
+```
+
+If you use backtesting.py, you can build `equity_series`/`trades` from:
+- `results['_equity_curve']` (DataFrame; use the `Equity` column)
+- `results['_trades']` (DataFrame with columns: Size, EntryPrice, ExitPrice, PnL, EntryTime, ExitTime, etc.)
+
+**RECOMMENDED: Converting _trades to required format (backtesting.py):**
+```python
+trades_df = results['_trades']
+trades = []
+for _, t in trades_df.iterrows():
+    trades.append({
+        "date": t['ExitTime'].strftime("%Y-%m-%d"),
+        "action": "SELL",  # Closed trades are exits
+        "symbol": ticker,
+        "price": float(t['ExitPrice']),
+        "quantity": abs(float(t['Size'])),
+        "profit": float(t['PnL'])  # Use backtesting.py's PnL column!
+    })
+```
+
+**If implementing custom simulation (without backtesting.py), you MUST calculate profit:**
+```python
+# Track positions with average cost basis
+positions = {}  # {symbol: {"shares": float, "avg_cost": float}}
+
+def record_trade(dt, symbol, action, quantity, price, trades_out):
+    profit = 0.0
+    pos = positions.get(symbol, {"shares": 0.0, "avg_cost": 0.0})
+
+    if action == "BUY":
+        # Update average cost basis
+        total_cost = pos["shares"] * pos["avg_cost"] + quantity * price
+        new_shares = pos["shares"] + quantity
+        pos["avg_cost"] = total_cost / new_shares if new_shares > 0 else 0.0
+        pos["shares"] = new_shares
+        profit = 0.0  # No realized P/L on buy
+
+    elif action == "SELL":
+        if pos["shares"] > 0 and pos["avg_cost"] > 0:
+            profit = (price - pos["avg_cost"]) * quantity  # Realized P/L
+            pos["shares"] -= quantity
+            if pos["shares"] <= 0:
+                pos["shares"] = 0.0
+                pos["avg_cost"] = 0.0
+
+    positions[symbol] = pos
+    trades_out.append({
+        "date": dt.strftime("%Y-%m-%d"),
+        "action": action,
+        "symbol": symbol,
+        "price": float(price),
+        "quantity": float(quantity),
+        "profit": float(profit)  # DO NOT hardcode 0.0!
+    })
+```
+
+**DCA (Dollar Cost Averaging) Implementation:**
+backtesting.py does NOT officially support mid-backtest deposits. Use this workaround:
+```python
+class DCAStrategy(Strategy):
+    contribution_amount = 1000.0  # Set via class attribute before bt.run()
+    contribution_freq = "monthly"
+
+    def init(self):
+        self._last_contribution_month = None
+
+    def _add_contribution(self):
+        """Add periodic contribution to cash balance."""
+        self._broker._cash += self.contribution_amount
+
+    def _is_contribution_day(self, dt):
+        """Check if today is first trading day of new period."""
+        if self.contribution_freq == "monthly":
+            if self._last_contribution_month != dt.month:
+                self._last_contribution_month = dt.month
+                return True
+        return False
+
+    def next(self):
+        dt = self.data.index[-1]
+
+        # Add contribution on first trading day of each month
+        if self._is_contribution_day(dt):
+            self._add_contribution()
+            # Buy with new cash
+            cash = float(self._broker._cash)
+            if cash > 0:
+                size = (cash * 0.99) / self.data.Close[-1]
+                self.buy(size=size)
+```
+
+**IMPORTANT - Benchmark Simulation:**
+The `benchmark_series` MUST simulate passive buy-and-hold investing with the SAME conditions as the strategy:
+- Start with the same `initial_capital`
+- Apply the same `contribution` schedule (monthly/weekly additions)
+- Use the benchmark ticker (e.g., SPY) for buy-and-hold
+- Apply the same fees if applicable
+
+Example benchmark simulation logic:
+```python
+# Simulate buy-and-hold on benchmark with same capital and contributions
+benchmark_cash = initial_capital
+benchmark_shares = 0.0
+benchmark_equity = []
+
+for date in trading_dates:
+    price = benchmark_prices.loc[date]
+
+    # Monthly contribution (on first trading day of month)
+    if is_first_day_of_month(date):
+        benchmark_cash += contribution_amount
+        # Buy more shares with contribution
+        shares_to_buy = benchmark_cash / price
+        benchmark_shares += shares_to_buy
+        benchmark_cash = 0.0
+
+    # Record equity value
+    equity_value = benchmark_cash + benchmark_shares * price
+    benchmark_equity.append({"date": date.strftime("%Y-%m-%d"), "value": equity_value})
+```
+This ensures a fair "apples-to-apples" comparison between your strategy and passive investing.
+
+## Important Constraints
+- DO NOT redefine the `load_data` function - it is already provided
+- DO NOT make external API calls (no yfinance, requests, etc.)
+- Use only the data within the specified date range
+- Account for trading fees and slippage in calculations
+- Handle edge cases (missing data, insufficient capital, etc.)
+- Include docstrings and comments for clarity
+- Follow PEP 8 style guidelines
+- The code should be self-contained and executable
+
+## CRITICAL: Data Integrity Requirements (MANDATORY)
+- `Backtest(...)` input MUST be a non-empty OHLCV DataFrame.
+- Never remove rows blindly with `dropna()` on all columns when optional indicators are present.
+- Use `dropna(subset=[...])` with required price columns and only the indicators needed for trading decisions.
+- If you use monthly resampling, use `'ME'` (month-end) instead of deprecated `'M'`.
+- Before mapping monthly indicators to daily data, align index types (e.g., convert monthly index with `.to_period('M')` if daily side uses `to_period('M')`).
+- Always fail fast with explicit validation errors if preprocessing empties the dataset.
+
+**Required pre-Backtest validation block (adapt variable names as needed):**
+```python
+required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
+missing_cols = [c for c in required_cols if c not in df.columns]
+if missing_cols:
+    raise ValueError(f"Missing OHLCV columns: {missing_cols}")
+
+# Only drop NaNs for fields required by strategy logic
+df = df.dropna(subset=required_cols)
+if df.empty:
+    raise ValueError("OHLC data became empty after preprocessing")
+
+if len(df) < 30:
+    raise ValueError(f"Not enough rows for backtest: {len(df)}")
+```
+
+**Monthly indicator alignment example (safe pattern):**
+```python
+monthly_close = daily_df['Close'].resample('ME').last()
+monthly_rsi = calculate_rsi(monthly_close)
+monthly_rsi.index = monthly_rsi.index.to_period('M')
+daily_df['MonthlyRSI'] = daily_df.index.to_period('M').map(monthly_rsi)
+
+# If you need a standalone mapped series and plan to use `.loc[...]`,
+# build a Series (NOT a pandas Index) to avoid: "'Index' object has no attribute 'loc'"
+daily_monthly_rsi = pd.Series(
+    daily_df.index.to_period('M'),
+    index=daily_df.index,
+).map(monthly_rsi)
+m_rsi = daily_monthly_rsi.loc[current_dt]
+```

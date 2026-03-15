@@ -1,0 +1,342 @@
+Product Requirements Document (PRD)
+Project: Python Dash Frontend -> Next.js (TypeScript) Migration
+Repository: backtest-simulation
+Date: 2026-02-14
+Owner: Frontend Migration Team
+
+1. Background
+This product currently serves a Python Dash frontend mounted inside FastAPI at /dashboard/.
+The backend already provides a complete REST API for code generation, execution, status polling,
+and formatted result retrieval.
+
+Current frontend implementation is located under:
+- frontend/app.py
+- frontend/layout.py
+- frontend/callbacks.py
+- frontend/components/*
+
+Current API contract is implemented under:
+- backend/api/v1/endpoints/backtest.py
+- backend/models/backtest.py
+- backend/models/execution.py
+
+Current app entry and dashboard mount:
+- backend/main.py (Dash mounted via WSGIMiddleware at /dashboard)
+
+2. Problem Statement
+The frontend is tightly coupled to Python Dash callbacks and component IDs.
+This makes frontend development velocity, typing safety, component reuse, and modern web ecosystem adoption limited.
+We need to migrate to Next.js + TypeScript while preserving current product behavior and backend contract compatibility.
+
+3. Goals
+G1. Deliver feature-parity web UI in Next.js(TypeScript) for existing backtest workflow.
+G2. Preserve current backend API contracts (no mandatory breaking API changes).
+G3. Improve frontend maintainability through typed models, modular React components, and testability.
+G4. Support production deployment where frontend and backend can be deployed independently.
+
+4. Non-Goals
+N1. Rewriting the backtest engine, execution sandbox, or LLM generation logic.
+N2. Replacing backend endpoints with GraphQL or WebSocket-based protocol in this phase.
+N3. Redesigning quant metrics formulas.
+N4. Introducing authentication/authorization in this migration phase.
+
+5. Current-State Analysis Summary
+5.1 User workflow today (Dash)
+1) User enters strategy + config.
+2) Click "Generate Code" -> POST /api/v1/backtest/generate.
+3) Generated code appears in editor and can be manually edited.
+4) Click "Execute Backtest" -> POST /api/v1/backtest/execute (async_mode=true).
+5) UI polls GET /api/v1/backtest/status/{job_id} every 2 seconds.
+6) When completed, UI fetches GET /api/v1/backtest/{job_id}/result.
+7) UI renders metrics/charts/trades and enables CSV downloads.
+
+5.2 Existing functional modules
+- Input/config UI:
+  - Date range
+  - Initial capital
+  - Contribution frequency/amount
+  - Benchmarks (comma-separated)
+  - Dividend reinvestment toggle
+  - Web search toggle
+  - Strategy text (char counter)
+  - Fees/slippage
+- Code area:
+  - Generated code viewer/editor
+  - Model info badge
+  - Strategy summary
+  - Generation duration/ticker info
+- Execution state:
+  - Job ID and status stores
+  - Polling interval control
+  - Status alerts
+- Results area:
+  - Primary metrics: total_return, cagr, max_drawdown (benchmark compare)
+  - Secondary metrics: sharpe_ratio, sortino_ratio, calmar_ratio
+  - Equity chart (log scale toggle)
+  - Drawdown chart
+  - Monthly returns heatmap
+  - Trade summary table (collapsible)
+  - CSV downloads: equity, drawdown, monthly, metrics, trades
+
+5.3 Notable technical constraints identified
+- Dash frontend uses hardcoded API_BASE_URL = http://localhost:8000/api/v1.
+- FastAPI CORS currently allows all origins only when debug=true; production default is restrictive.
+- Root path redirects to /dashboard/ (Dash-first routing).
+- Backend Docker image currently packages backend only; Next.js build/deploy path does not exist yet.
+
+6. Target Users and Core Jobs
+- Quant/retail strategy experimenter:
+  - Enter strategy in natural language
+  - Generate code quickly
+  - Adjust code and run backtests
+  - Compare strategy vs benchmark
+  - Export data for offline analysis
+
+7. Scope
+7.1 In Scope
+- New Next.js(TypeScript) frontend implementing complete Dash parity.
+- Shared typed API client layer for current REST endpoints.
+- Responsive layout for desktop and mobile.
+- Production-ready environment configuration for frontend-backend split.
+- Frontend automated tests (unit + e2e critical path).
+
+7.2 Out of Scope
+- New backtest metrics or strategy language features.
+- Real-time push (SSE/WebSocket) replacement for polling.
+- Multi-user session management and auth.
+
+8. Functional Requirements
+FR-1. Routing and Page Structure
+- Provide a main page equivalent to current dashboard.
+- Preserve two-pane workflow:
+  - Left: configuration + actions
+  - Right: generated code + results
+
+FR-2. Strategy and Parameter Input
+- Must support these fields with defaults and validation behavior:
+  - strategy (min 10 chars, max 10,000)
+  - start_date/end_date
+  - initial_capital (>= 1000)
+  - benchmarks (at least 1)
+  - contribution.frequency (monthly/quarterly/semiannual/annual)
+  - contribution.amount (>= 0)
+  - fees.trading_fee_percent (0 to 10)
+  - fees.slippage_percent (0 to 10)
+  - dividend_reinvestment (bool)
+  - llm_settings.web_search_enabled (bool)
+- Show real-time validation summary similar to current warning alert behavior.
+
+FR-3. Generate Code Flow
+- On Generate action, call POST /api/v1/backtest/generate.
+- Show loading and timeout handling.
+- On success:
+  - Populate code editor with generated code.
+  - Show model info and strategy summary.
+  - Display generation metadata (duration, detected tickers).
+  - Enable Execute action.
+- On failure:
+  - Show backend error detail.
+
+FR-4. Editable Code Experience
+- User must be able to modify generated code before execution.
+- If no generated/edited code exists, execution must be blocked with warning.
+
+FR-5. Execute Backtest Flow
+- On Execute, call POST /api/v1/backtest/execute with async_mode=true.
+- Store and display job_id and job status.
+- Start polling state automatically after submission.
+
+FR-6. Polling and Completion
+- Poll GET /api/v1/backtest/status/{job_id} every 2 seconds by default.
+- Continue polling for pending/running.
+- On completed:
+  - stop polling
+  - call GET /api/v1/backtest/{job_id}/result
+  - render full result UI
+- On failed:
+  - stop polling
+  - show failure message and available logs
+
+FR-7. Results Visualization
+- Render these sections after successful result retrieval:
+  - Primary metric cards with benchmark delta where available
+  - Secondary metric cards
+  - Equity curve chart with log scale toggle
+  - Drawdown chart
+  - Monthly returns heatmap
+  - Trade table with action/profit formatting
+
+FR-8. Export
+- Provide CSV downloads for:
+  - equity curve
+  - drawdown
+  - monthly returns
+  - metrics
+  - trades
+- Buttons disabled until results are available.
+
+FR-9. UX Feedback
+- Status banners for generate/execute/polling/success/failure states.
+- Collapsible code panel and trade panel.
+- Reasonable loading indicators for network operations.
+
+FR-10. Compatibility
+- API payload/response compatibility with existing backend models and tests.
+- No backend API breaking changes required to run the new frontend.
+
+9. API Requirements (Current Contract to Preserve)
+9.1 Endpoints used by frontend parity
+- POST /api/v1/backtest/generate
+- POST /api/v1/backtest/execute
+- GET /api/v1/backtest/status/{job_id}
+- GET /api/v1/backtest/{job_id}/result
+- GET /api/v1/backtest/result/{job_id} (failure logs fallback path)
+
+9.2 Optional/secondary endpoints to expose in UI later
+- GET /api/v1/backtest/config/llm-providers
+- GET /api/v1/backtest/config/data-sources
+- GET /api/v1/backtest/{job_id}/chart/equity
+- GET /api/v1/backtest/{job_id}/chart/drawdown
+- GET /api/v1/backtest/{job_id}/chart/monthly-returns
+
+10. Frontend Technical Requirements
+TR-1. Stack
+- Next.js (App Router) + TypeScript strict mode.
+- React component architecture with domain-based folders.
+
+TR-2. State Management
+- Replace dcc.Store-based state with typed client state:
+  - generatedCode
+  - jobId/jobStatus
+  - results
+  - ui toggles
+- Suggested: React Query (server-state) + local store (Zustand or Context).
+
+TR-3. API Client
+- Central typed client and DTOs aligned with backend Pydantic schema.
+- Base URL from environment variable:
+  - NEXT_PUBLIC_API_BASE_URL
+
+TR-4. Charting
+- Maintain current chart feature parity (equity, drawdown, monthly heatmap).
+- Preserve log-scale toggle behavior for equity chart.
+
+TR-5. Code Editor
+- Integrate browser-based code editor (Monaco or equivalent) with Python syntax highlighting.
+
+TR-6. Validation
+- Client-side pre-validation matching current Dash validation rules.
+- Preserve backend-side validation handling (422/400 surfaces).
+
+TR-7. i18n/Text
+- Keep existing English UI text as baseline.
+- Structure labels/messages for future localization.
+
+TR-8. Accessibility
+- Keyboard-accessible controls.
+- Semantic labels for form inputs and action buttons.
+
+11. Backend/Infra Change Requirements for Migration
+BR-1. CORS
+- Add explicit allowed frontend origin(s) for production Next.js domain.
+
+BR-2. Routing
+- Replace or feature-flag current root redirect (/ -> /dashboard/) to new frontend URL/path.
+- Keep old Dash route temporarily during rollout for rollback safety.
+
+BR-3. Deployment
+- Define deployment topology:
+  - Option A: Next.js standalone service + FastAPI API service
+  - Option B: Next.js static/export behind reverse proxy + FastAPI API
+- Update compose/prod infra docs accordingly.
+
+BR-4. Dependency cleanup (post-cutover)
+- Remove Dash-related runtime deps from backend image only after complete migration.
+
+12. UX and Design Requirements
+- Preserve current information architecture to reduce learning cost.
+- Improve visual clarity and responsiveness over Dash baseline.
+- Keep one-page workflow to minimize context switching.
+
+13. Success Metrics
+SM-1. Functional parity:
+- 100% completion of critical user flow:
+  - generate -> execute -> poll -> results -> export
+
+SM-2. Stability:
+- No increase in API error rate attributable to frontend integration.
+
+SM-3. Performance:
+- Initial page interactive under acceptable local/dev baseline.
+- Polling loop remains stable for long-running jobs.
+
+SM-4. Quality:
+- Automated tests covering critical path pass in CI.
+
+14. Testing Requirements
+TE-1. Unit tests
+- Form validation
+- Request payload builders
+- Result mappers
+
+TE-2. Integration tests (frontend)
+- API mocking for generate/execute/status/result flows
+
+TE-3. E2E tests
+- End-to-end scenario with mocked or test backend:
+  - input -> generate -> execute -> result render -> CSV export
+
+TE-4. Regression checks
+- Compare key output rendering against existing Dash behavior:
+  - metrics names/format
+  - chart visibility
+  - trade table structure
+
+15. Migration Plan
+Phase 1: Foundation
+- Scaffold Next.js TypeScript app
+- Build typed API client and DTOs
+- Implement base layout and shared UI primitives
+
+Phase 2: Feature Parity
+- Implement config form + validation
+- Implement generate flow + code editor
+- Implement execute/polling flow
+- Implement results charts/metrics/trades
+- Implement CSV exports
+
+Phase 3: Hardening and Cutover
+- Add tests and CI checks
+- Configure CORS and production routing
+- Deploy side-by-side with Dash
+- Switch default route to Next.js
+
+Phase 4: Decommission Dash
+- Remove Dash mount and dependencies
+- Clean obsolete frontend Python modules
+- Update docs and operational runbooks
+
+16. Risks and Mitigations
+R1. API contract drift
+- Mitigation: Shared typed schemas and contract tests.
+
+R2. Long-running job UX instability
+- Mitigation: Robust polling state machine and retry/error policies.
+
+R3. Production CORS/Reverse proxy misconfiguration
+- Mitigation: Explicit env-based origin config and pre-release smoke tests.
+
+R4. Chart parity gaps
+- Mitigation: Snapshot-based visual checks on representative data.
+
+17. Open Questions
+Q1. Final deployment model for Next.js (standalone server vs static hosting)?
+Q2. Should LLM provider/model selection be exposed in the new UI now or later?
+Q3. Should we keep current polling interval fixed at 2s or make it configurable?
+Q4. Timeline for fully removing /dashboard legacy route?
+
+18. Definition of Done
+- New Next.js frontend supports all in-scope FRs.
+- Critical e2e flow validated.
+- Production routing and CORS configured for new frontend.
+- Legacy Dash path has rollback plan and decommission checklist.

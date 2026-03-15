@@ -1,0 +1,55 @@
+# Python 컴파일 파일
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Python 패키징/배포
+*.egg
+*.egg-info/
+dist/
+build/
+MANIFEST
+wheels/
+
+# 테스트/커버리지
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+cover/
+.tox/
+.hypothesis/
+nosetests.xml
+coverage.xml
+*.cover
+
+# 타입 체커
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# 가상환경
+venv/
+env/
+.venv/
+
+# 환경변수
+.env
+.env.local
+.env.*.local
+
+# 로그/캐시
+*.log
+logs/
+.cache/
+pip-log.txt
+
+# OS/IDE
+.DS_Store
+
+# 개발 전용 디렉토리
+research/
+plan/

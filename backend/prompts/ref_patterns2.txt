@@ -1,0 +1,46 @@
+## run_backtest Return Format
+
+Define a `run_backtest(params)` function that returns a dict with these keys:
+
+**Required:**
+- `equity_series`: list of `{"date": "YYYY-MM-DD", "value": float}` — daily portfolio value
+- `trades`: list of `{"date": "...", "action": "BUY"|"SELL", "symbol": "...", "price": float, "quantity": float, "profit": float}`
+  - `profit`: realized P/L. BUY → 0.0, SELL → (sell_price - avg_buy_price) * quantity. Never hardcode 0.0 for sells.
+- `benchmark_series`: same format as equity_series, simulating passive buy-and-hold with identical conditions (same initial_capital, same contribution schedule, benchmark ticker)
+
+**Optional:** `start_date`, `end_date`, `final_value`, `return_pct`, `max_drawdown`, `sharpe_ratio`, `num_trades`
+
+**Converting backtesting.py results:**
+- Equity: `results['_equity_curve']['Equity']`
+- Trades: `results['_trades']` columns — Size, EntryPrice, ExitPrice, PnL, EntryTime, ExitTime
+
+## DCA (Dollar Cost Averaging)
+
+backtesting.py does NOT support mid-backtest deposits. Workaround:
+- Inject cash directly via `self._broker._cash += contribution_amount`
+- Track contribution timing by comparing month/week of `self.data.index[-1]` to last contribution period
+- After injection, buy with `(cash * 0.99) / self.data.Close[-1]` to leave margin
+
+## Benchmark Simulation Rules
+
+The benchmark MUST mirror strategy conditions for fair comparison:
+- Same `initial_capital` as starting value
+- Same periodic `contribution` schedule (buy more benchmark shares each period)
+- Buy-and-hold on the benchmark ticker (e.g., SPY)
+- Apply same fees if applicable
+
+## Data Integrity
+
+- `Backtest(...)` input MUST be a non-empty OHLCV DataFrame
+- Use `dropna(subset=[required_cols])`, never `dropna()` on all columns
+- Use `'ME'` for month-end resampling, not deprecated `'M'`
+- For monthly-to-daily indicator mapping, align with `.to_period('M')`
+- Validate before running: check required columns exist, data is non-empty, and has >= 30 rows
+
+## General Constraints
+
+- DO NOT redefine `load_data` — it is already provided
+- DO NOT make external API calls
+- Account for trading fees and slippage
+- Handle edge cases (missing data, insufficient capital)
+- Code must be self-contained and executable
