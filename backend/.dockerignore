@@ -1,7 +1,3 @@
-# Git
-.git
-.gitignore
-
 # Python
 __pycache__
 *.py[cod]
@@ -31,6 +27,7 @@ ENV/
 htmlcov/
 .tox/
 .nox/
+tests/
 
 # Local development
 .env
@@ -40,30 +37,14 @@ htmlcov/
 # Documentation
 docs/
 *.md
-!README.md
 
 # Cache
 .cache/
 *.cache
 
-# Docker (don't include docker files in docker context)
-docker/
-Dockerfile*
-docker-compose*.yml
+# Docker
+Dockerfile
 .dockerignore
-
-# CI/CD
-.github/
-.gitlab-ci.yml
-
-# Claude/AI configs
-.claude/
-.taskmaster/
-CLAUDE.md
-
-# Test files
-tests/
-test_*.py
 
 # Data (if large)
 data/prices/*.csv

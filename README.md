@@ -63,6 +63,14 @@ OPENROUTER_API_KEY=your_api_key_here
 
 ### 3. Run with Docker Compose
 
+Using pre-built images (faster):
+
+```bash
+docker compose pull && docker compose up
+```
+
+Or build locally:
+
 ```bash
 docker compose up --build
 ```
@@ -81,7 +89,7 @@ docker compose up --build
 cd backend
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r ../requirements.txt
+pip install -r requirements.txt
 cp .env.example .env       # Edit .env with your API key
 uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
@@ -133,17 +141,20 @@ backtest-simulation/
 ├── backend/
 │   ├── api/v1/              # API endpoints
 │   ├── core/                # Config, DI container
+│   ├── docker-runner/       # Sandbox execution image (Dockerfile)
 │   ├── providers/
-│   │   ├── llm/             # LLM providers (LangChain/OpenRouter)
-│   │   └── data/            # Data providers (yfinance, local, mock)
+│   │   └── llm/             # LLM providers (LangChain/OpenRouter)
 │   ├── services/
 │   │   ├── code_generation/
 │   │   │   └── graph/       # LangGraph agent (nodes, state, callbacks)
 │   │   └── execution/       # Job manager, Docker/local backends
 │   ├── models/              # Pydantic models & error codes
 │   ├── prompts/             # LLM prompt templates & API references
+│   ├── tests/               # pytest test suite
 │   ├── utils/               # Ticker extraction utilities
 │   ├── config.yaml          # Application config
+│   ├── Dockerfile           # Backend API image
+│   ├── requirements.txt     # Python dependencies
 │   └── main.py              # FastAPI entry point
 ├── frontend/
 │   └── src/
@@ -155,13 +166,9 @@ backtest-simulation/
 │       │   ├── api/         # Axios API client
 │       │   ├── validations/ # Zod form schemas
 │       │   └── export/      # CSV/JSON export
-│       └── types/           # TypeScript type definitions
-├── docker/
-│   └── backtest-runner/     # Sandbox execution image
-├── tests/                   # pytest test suite
-├── docker-compose.yml
-├── Dockerfile
-└── requirements.txt
+│       ├── types/           # TypeScript type definitions
+│       └── Dockerfile       # Frontend image
+└── docker-compose.yml
 ```
 
 ## API Endpoints
@@ -268,6 +275,14 @@ OPENROUTER_API_KEY=your_api_key_here
 
 ### 3. Docker Compose로 실행
 
+사전 빌드된 이미지 사용 (빠름):
+
+```bash
+docker compose pull && docker compose up
+```
+
+또는 직접 빌드:
+
 ```bash
 docker compose up --build
 ```
@@ -286,7 +301,7 @@ docker compose up --build
 cd backend
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r ../requirements.txt
+pip install -r requirements.txt
 cp .env.example .env       # .env에 API 키 입력
 uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
@@ -338,17 +353,20 @@ backtest-simulation/
 ├── backend/
 │   ├── api/v1/              # API 엔드포인트
 │   ├── core/                # 설정, DI 컨테이너
+│   ├── docker-runner/       # 샌드박스 실행 이미지 (Dockerfile)
 │   ├── providers/
-│   │   ├── llm/             # LLM 프로바이더 (LangChain/OpenRouter)
-│   │   └── data/            # 데이터 프로바이더 (yfinance, local, mock)
+│   │   └── llm/             # LLM 프로바이더 (LangChain/OpenRouter)
 │   ├── services/
 │   │   ├── code_generation/
 │   │   │   └── graph/       # LangGraph 에이전트 (노드, 상태, 콜백)
 │   │   └── execution/       # 작업 관리자, Docker/로컬 백엔드
 │   ├── models/              # Pydantic 모델 및 에러 코드
 │   ├── prompts/             # LLM 프롬프트 템플릿 및 API 레퍼런스
+│   ├── tests/               # pytest 테스트 스위트
 │   ├── utils/               # 티커 추출 유틸리티
 │   ├── config.yaml          # 애플리케이션 설정
+│   ├── Dockerfile           # 백엔드 API 이미지
+│   ├── requirements.txt     # Python 의존성
 │   └── main.py              # FastAPI 진입점
 ├── frontend/
 │   └── src/
@@ -360,13 +378,9 @@ backtest-simulation/
 │       │   ├── api/         # Axios API 클라이언트
 │       │   ├── validations/ # Zod 폼 스키마
 │       │   └── export/      # CSV/JSON 내보내기
-│       └── types/           # TypeScript 타입 정의
-├── docker/
-│   └── backtest-runner/     # 샌드박스 실행 이미지
-├── tests/                   # pytest 테스트 스위트
-├── docker-compose.yml
-├── Dockerfile
-└── requirements.txt
+│       ├── types/           # TypeScript 타입 정의
+│       └── Dockerfile       # 프론트엔드 이미지
+└── docker-compose.yml
 ```
 
 ## API 엔드포인트

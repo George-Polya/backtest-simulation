@@ -31,17 +31,16 @@ FROM python:3.13-slim AS runtime
 
 # Labels for container registry
 LABEL org.opencontainers.image.source="https://github.com/OWNER/backtest-simulation"
-LABEL org.opencontainers.image.description="AI-powered Natural Language Backtesting Service"
+LABEL org.opencontainers.image.description="AI-powered Natural Language Backtesting Service - Backend"
 LABEL org.opencontainers.image.licenses="MIT"
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    # Application settings
     APP_DEBUG=false \
     PORT=8000
 
-# Install runtime dependencies (if needed for specific packages)
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/* \
@@ -57,8 +56,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Set working directory
 WORKDIR /app
 
-# Copy application code
-COPY --chown=appuser:appuser backend/ ./backend/
+# Copy application code (build context is backend/)
+COPY --chown=appuser:appuser . ./backend/
 
 # Create data directories
 RUN mkdir -p data/prices && chown -R appuser:appuser data/

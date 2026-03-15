@@ -2,19 +2,21 @@ version: '3.8'
 
 services:
   # ===========================================
-  # Main FastAPI Application
+  # Backend - FastAPI Application
   # ===========================================
   backtest-api:
     build:
-      context: .
+      context: backend
       dockerfile: Dockerfile
     image: ghcr.io/${GITHUB_REPOSITORY:-local}/backtest-api:latest
     container_name: backtest-api
     ports:
       - "8000:8000"
+    env_file:
+      - backend/.env
     environment:
       - APP_DEBUG=${APP_DEBUG:-false}
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - EXECUTION__DOCKER_IMAGE=ghcr.io/${GITHUB_REPOSITORY:-local}/backtest-runner:latest
     volumes:
       # Persist price cache data
       - ./data:/app/data
@@ -42,14 +44,34 @@ services:
         condition: service_completed_successfully
 
   # ===========================================
+  # Frontend - Next.js Application
+  # ===========================================
+  backtest-frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
+    image: ghcr.io/${GITHUB_REPOSITORY:-local}/backtest-frontend:latest
+    container_name: backtest-frontend
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - backtest-network
+    depends_on:
+      backtest-api:
+        condition: service_healthy
+
+  # ===========================================
   # Backtest Runner Image Builder (one-time)
   # This builds the sandbox image on first run
   # ===========================================
   backtest-runner-build:
     build:
-      context: .
-      dockerfile: docker/backtest-runner/Dockerfile
-    image: backtest-runner:latest
+      context: backend/docker-runner
+      dockerfile: Dockerfile
+    image: ghcr.io/${GITHUB_REPOSITORY:-local}/backtest-runner:latest
     container_name: backtest-runner-build
     # This container just builds the image and exits
     command: ["echo", "Backtest runner image built successfully"]

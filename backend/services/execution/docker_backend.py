@@ -556,7 +556,7 @@ if __name__ == "__main__":
                     f"Docker image '{self._python_image}' is not available. "
                     f"Inspect error: {inspect_error}. "
                     "Build it locally (recommended) with:\n"
-                    f"  docker build -f docker/backtest-runner/Dockerfile -t {self._python_image} .\n"
+                    f"  docker build -f backend/docker-runner/Dockerfile -t {self._python_image} backend/docker-runner\n"
                     "Or configure a different image via `execution.docker_image` in config.yaml.",
                     error_code=ErrorCode.DOCKER_IMAGE_NOT_AVAILABLE,
                 ) from pull_error

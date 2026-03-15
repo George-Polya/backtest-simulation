@@ -30,7 +30,7 @@ data:
 execution:
   provider: "docker"  # docker | local
   fallback_to_local: true  # Fallback to local if Docker fails
-  docker_image: "backtest-runner:latest"  # Custom image with backtesting dependencies
+  docker_image: "backtest-runner:latest"  # Override with EXECUTION__DOCKER_IMAGE env var
   timeout: 300
   memory_limit: "2g"
   allowed_modules:
