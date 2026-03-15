@@ -669,7 +669,8 @@ class ASTCodeValidator:
                 if isinstance(key, ast.Constant) and isinstance(key.value, str):
                     keys.add(key.value)
                 elif isinstance(key, ast.Str):  # Python < 3.8 compatibility
-                    keys.add(key.s)
+                    if isinstance(key.s, str):
+                        keys.add(key.s)
 
         return keys
 
@@ -869,7 +870,7 @@ class ASTCodeValidator:
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
             return node.value
         if isinstance(node, ast.Str):  # Python < 3.8 compatibility
-            return node.s
+            return key_value if isinstance((key_value := node.s), str) else None
         return None
 
     # =========================================================================

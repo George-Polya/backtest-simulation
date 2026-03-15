@@ -60,7 +60,7 @@ class TestLLMConfig:
 
     def test_legacy_string_model_is_normalized(self) -> None:
         """Legacy string model values should still parse into the nested schema."""
-        config = LLMConfig(model="openai/gpt-5.4")
+        config = LLMConfig.model_validate({"model": "openai/gpt-5.4"})
         assert config.model.name == "openai/gpt-5.4"
 
     def test_temperature_validation(self) -> None:

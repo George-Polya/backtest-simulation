@@ -15,7 +15,7 @@ type hints for maintainability.
 import numpy as np
 import pandas as pd
 from dataclasses import dataclass
-from datetime import date
+from datetime import date as date_type, datetime
 from typing import Protocol, Any
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
@@ -69,14 +69,17 @@ class ChartDataPoint(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    date: str = Field(..., description="Date in ISO format (YYYY-MM-DD)")
+    date: str | date_type | datetime = Field(
+        ...,
+        description="Date in ISO format (YYYY-MM-DD)",
+    )
     value: float = Field(..., description="Value at this date")
 
     @field_validator("date", mode="before")
     @classmethod
     def validate_date_format(cls, v: Any) -> str:
         """Ensure date is in ISO format string."""
-        if isinstance(v, (date, pd.Timestamp)):
+        if isinstance(v, (date_type, pd.Timestamp)):
             return v.strftime("%Y-%m-%d")
         return str(v)
 
@@ -179,6 +182,8 @@ class FormattedResults(BaseModel):
 class MetricsCalculator(Protocol):
     """Protocol for metrics calculation strategies."""
 
+    risk_free_rate: float
+
     def calculate_total_return(self, equity_series: pd.Series) -> float:
         """Calculate total return percentage."""
         ...
@@ -201,6 +206,10 @@ class MetricsCalculator(Protocol):
         self, returns: pd.Series, risk_free_rate: float
     ) -> float:
         """Calculate annualized Sortino ratio."""
+        ...
+
+    def calculate_volatility(self, returns: pd.Series) -> float:
+        """Calculate annualized volatility."""
         ...
 
 
@@ -524,8 +533,8 @@ class ResultFormatter:
         self,
         equity_series: pd.Series,
         trades: list[dict[str, Any]],
-        start_date: date,
-        end_date: date,
+        start_date: date_type,
+        end_date: date_type,
     ) -> PerformanceMetrics:
         """
         Calculate comprehensive performance metrics.
@@ -553,7 +562,7 @@ class ResultFormatter:
         volatility = self.calculator.calculate_volatility(returns)
 
         # Calculate risk-adjusted metrics
-        risk_free_rate = getattr(self.calculator, "risk_free_rate", 0.0)
+        risk_free_rate = self.calculator.risk_free_rate
         sharpe_ratio = self.calculator.calculate_sharpe_ratio(returns, risk_free_rate)
         sortino_ratio = self.calculator.calculate_sortino_ratio(returns, risk_free_rate)
 
@@ -706,8 +715,8 @@ class ResultFormatter:
         self,
         equity_series: pd.Series,
         trades: list[dict[str, Any]],
-        start_date: date,
-        end_date: date,
+        start_date: date_type,
+        end_date: date_type,
         benchmark_series: pd.Series | None = None,
         use_log_scale: bool = False,
     ) -> FormattedResults:

@@ -293,6 +293,7 @@ class TestExecutionJobModel:
 
         assert sample_job.status == JobStatus.TIMEOUT
         assert sample_job.completed_at is not None
+        assert sample_job.error is not None
         assert "timed out" in sample_job.error.lower()
         assert "Timeout logs" in sample_job.logs
 

@@ -7,7 +7,7 @@ Provides endpoints for submitting and managing backtest code execution jobs.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, TypedDict
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, Field, field_validator
@@ -211,6 +211,11 @@ class DataSourceInfo(BaseModel):
         default_factory=list,
         description="List of supported exchanges",
     )
+
+
+class _DataSourceMetadata(TypedDict):
+    description: str
+    exchanges: list[str]
 
 
 class ConfigProvidersResponse(BaseModel):
@@ -1086,7 +1091,7 @@ async def get_data_sources() -> ConfigProvidersResponse:
     source_names = DataProviderFactory.get_supported_providers()
 
     # Data source descriptions and supported exchanges
-    source_info = {
+    source_info: dict[str, _DataSourceMetadata] = {
         "yfinance": {
             "description": "Yahoo Finance - Global market data and historical prices",
             "exchanges": ["NYSE", "NASDAQ", "LSE", "TSE", "HKEX"],
@@ -1097,17 +1102,20 @@ async def get_data_sources() -> ConfigProvidersResponse:
         },
     }
 
-    sources = [
-        DataSourceInfo(
-            name=name,
-            description=source_info.get(name, {}).get(
-                "description",
-                f"{name.upper()} data provider",
-            ),
-            supported_exchanges=source_info.get(name, {}).get("exchanges", []),
+    sources: list[DataSourceInfo] = []
+    for name in source_names:
+        metadata = source_info.get(name)
+        sources.append(
+            DataSourceInfo(
+                name=name,
+                description=(
+                    metadata["description"]
+                    if metadata is not None
+                    else f"{name.upper()} data provider"
+                ),
+                supported_exchanges=metadata["exchanges"] if metadata is not None else [],
+            )
         )
-        for name in source_names
-    ]
 
     logger.info(f"Retrieved {len(sources)} available data sources")
     return ConfigProvidersResponse(providers=sources)

@@ -7,6 +7,7 @@ file creation, path translation, and cleanup.
 
 import json
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
 
 import pytest
@@ -38,7 +39,7 @@ class TestLocalWorkspaceManager:
     """Tests for LocalWorkspaceManager."""
 
     @pytest.fixture
-    def manager(self) -> LocalWorkspaceManager:
+    def manager(self) -> Generator[LocalWorkspaceManager, None, None]:
         """Create a local workspace manager."""
         with tempfile.TemporaryDirectory() as temp_dir:
             yield LocalWorkspaceManager(base_path=temp_dir)

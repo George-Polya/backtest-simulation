@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 
@@ -11,6 +13,20 @@ from backend.services.code_generation.graph.nodes import (
     should_continue,
     should_retry_or_end,
 )
+from backend.services.code_generation.graph.state import CodeGenerationState
+
+
+def make_state(**overrides: object) -> CodeGenerationState:
+    """Build a minimal graph state for router and validation tests."""
+    base: dict[str, object] = {
+        "messages": [],
+        "validation_attempt": 0,
+        "max_validation_attempts": 3,
+        "is_complete": False,
+        "error": None,
+    }
+    base.update(overrides)
+    return cast(CodeGenerationState, base)
 
 
 class TestAgentStructuredResponse:
@@ -31,7 +47,7 @@ class TestAgentStructuredResponse:
 
     def test_missing_code_raises(self) -> None:
         with pytest.raises(Exception):
-            AgentStructuredResponse(summary="test")
+            AgentStructuredResponse.model_validate({"summary": "test"})
 
 
 class TestShouldContinue:
@@ -39,20 +55,20 @@ class TestShouldContinue:
 
     def test_routes_to_tools_when_tool_calls(self) -> None:
         ai_msg = AIMessage(content="", tool_calls=[{"name": "test", "args": {}, "id": "1"}])
-        state = {"messages": [ai_msg], "is_complete": False}
+        state = make_state(messages=[ai_msg], is_complete=False)
         assert should_continue(state) == "tools"
 
     def test_routes_to_validate_when_no_tool_calls(self) -> None:
         ai_msg = AIMessage(content="some response")
-        state = {"messages": [ai_msg], "is_complete": False}
+        state = make_state(messages=[ai_msg], is_complete=False)
         assert should_continue(state) == "validate"
 
     def test_routes_to_end_when_complete(self) -> None:
-        state = {"messages": [], "is_complete": True}
+        state = make_state(messages=[], is_complete=True)
         assert should_continue(state) == "__end__"
 
     def test_routes_to_validate_on_empty_messages(self) -> None:
-        state = {"messages": [], "is_complete": False}
+        state = make_state(messages=[], is_complete=False)
         assert should_continue(state) == "validate"
 
 
@@ -60,11 +76,11 @@ class TestShouldRetryOrEnd:
     """Tests for the should_retry_or_end router."""
 
     def test_routes_to_end_when_complete(self) -> None:
-        state = {"is_complete": True}
+        state = make_state(is_complete=True)
         assert should_retry_or_end(state) == "__end__"
 
     def test_routes_to_agent_when_not_complete(self) -> None:
-        state = {"is_complete": False}
+        state = make_state(is_complete=False)
         assert should_retry_or_end(state) == "agent"
 
 
@@ -82,7 +98,7 @@ class TestValidationNode:
             "code": "print(1)",
         })
         ai_msg = AIMessage(content=content)
-        state = {"messages": [ai_msg], "validation_attempt": 0, "max_validation_attempts": 3}
+        state = make_state(messages=[ai_msg], validation_attempt=0, max_validation_attempts=3)
         result = await node(state)
         assert result["is_complete"] is True
         assert result["structured_response"] is not None
@@ -92,7 +108,7 @@ class TestValidationNode:
     async def test_retries_on_invalid_json(self) -> None:
         node = create_validation_node(AgentStructuredResponse)
         ai_msg = AIMessage(content="not valid json")
-        state = {"messages": [ai_msg], "validation_attempt": 0, "max_validation_attempts": 3}
+        state = make_state(messages=[ai_msg], validation_attempt=0, max_validation_attempts=3)
         result = await node(state)
         assert result["is_complete"] is False
         assert result["validation_attempt"] == 1
@@ -103,7 +119,7 @@ class TestValidationNode:
     async def test_gives_up_after_max_attempts(self) -> None:
         node = create_validation_node(AgentStructuredResponse)
         ai_msg = AIMessage(content="bad json")
-        state = {"messages": [ai_msg], "validation_attempt": 2, "max_validation_attempts": 3}
+        state = make_state(messages=[ai_msg], validation_attempt=2, max_validation_attempts=3)
         result = await node(state)
         assert result["is_complete"] is True
         assert result.get("error") is not None
@@ -115,7 +131,7 @@ class TestValidationNode:
             content="",
             tool_calls=[{"name": "validate", "args": {}, "id": "1"}],
         )
-        state = {"messages": [ai_msg], "validation_attempt": 0, "max_validation_attempts": 3}
+        state = make_state(messages=[ai_msg], validation_attempt=0, max_validation_attempts=3)
         result = await node(state)
         assert result["is_complete"] is False
 
@@ -133,7 +149,7 @@ class TestValidationNode:
                 },
             },
         )
-        state = {"messages": [ai_msg], "validation_attempt": 0, "max_validation_attempts": 3}
+        state = make_state(messages=[ai_msg], validation_attempt=0, max_validation_attempts=3)
         result = await node(state)
         assert result["is_complete"] is True
         assert result["structured_response"]["summary"] == "parsed summary"
@@ -160,7 +176,7 @@ class TestValidationNode:
                 },
             },
         )
-        state = {"messages": [ai_msg], "validation_attempt": 0, "max_validation_attempts": 3}
+        state = make_state(messages=[ai_msg], validation_attempt=0, max_validation_attempts=3)
         result = await node(state)
         assert result["is_complete"] is True
         assert result["structured_response"]["summary"] == "correct"
@@ -170,7 +186,7 @@ class TestValidationNode:
         """Empty content with no parsed kwargs should trigger retry, not crash."""
         node = create_validation_node(AgentStructuredResponse)
         ai_msg = AIMessage(content="")
-        state = {"messages": [ai_msg], "validation_attempt": 0, "max_validation_attempts": 3}
+        state = make_state(messages=[ai_msg], validation_attempt=0, max_validation_attempts=3)
         result = await node(state)
         assert result["is_complete"] is False
         assert result["validation_attempt"] == 1
@@ -184,7 +200,7 @@ class TestValidationNode:
         """Empty content should stop retrying when max_validation_attempts is reached."""
         node = create_validation_node(AgentStructuredResponse)
         ai_msg = AIMessage(content="")
-        state = {"messages": [ai_msg], "validation_attempt": 2, "max_validation_attempts": 3}
+        state = make_state(messages=[ai_msg], validation_attempt=2, max_validation_attempts=3)
         result = await node(state)
         assert result["is_complete"] is True
         assert result.get("error") is not None
@@ -195,7 +211,7 @@ class TestValidationNode:
         """Whitespace-only content should also respect max_validation_attempts."""
         node = create_validation_node(AgentStructuredResponse)
         ai_msg = AIMessage(content="   ")
-        state = {"messages": [ai_msg], "validation_attempt": 2, "max_validation_attempts": 3}
+        state = make_state(messages=[ai_msg], validation_attempt=2, max_validation_attempts=3)
         result = await node(state)
         assert result["is_complete"] is True
         assert result.get("error") is not None
@@ -204,7 +220,7 @@ class TestValidationNode:
     async def test_handles_non_ai_message(self) -> None:
         node = create_validation_node(AgentStructuredResponse)
         human_msg = HumanMessage(content="hello")
-        state = {"messages": [human_msg], "validation_attempt": 0, "max_validation_attempts": 3}
+        state = make_state(messages=[human_msg], validation_attempt=0, max_validation_attempts=3)
         result = await node(state)
         assert result["is_complete"] is False
         assert "error" in result

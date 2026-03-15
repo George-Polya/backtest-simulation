@@ -11,7 +11,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from backend.core.config import LLMConfig, LLMProvider as LLMProviderEnum, Settings
+from backend.core.config import (
+    LLMConfig,
+    LLMModelConfig,
+    LLMProvider as LLMProviderEnum,
+    Settings,
+)
 from backend.providers.llm.base import LLMProvider, LLMProviderError
 from backend.providers.llm.factory import LLMProviderFactory
 from backend.providers.llm.langchain_adapter import LangChainAdapter
@@ -23,7 +28,7 @@ def langchain_settings() -> Settings:
     settings = MagicMock(spec=Settings)
     settings.llm = LLMConfig(
         provider=LLMProviderEnum.LANGCHAIN,
-        model="anthropic/claude-3.5-sonnet",
+        model=LLMModelConfig(name="anthropic/claude-3.5-sonnet"),
         temperature=0.2,
         max_tokens=8000,
     )

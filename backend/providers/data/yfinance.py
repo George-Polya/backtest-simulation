@@ -278,8 +278,8 @@ class YFinanceDataProvider(DataProvider):
             Tuple of (fast_info dict, basic_info dict)
         """
         ticker_obj = yf.Ticker(yf_ticker)
-        fast_info = {}
-        basic_info = {}
+        fast_info: dict[str, Any] = {}
+        basic_info: dict[str, Any] = {}
 
         # Get fast_info (lightweight)
         try:

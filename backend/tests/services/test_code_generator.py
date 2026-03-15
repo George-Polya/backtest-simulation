@@ -13,7 +13,7 @@ import pytest
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from backend.models.backtest import (
     BacktestParams,
@@ -796,10 +796,9 @@ class TestGenerate:
         request.params.benchmarks = ["test"]  # This won't be extracted
 
         # Clear benchmarks after creation to test no-ticker scenario
-        code_generator._extract_tickers = MagicMock(return_value=[])
-
-        with pytest.raises(CodeGenerationError, match="No ticker symbols found"):
-            await code_generator.generate(request)
+        with patch.object(code_generator, "_extract_tickers", return_value=[]):
+            with pytest.raises(CodeGenerationError, match="No ticker symbols found"):
+                await code_generator.generate(request)
 
     @pytest.mark.asyncio
     async def test_generate_llm_failure(

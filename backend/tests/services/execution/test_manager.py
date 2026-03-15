@@ -192,7 +192,7 @@ class TestJobManager:
     ):
         """Test that job is stored during execution."""
         code = "def run_backtest(params): return {}"
-        params = {}
+        params: dict[str, object] = {}
 
         await job_manager.run_backtest(code, params)
 
@@ -204,7 +204,7 @@ class TestJobManager:
     async def test_submit_backtest_returns_job_id(self, job_manager: JobManager):
         """Test that submit_backtest returns a job ID."""
         code = "def run_backtest(params): return {}"
-        params = {}
+        params: dict[str, object] = {}
 
         job_id = await job_manager.submit_backtest(code, params)
 
@@ -250,6 +250,7 @@ class TestJobManager:
         result = await job_manager.get_job_result("test-result-job")
 
         assert result.success is True
+        assert result.data is not None
         assert result.data["portfolio_value"] == 20000
 
     @pytest.mark.asyncio
@@ -396,6 +397,7 @@ def run_backtest(params):
         result = await real_job_manager.run_backtest(code, params)
 
         assert result.success is True
+        assert result.data is not None
         assert result.data["result"] == 42
 
     @pytest.mark.asyncio

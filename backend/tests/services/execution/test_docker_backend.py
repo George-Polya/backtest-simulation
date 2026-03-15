@@ -298,6 +298,7 @@ class TestDockerBackendWithMocks:
 
         assert result.success is False
         assert result.status == JobStatus.TIMEOUT
+        assert result.error is not None
         assert "timed out" in result.error.lower()
 
         # Verify container was killed

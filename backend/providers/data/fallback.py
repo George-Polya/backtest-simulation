@@ -227,12 +227,14 @@ class FallbackDataProvider(DataProvider):
         self,
         ticker: str,
         exchange: Exchange | None = None,
+        reference_date: date | None = None,
     ) -> CurrentPrice:
         """Get current price with fallback support."""
         return await self._execute_with_fallback(
             "get_current_price",
             ticker,
             exchange,
+            reference_date,
         )
 
     async def get_ticker_info(
@@ -251,12 +253,14 @@ class FallbackDataProvider(DataProvider):
         self,
         ticker: str,
         exchange: Exchange | None = None,
+        reference_date: date | None = None,
     ) -> DateRange:
         """Get available date range with fallback support."""
         return await self._execute_with_fallback(
             "get_available_date_range",
             ticker,
             exchange,
+            reference_date,
         )
 
     def detect_exchange(self, ticker: str) -> Exchange:

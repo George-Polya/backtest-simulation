@@ -282,7 +282,7 @@ class LangChainAgentCodeGenerationBackend(CodeGenerationBackend):
             )
             raise
         except asyncio.TimeoutError as error:
-            wrapped = CodeGenerationError(
+            timeout_wrapped = CodeGenerationError(
                 f"Agent generation timed out after {timeout_seconds} seconds",
                 {"error_type": type(error).__name__},
             )
@@ -290,18 +290,18 @@ class LangChainAgentCodeGenerationBackend(CodeGenerationBackend):
                 logging_context,
                 started_at=run_started_at,
                 success=False,
-                error=wrapped,
+                error=timeout_wrapped,
             )
-            raise wrapped from error
+            raise timeout_wrapped from error
         except GraphRecursionError as error:
-            wrapped: Exception
+            recursion_wrapped: Exception
             if last_validation_errors:
-                wrapped = ValidationError(
+                recursion_wrapped = ValidationError(
                     "Generated code failed validation before the agent hit its iteration limit",
                     list(last_validation_errors),
                 )
             else:
-                wrapped = CodeGenerationError(
+                recursion_wrapped = CodeGenerationError(
                     "Agent exceeded the configured iteration limit before producing valid output",
                     {"error_type": type(error).__name__},
                 )
@@ -309,9 +309,9 @@ class LangChainAgentCodeGenerationBackend(CodeGenerationBackend):
                 logging_context,
                 started_at=run_started_at,
                 success=False,
-                error=wrapped,
+                error=recursion_wrapped,
             )
-            raise wrapped from error
+            raise recursion_wrapped from error
         except openai.LengthFinishReasonError as error:
             details: dict[str, Any] = {"error_type": type(error).__name__}
             completion = getattr(error, "completion", None)

@@ -139,6 +139,7 @@ def run_backtest(params):
 
         assert result.success is False
         assert result.status == JobStatus.TIMEOUT
+        assert result.error is not None
         assert "timed out" in result.error.lower()
 
     @pytest.mark.asyncio
@@ -160,6 +161,7 @@ def run_backtest(params):
             result = await local_backend.execute(job, workspace_path=workspace)
 
             assert result.success is True
+            assert result.data is not None
             assert result.data.get("workspace_test") is True
 
     @pytest.mark.asyncio
@@ -378,6 +380,7 @@ def run_backtest(params):
         result = await local_backend.execute(job)
 
         assert result.success is True
+        assert result.data is not None
         assert result.data["capital"] == 50000
         assert result.data["tickers"] == ["AAPL", "GOOGL"]
         assert result.data["doubled"] == 100000

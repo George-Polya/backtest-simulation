@@ -36,7 +36,7 @@ def llm_config() -> LLMConfig:
     """Create a test LLM config."""
     return LLMConfig(
         provider=LLMProviderEnum.LANGCHAIN,
-        model="anthropic/claude-3.5-sonnet",
+        model=LLMModelConfig(name="anthropic/claude-3.5-sonnet"),
         site_url="https://test.com",
         site_name="Test App",
         temperature=0.2,
@@ -244,7 +244,7 @@ class TestGenerate:
         """Test OpenRouter-specific reasoning/web search parameters are sent."""
         llm_config = LLMConfig(
             provider=LLMProviderEnum.LANGCHAIN,
-            model="moonshotai/kimi-k2-thinking",
+            model=LLMModelConfig(name="moonshotai/kimi-k2-thinking"),
             temperature=0.2,
             reasoning_enabled=True,
             reasoning_max_tokens=2048,
@@ -284,7 +284,7 @@ class TestGenerate:
         """Effort-based reasoning should take precedence when configured."""
         llm_config = LLMConfig(
             provider=LLMProviderEnum.LANGCHAIN,
-            model="openai/gpt-5.4",
+            model=LLMModelConfig(name="openai/gpt-5.4"),
             temperature=0.0,
             reasoning_enabled=True,
             reasoning_max_tokens=2048,

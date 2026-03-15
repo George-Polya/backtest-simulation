@@ -7,14 +7,20 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import openai
 import pytest
 from langchain_core.messages import AIMessage
 from langgraph.errors import GraphRecursionError
+from openai.types.chat import ChatCompletion
 
-from backend.core.config import LLMConfig, LLMProvider as LLMProviderEnum
+from backend.core.config import (
+    LLMConfig,
+    LLMModelConfig,
+    LLMProvider as LLMProviderEnum,
+)
 from backend.services.code_generation.base import CodeGenerationBackendRequest
 from backend.services.code_generation.base import CodeGenerationError, ValidationError
 from backend.services.code_generation.langchain_agent_backend import (
@@ -28,7 +34,7 @@ def llm_config() -> LLMConfig:
     """Create LLM config with agent settings enabled."""
     return LLMConfig(
         provider=LLMProviderEnum.LANGCHAIN,
-        model="anthropic/claude-3.5-sonnet",
+        model=LLMModelConfig(name="anthropic/claude-3.5-sonnet"),
         temperature=0.0,
         max_tokens=8000,
         agent_max_iterations=4,
@@ -310,13 +316,19 @@ async def test_agent_backend_maps_length_limit_error_to_domain_error(
     )
     graph_patch, _ = _patch_graph(
         side_effect=openai.LengthFinishReasonError(
-            completion=SimpleNamespace(
-                usage=SimpleNamespace(
-                    completion_tokens=8000,
-                    prompt_tokens=5118,
-                    total_tokens=13118,
-                    completion_tokens_details=SimpleNamespace(reasoning_tokens=8000),
-                )
+            completion=cast(
+                ChatCompletion,
+                cast(
+                    Any,
+                    SimpleNamespace(
+                        usage=SimpleNamespace(
+                            completion_tokens=8000,
+                            prompt_tokens=5118,
+                            total_tokens=13118,
+                            completion_tokens_details=SimpleNamespace(reasoning_tokens=8000),
+                        )
+                    ),
+                ),
             )
         )
     )

@@ -20,6 +20,7 @@ from backend.providers.data.base import (
     CurrentPrice,
     DataProvider,
     DataProviderError,
+    DateRange,
     Exchange,
     PriceData,
     TickerInfo,
@@ -243,6 +244,7 @@ class CachedDataProvider(DataProvider):
         self,
         ticker: str,
         exchange: Exchange | None = None,
+        reference_date: date | None = None,
     ) -> CurrentPrice:
         """Get current price with shorter cache TTL."""
         # Current price has shorter TTL (30 seconds)
@@ -252,6 +254,7 @@ class CachedDataProvider(DataProvider):
             "get_current_price",
             ticker,
             exchange.value if exchange else None,
+            reference_date.isoformat() if reference_date else None,
         )
 
         found, cached_value = await self._cache.get(cache_key)
@@ -260,7 +263,11 @@ class CachedDataProvider(DataProvider):
             return cached_value
 
         logger.debug(f"Cache miss for current price: {ticker}")
-        result = await self._provider.get_current_price(ticker, exchange)
+        result = await self._provider.get_current_price(
+            ticker,
+            exchange,
+            reference_date,
+        )
         await self._cache.set(cache_key, result, current_price_ttl)
         return result
 
@@ -293,19 +300,25 @@ class CachedDataProvider(DataProvider):
         self,
         ticker: str,
         exchange: Exchange | None = None,
-    ):
+        reference_date: date | None = None,
+    ) -> DateRange:
         """Get available date range with caching."""
         cache_key = self._make_cache_key(
             "get_available_date_range",
             ticker,
             exchange.value if exchange else None,
+            reference_date.isoformat() if reference_date else None,
         )
 
         found, cached_value = await self._cache.get(cache_key)
         if found:
             return cached_value
 
-        result = await self._provider.get_available_date_range(ticker, exchange)
+        result = await self._provider.get_available_date_range(
+            ticker,
+            exchange,
+            reference_date,
+        )
         await self._cache.set(cache_key, result, self._cache_ttl)
         return result
 

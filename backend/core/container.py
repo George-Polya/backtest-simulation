@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from backend.providers.data.base import DataProvider
     from backend.providers.llm.base import LLMProvider
     from backend.services.code_generation.base import CodeGenerationBackend
-    from backend.services.code_generator import BacktestCodeGenerator
+    from backend.services.code_generator import BacktestCodeGenerator, CodeValidator
     from backend.services.code_validator import ASTCodeValidator
     from backend.services.execution.manager import JobManager
     from backend.services.result_formatter import ResultFormatter

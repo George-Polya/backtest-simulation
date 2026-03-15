@@ -28,6 +28,7 @@ from backend.services.code_generation.base import (
     CodeGenerationBackend,
     CodeGenerationError,
     CodeGenerationBackendRequest,
+    CodeValidationResult,
 )
 from backend.services.code_generation.base import ValidationError as ValidationError  # noqa: F401 - re-exported via services/__init__.py
 from backend.utils.ticker_extraction import (
@@ -67,7 +68,7 @@ class CodeValidator(Protocol):
     Allows dependency injection of different validation strategies.
     """
 
-    def validate(self, code: str) -> "ValidationResult":
+    def validate(self, code: str) -> CodeValidationResult:
         """
         Validate generated Python code.
 

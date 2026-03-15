@@ -178,6 +178,7 @@ class JobManager:
             self._backend = BackendFactory.create(self._settings)
 
         # Initialize fallback backend
+        self._fallback_backend: ExecutionBackend | None
         if fallback_backend is not None:
             self._fallback_backend = fallback_backend
         elif self._settings.execution.fallback_to_local and \
@@ -313,8 +314,10 @@ class JobManager:
                         f"Falling back to local execution."
                     )
                     # Reset job status for retry
-                    job._status = JobStatus.RUNNING
-                    job._error = None
+                    job.status = JobStatus.RUNNING
+                    job.error = None
+                    job.error_code = None
+                    job.completed_at = None
 
                     # Execute with fallback backend
                     result = await self._fallback_backend.execute(job, workspace_path=host_workspace)
@@ -447,8 +450,10 @@ class JobManager:
                         f"Falling back to local execution."
                     )
                     # Reset job status for retry
-                    job._status = JobStatus.RUNNING
-                    job._error = None
+                    job.status = JobStatus.RUNNING
+                    job.error = None
+                    job.error_code = None
+                    job.completed_at = None
 
                     # Execute with fallback backend
                     await self._fallback_backend.execute(job, workspace_path=host_workspace)
