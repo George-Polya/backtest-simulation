@@ -162,6 +162,7 @@ export function BacktestWorkspace() {
             disabled={
               !requestConfig ||
               generatedCode.trim().length === 0 ||
+              !!generationError ||
               isGenerating ||
               isSubmittingExecution ||
               isJobInFlight
