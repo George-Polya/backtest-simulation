@@ -4,12 +4,22 @@ const clientEnvSchema = z.object({
   NEXT_PUBLIC_API_BASE_URL: z.string().url()
 });
 
-const parsedEnv = clientEnvSchema.safeParse({
-  NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL
-});
+function getEnv() {
+  const parsedEnv = clientEnvSchema.safeParse({
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL
+  });
 
-if (!parsedEnv.success) {
-  throw new Error('Missing or invalid NEXT_PUBLIC_API_BASE_URL environment variable.');
+  if (!parsedEnv.success) {
+    throw new Error('Missing or invalid NEXT_PUBLIC_API_BASE_URL environment variable.');
+  }
+
+  return parsedEnv.data;
 }
 
-export const env = parsedEnv.data;
+type EnvType = z.infer<typeof clientEnvSchema>;
+
+export const env: EnvType = new Proxy({} as EnvType, {
+  get(_, prop: string) {
+    return getEnv()[prop as keyof EnvType];
+  }
+});
