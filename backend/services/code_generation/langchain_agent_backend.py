@@ -14,7 +14,7 @@ import openai
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.errors import GraphRecursionError
-from pydantic import BaseModel, ValidationError as PydanticValidationError
+from pydantic import ValidationError as PydanticValidationError
 
 from backend.core.config import LLMConfig
 from backend.providers.llm.base import GenerationResult, LLMProviderError, ModelInfo

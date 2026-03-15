@@ -28,9 +28,8 @@ from backend.services.code_generation.base import (
     CodeGenerationBackend,
     CodeGenerationError,
     CodeGenerationBackendRequest,
-    CodeGenerationBackendResult,
-    ValidationError,
 )
+from backend.services.code_generation.base import ValidationError as ValidationError  # noqa: F401 - re-exported via services/__init__.py
 from backend.utils.ticker_extraction import (
     extract_tickers_from_code,
     merge_ticker_sources,

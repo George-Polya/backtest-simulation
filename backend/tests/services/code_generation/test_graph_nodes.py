@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage
-from pydantic import BaseModel
 
 from backend.services.code_generation.graph.nodes import (
     AgentStructuredResponse,

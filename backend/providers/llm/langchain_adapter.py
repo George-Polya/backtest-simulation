@@ -8,7 +8,6 @@ API Documentation: https://openrouter.ai/docs
 LangChain Documentation: https://python.langchain.com/docs/integrations/chat/openai
 """
 
-from decimal import Decimal
 from typing import Any
 
 from langchain_openai import ChatOpenAI
@@ -30,7 +29,6 @@ from backend.providers.llm.langchain_client import (
     build_chat_openai_kwargs,
     build_model_info,
     build_openrouter_extra_body,
-    OPENROUTER_BASE_URL,
     resolve_generation_config,
 )
 from backend.providers.llm.model_limits import resolve_openrouter_limits
