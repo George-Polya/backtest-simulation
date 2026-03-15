@@ -29,10 +29,10 @@ function createRequest(): BacktestRequest {
 }
 
 describe('api error handling', () => {
-  const originalTimeout = apiClient.defaults.timeout;
+  const originalTimeout = apiClient().defaults.timeout;
 
   afterEach(() => {
-    apiClient.defaults.timeout = originalTimeout;
+    apiClient().defaults.timeout = originalTimeout;
   });
 
   it('handles 400 bad request errors', async () => {
@@ -123,8 +123,8 @@ describe('api error handling', () => {
   });
 
   it('handles timeout errors', async () => {
-    const originalAdapter = apiClient.defaults.adapter;
-    apiClient.defaults.adapter = async (config) => {
+    const originalAdapter = apiClient().defaults.adapter;
+    apiClient().defaults.adapter = async (config) => {
       throw new AxiosError(
         'timeout of 30ms exceeded',
         'ECONNABORTED',
@@ -138,7 +138,7 @@ describe('api error handling', () => {
         message: 'Request timeout. Please try again.'
       });
     } finally {
-      apiClient.defaults.adapter = originalAdapter;
+      apiClient().defaults.adapter = originalAdapter;
     }
   });
 

@@ -1,5 +1,5 @@
-import axios, { AxiosError } from 'axios';
-import { env } from '@/lib/env';
+import axios, { AxiosError, AxiosInstance } from 'axios';
+import { getValidatedEnv } from '@/lib/env';
 import {
   BackendErrorCode,
   BacktestRequest,
@@ -35,13 +35,36 @@ export class ApiError extends Error {
   }
 }
 
-const client = axios.create({
-  baseURL: env.NEXT_PUBLIC_API_BASE_URL,
-  timeout: 30_000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+let _client: AxiosInstance | null = null;
+
+function getClient(): AxiosInstance {
+  if (_client) return _client;
+
+  _client = axios.create({
+    baseURL: getValidatedEnv().NEXT_PUBLIC_API_BASE_URL,
+    timeout: 30_000,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  _client.interceptors.response.use(
+    (response) => response,
+    async (error: unknown) => {
+      if (axios.isAxiosError(error)) {
+        return Promise.reject(toApiError(error));
+      }
+
+      if (error instanceof Error) {
+        return Promise.reject(new ApiError(error.message, 'UNKNOWN_ERROR'));
+      }
+
+      return Promise.reject(new ApiError('Unexpected API error', 'UNKNOWN_ERROR'));
+    }
+  );
+
+  return _client;
+}
 
 interface ExtractedError {
   message: string;
@@ -108,21 +131,6 @@ function toApiError(error: AxiosError): ApiError {
   return new ApiError(error.message || 'Unexpected API error', 'UNKNOWN_ERROR');
 }
 
-client.interceptors.response.use(
-  (response) => response,
-  async (error: unknown) => {
-    if (axios.isAxiosError(error)) {
-      return Promise.reject(toApiError(error));
-    }
-
-    if (error instanceof Error) {
-      return Promise.reject(new ApiError(error.message, 'UNKNOWN_ERROR'));
-    }
-
-    return Promise.reject(new ApiError('Unexpected API error', 'UNKNOWN_ERROR'));
-  }
-);
-
 export interface GenerateCodeOptions {
   signal?: AbortSignal;
   timeoutMs?: number;
@@ -132,7 +140,7 @@ export async function generateCode(
   payload: BacktestRequest,
   options: GenerateCodeOptions = {}
 ): Promise<GenerateBacktestResponse> {
-  const { data } = await client.post<GenerateBacktestResponse>('/backtest/generate', payload, {
+  const { data } = await getClient().post<GenerateBacktestResponse>('/backtest/generate', payload, {
     signal: options.signal,
     timeout: options.timeoutMs
   });
@@ -142,23 +150,23 @@ export async function generateCode(
 export async function executeBacktest(
   payload: ExecuteBacktestRequest
 ): Promise<ExecuteBacktestResponse> {
-  const { data } = await client.post<ExecuteBacktestResponse>('/backtest/execute', payload);
+  const { data } = await getClient().post<ExecuteBacktestResponse>('/backtest/execute', payload);
   return data;
 }
 
 export async function getJobStatus(jobId: string): Promise<JobStatusResponse> {
-  const { data } = await client.get<JobStatusResponse>(`/backtest/status/${jobId}`);
+  const { data } = await getClient().get<JobStatusResponse>(`/backtest/status/${jobId}`);
   return data;
 }
 
 export async function getJobResult(jobId: string): Promise<ExecutionResult> {
-  const { data } = await client.get<ExecutionResult>(`/backtest/result/${jobId}`);
+  const { data } = await getClient().get<ExecutionResult>(`/backtest/result/${jobId}`);
   return data;
 }
 
 export async function getFormattedResult(jobId: string): Promise<BacktestResultResponse> {
-  const { data } = await client.get<BacktestResultResponse>(`/backtest/${jobId}/result`);
+  const { data } = await getClient().get<BacktestResultResponse>(`/backtest/${jobId}/result`);
   return data;
 }
 
-export { client as apiClient };
+export { getClient as apiClient };
