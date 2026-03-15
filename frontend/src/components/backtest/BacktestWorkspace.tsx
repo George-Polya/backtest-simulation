@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useBacktestActions, useExecuteBacktest, useGenerateCode, useJobPolling } from '@/hooks';
 import { useBacktestStore } from '@/stores';
 import {
@@ -20,6 +20,7 @@ import { GenerationInfo } from './GenerationInfo';
 import { StatusBanner } from './StatusBanner';
 
 export function BacktestWorkspace() {
+  const [isHydrated, setIsHydrated] = useState(false);
   const {
     generatedCode,
     generationMetadata,
@@ -117,8 +118,17 @@ export function BacktestWorkspace() {
     generateCodeMutation(requestConfig);
   };
 
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(320px,1fr)_minmax(0,2fr)]" id="workspace">
+    <div
+      aria-busy={!isHydrated}
+      className="grid gap-4 lg:grid-cols-[minmax(320px,1fr)_minmax(0,2fr)]"
+      data-hydrated={isHydrated ? 'true' : 'false'}
+      id="workspace"
+    >
       <Card className="h-fit" title="Configuration & Actions">
         <div className="mb-4 flex flex-wrap gap-2">
           <Button

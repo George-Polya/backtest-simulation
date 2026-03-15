@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node .next/standalone/server.js",
+    "start": "next start",
+    "start:e2e": "node scripts/start-playwright.mjs",
     "lint": "next lint",
     "type-check": "tsc --noEmit --incremental false",
     "test": "vitest",

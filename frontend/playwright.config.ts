@@ -7,7 +7,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL: 'http://127.0.0.1:3100',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure'
@@ -23,14 +23,14 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: 'npm run start',
+    command: 'npm run start:e2e',
     env: {
       HOSTNAME: '127.0.0.1',
-      PORT: '3000',
+      PORT: '3100',
       NEXT_PUBLIC_API_BASE_URL: 'http://localhost:8000/api/v1'
     },
-    url: 'http://127.0.0.1:3000',
-    reuseExistingServer: !process.env.CI,
+    url: 'http://127.0.0.1:3100',
+    reuseExistingServer: false,
     timeout: 120_000
   }
 });

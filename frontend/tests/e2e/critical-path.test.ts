@@ -129,6 +129,7 @@ test('critical path: input -> generate -> execute -> result -> export', async ({
   });
 
   await page.goto('/workspace');
+  await expect(page.locator('#workspace')).toHaveAttribute('data-hydrated', 'true');
 
   await page.getByRole('button', { name: 'Collapse Config' }).click();
   await expect(page.getByRole('button', { name: 'Expand Config' })).toBeVisible();
