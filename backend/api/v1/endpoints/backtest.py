@@ -1196,11 +1196,8 @@ async def generate_backtest_code(
         # Generate the code
         generated_code = await generator.generate(request)
 
-        # Extract tickers for the response
-        tickers_found = generator._extract_tickers(
-            request.strategy,
-            request.params.benchmarks,
-        )
+        # Use tickers already extracted during generation (avoid redundant extraction)
+        tickers_found = generated_code.tickers
 
         generation_time = time.time() - start_time
 
